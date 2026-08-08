@@ -1,0 +1,19 @@
+{
+  "provider": "edge-tts",
+  "speakers": {
+    "seraphina": {
+      "voice": "en-US-AnaNeural",
+      "rate": "-8%"
+    },
+    "dad": {
+      "voice": "en-US-GuyNeural",
+      "rate": "-10%",
+      "pitch": "-15Hz"
+    },
+    "sister": {
+      "voice": "en-US-AnaNeural",
+      "rate": "+6%",
+      "pitch": "+40Hz"
+    }
+  }
+}

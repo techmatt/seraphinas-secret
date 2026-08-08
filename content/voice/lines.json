@@ -1,0 +1,50 @@
+[
+  {
+    "id": "seraphina_secret",
+    "speaker": "seraphina",
+    "text": "I need your help making sure Dad never finds this!"
+  },
+  {
+    "id": "seraphina_sparky",
+    "speaker": "seraphina",
+    "text": "Sss — Sparky!",
+    "say": "Suh — Sparky!",
+    "rate": "-25%",
+    "note": "edge-tts reads any run of s's as the letter NAME, repeated: 'Sss' comes out 'ess ess ess'. 'Suh' at least leads with a real /s/. Placeholder until ElevenLabs — see scratch/voice_pipeline_spike_report.md."
+  },
+  {
+    "id": "seraphina_munchy",
+    "speaker": "seraphina",
+    "text": "Mmm — Munchy wants the mango."
+  },
+  {
+    "id": "dad_sparkle",
+    "speaker": "dad",
+    "text": "Hm, did something sparkle?"
+  },
+  {
+    "id": "dad_bedtime",
+    "speaker": "dad",
+    "text": "Time for bed!"
+  },
+  {
+    "id": "dad_apple",
+    "speaker": "dad",
+    "text": "Can you bring me an apple?"
+  },
+  {
+    "id": "sister_book",
+    "speaker": "sister",
+    "text": "Read me a book!"
+  },
+  {
+    "id": "sister_again",
+    "speaker": "sister",
+    "text": "Again! Again!"
+  },
+  {
+    "id": "seraphina_wardrobe",
+    "speaker": "seraphina",
+    "text": "Wardrobe"
+  }
+]

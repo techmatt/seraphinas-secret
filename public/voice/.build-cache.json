@@ -1,0 +1,305 @@
+{
+  "seraphina_secret": {
+    "hash": "2f541aa93cb5c3f6",
+    "entry": {
+      "id": "seraphina_secret",
+      "speaker": "seraphina",
+      "text": "I need your help making sure Dad never finds this!",
+      "audio": "voice/seraphina_secret.mp3",
+      "words": [
+        {
+          "word": "I",
+          "start": 0.104,
+          "end": 0.24
+        },
+        {
+          "word": "need",
+          "start": 0.254,
+          "end": 0.593
+        },
+        {
+          "word": "your",
+          "start": 0.607,
+          "end": 0.77
+        },
+        {
+          "word": "help",
+          "start": 0.784,
+          "end": 1.083
+        },
+        {
+          "word": "making",
+          "start": 1.096,
+          "end": 1.517
+        },
+        {
+          "word": "sure",
+          "start": 1.531,
+          "end": 1.911
+        },
+        {
+          "word": "Dad",
+          "start": 1.925,
+          "end": 2.333
+        },
+        {
+          "word": "never",
+          "start": 2.346,
+          "end": 2.754
+        },
+        {
+          "word": "finds",
+          "start": 2.767,
+          "end": 3.257
+        },
+        {
+          "word": "this!",
+          "start": 3.27,
+          "end": 3.732
+        }
+      ],
+      "duration": 3.732
+    }
+  },
+  "seraphina_sparky": {
+    "hash": "e0b62f9c414acbef",
+    "entry": {
+      "id": "seraphina_sparky",
+      "speaker": "seraphina",
+      "text": "Sss — Sparky!",
+      "audio": "voice/seraphina_sparky.mp3",
+      "words": [
+        {
+          "word": "Sss",
+          "start": 0.117,
+          "end": 0.633
+        },
+        {
+          "word": "—",
+          "start": 0.633,
+          "end": 0.633
+        },
+        {
+          "word": "Sparky!",
+          "start": 0.983,
+          "end": 1.933
+        }
+      ],
+      "duration": 1.933
+    }
+  },
+  "seraphina_munchy": {
+    "hash": "7bb651bf88fd9c93",
+    "entry": {
+      "id": "seraphina_munchy",
+      "speaker": "seraphina",
+      "text": "Mmm — Munchy wants the mango.",
+      "audio": "voice/seraphina_munchy.mp3",
+      "words": [
+        {
+          "word": "Mmm",
+          "start": 0.104,
+          "end": 0.539
+        },
+        {
+          "word": "—",
+          "start": 0.539,
+          "end": 0.539
+        },
+        {
+          "word": "Munchy",
+          "start": 0.824,
+          "end": 1.259
+        },
+        {
+          "word": "wants",
+          "start": 1.273,
+          "end": 1.653
+        },
+        {
+          "word": "the",
+          "start": 1.667,
+          "end": 1.776
+        },
+        {
+          "word": "mango.",
+          "start": 1.789,
+          "end": 2.441
+        }
+      ],
+      "duration": 2.441
+    }
+  },
+  "dad_sparkle": {
+    "hash": "39f5249e372b5715",
+    "entry": {
+      "id": "dad_sparkle",
+      "speaker": "dad",
+      "text": "Hm, did something sparkle?",
+      "audio": "voice/dad_sparkle.mp3",
+      "words": [
+        {
+          "word": "Hm,",
+          "start": 0.106,
+          "end": 0.744
+        },
+        {
+          "word": "did",
+          "start": 0.981,
+          "end": 1.161
+        },
+        {
+          "word": "something",
+          "start": 1.189,
+          "end": 1.606
+        },
+        {
+          "word": "sparkle?",
+          "start": 1.633,
+          "end": 2.244
+        }
+      ],
+      "duration": 2.244
+    }
+  },
+  "dad_bedtime": {
+    "hash": "9b9359c955f5f9b9",
+    "entry": {
+      "id": "dad_bedtime",
+      "speaker": "dad",
+      "text": "Time for bed!",
+      "audio": "voice/dad_bedtime.mp3",
+      "words": [
+        {
+          "word": "Time",
+          "start": 0.106,
+          "end": 0.467
+        },
+        {
+          "word": "for",
+          "start": 0.494,
+          "end": 0.689
+        },
+        {
+          "word": "bed!",
+          "start": 0.703,
+          "end": 1.147
+        }
+      ],
+      "duration": 1.147
+    }
+  },
+  "dad_apple": {
+    "hash": "6892b857d16ab700",
+    "entry": {
+      "id": "dad_apple",
+      "speaker": "dad",
+      "text": "Can you bring me an apple?",
+      "audio": "voice/dad_apple.mp3",
+      "words": [
+        {
+          "word": "Can",
+          "start": 0.106,
+          "end": 0.314
+        },
+        {
+          "word": "you",
+          "start": 0.342,
+          "end": 0.467
+        },
+        {
+          "word": "bring",
+          "start": 0.481,
+          "end": 0.772
+        },
+        {
+          "word": "me",
+          "start": 0.786,
+          "end": 0.939
+        },
+        {
+          "word": "an",
+          "start": 0.967,
+          "end": 1.078
+        },
+        {
+          "word": "apple?",
+          "start": 1.106,
+          "end": 1.592
+        }
+      ],
+      "duration": 1.592
+    }
+  },
+  "sister_book": {
+    "hash": "6965e62872074226",
+    "entry": {
+      "id": "sister_book",
+      "speaker": "sister",
+      "text": "Read me a book!",
+      "audio": "voice/sister_book.mp3",
+      "words": [
+        {
+          "word": "Read",
+          "start": 0.097,
+          "end": 0.404
+        },
+        {
+          "word": "me",
+          "start": 0.416,
+          "end": 0.581
+        },
+        {
+          "word": "a",
+          "start": 0.592,
+          "end": 0.663
+        },
+        {
+          "word": "book!",
+          "start": 0.675,
+          "end": 1.041
+        }
+      ],
+      "duration": 1.041
+    }
+  },
+  "sister_again": {
+    "hash": "2ada0b4370d49749",
+    "entry": {
+      "id": "sister_again",
+      "speaker": "sister",
+      "text": "Again! Again!",
+      "audio": "voice/sister_again.mp3",
+      "words": [
+        {
+          "word": "Again!",
+          "start": 0.099,
+          "end": 0.629
+        },
+        {
+          "word": "Again!",
+          "start": 1.428,
+          "end": 1.959
+        }
+      ],
+      "duration": 1.959
+    }
+  },
+  "seraphina_wardrobe": {
+    "hash": "473e89218d14eee5",
+    "entry": {
+      "id": "seraphina_wardrobe",
+      "speaker": "seraphina",
+      "text": "Wardrobe",
+      "audio": "voice/seraphina_wardrobe.mp3",
+      "words": [
+        {
+          "word": "Wardrobe",
+          "start": 0.104,
+          "end": 0.906
+        }
+      ],
+      "duration": 0.906
+    }
+  }
+}

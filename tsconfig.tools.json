@@ -1,0 +1,12 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    // DOM is here only because inspect.ts ships a function into a Playwright
+    // page to decode audio; nothing else in tools/ may touch a browser global.
+    "lib": ["ES2022", "DOM"],
+    "types": ["node"],
+    "module": "NodeNext",
+    "moduleResolution": "nodenext"
+  },
+  "include": ["tools"]
+}
