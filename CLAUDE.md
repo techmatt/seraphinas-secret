@@ -8,8 +8,11 @@ Xbox 360 pad is the primary input; keyboard exists mainly so automated tests can
 drive the game. Heavy audio and particle "juice" is a feature, not polish — it is
 most of what makes the game readable to a small child.
 
-Voices will be pre-generated neural TTS with word-level timestamps. That pipeline
-lives outside this repo and is not wired up yet.
+Every piece of text speaks, and the word being spoken is always highlighted — that
+pairing is the reading instruction, not decoration. Voices are pre-generated neural
+TTS with word-level timestamps, baked at content time, never synthesised at runtime.
+The provider today is edge-tts (free proxy voices); ElevenLabs replaces it later, so
+the game may only ever read `public/voice/manifest.json`, never a provider.
 
 **Stack** (decided 2026-08-08): TypeScript + Phaser 3 + Vite, npm. It runs as a
 local browser page — open it and press F11 for fullscreen. Playwright drives
@@ -20,14 +23,19 @@ headless boot/screenshot smoke tests.
 | Path | What |
 | --- | --- |
 | `src/` | Game source. `main.ts` boots Phaser; `scenes/` holds scenes. |
-| `public/` | Static assets served as-is (art, audio) once there are any. |
-| `tests/` | Playwright specs. |
+| `content/voice/` | Authored dialog: `lines.json` and `voices.json`. Source of truth. |
+| `tools/voice/` | The generator. Providers live under `providers/`; nothing else may. |
+| `public/` | Static assets served as-is. `voice/` is generated — do not hand-edit. |
+| `tests/` | Playwright specs, plus `harness.ts` (boot, steer, read hooks). |
 | `tests/screenshots/` | Smoke-test screenshots — the planner's visual audit trail. |
 | `scratch/` | Reports and appendices. Committed on purpose. |
 | `dist/` | `npm run build` output. Ignored. |
 
 **Commands**: `npm run dev` (serve), `npm run build` (static `dist/`),
-`npm run preview` (serve the build), `npm test` (Playwright, headless).
+`npm run preview` (serve the build), `npm test` (Playwright, headless),
+`npm run typecheck` (`src/` and `tools/`), `npm run voice:build` (regenerate audio;
+incremental, `--force` to redo everything), `npm run voice:inspect` (check word
+timings and phonics against the actual waveform, without listening).
 
 ---
 
