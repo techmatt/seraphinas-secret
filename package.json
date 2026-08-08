@@ -1,0 +1,23 @@
+{
+  "name": "seraphinas-secret",
+  "private": true,
+  "version": "0.0.1",
+  "description": "A cozy, no-fail 2D exploration game.",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "test": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.62.1",
+    "@types/node": "^26.2.0",
+    "typescript": "^7.0.2",
+    "vite": "^8.2.1"
+  },
+  "dependencies": {
+    "phaser": "^3.90.0"
+  }
+}
