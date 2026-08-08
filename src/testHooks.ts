@@ -30,6 +30,31 @@ export interface TestHooks {
    * still render, they just stop updating.
    */
   pause: () => void;
+  voice: VoiceHooks;
+}
+
+/**
+ * Highlight-on-speak is the mechanic most worth testing and the least testable
+ * in real time: a word's turn can be under 150 ms, which no round trip beats.
+ * So the test drives the line's clock directly instead of racing playback.
+ */
+export interface VoiceHooks {
+  /** True once the manifest and its audio have finished loading. */
+  loaded: boolean;
+  /** Manifest line ids, so a test can assert on content it did not hardcode. */
+  ids: string[];
+  /** The line currently in the bubble, or null. */
+  lineId: string | null;
+  /** Display tokens of that line, in order. */
+  words: string[];
+  /** Index into `words` of the glowing one, or -1 between words. */
+  highlighted: number;
+  /** Start a line by id, without walking to anything. */
+  say: (id: string) => void;
+  /** Jump the line's clock to `seconds` and stop the audio, so it holds still. */
+  scrub: (seconds: number) => void;
+  /** Word timings of a manifest line, for asserting against what is shown. */
+  timings: (id: string) => { word: string; start: number; end: number }[];
 }
 
 declare global {
@@ -47,6 +72,16 @@ export const hooks: TestHooks = {
   aliveParticles: 0,
   peakParticles: 0,
   pause: () => undefined,
+  voice: {
+    loaded: false,
+    ids: [],
+    lineId: null,
+    words: [],
+    highlighted: -1,
+    say: () => undefined,
+    scrub: () => undefined,
+    timings: () => [],
+  },
 };
 
 export function installTestHooks(): void {

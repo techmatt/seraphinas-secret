@@ -2,36 +2,15 @@
  * Placeholder audio: a synthesised chime, no asset files.
  *
  * This exists to prove the audio path works end to end (context creation,
- * gesture-gated resume, actual sample output). Real sound design and the
- * pre-generated TTS voice lines replace it later.
+ * gesture-gated resume, actual sample output). Real sound design replaces it
+ * later; the voice lines already have their own pipeline.
  */
 
-let ctx: AudioContext | null = null;
-
-function getContext(): AudioContext | null {
-  if (ctx) return ctx;
-  const Ctor = window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
-  if (!Ctor) return null;
-  try {
-    ctx = new Ctor();
-  } catch {
-    return null;
-  }
-  return ctx;
-}
-
-/**
- * Browsers start an AudioContext suspended until a user gesture. Call this from
- * any input handler; it is cheap and safe to call repeatedly.
- */
-export function unlockAudio(): void {
-  const c = getContext();
-  if (c && c.state === 'suspended') void c.resume().catch(() => undefined);
-}
+import { getAudioContext, unlockAudio } from './context';
 
 /** A short two-note sparkle. Never throws — audio failing must not kill the game. */
 export function playSparkleChime(): void {
-  const c = getContext();
+  const c = getAudioContext();
   if (!c) return;
   unlockAudio();
 

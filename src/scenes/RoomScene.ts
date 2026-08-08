@@ -1,6 +1,9 @@
 import Phaser from 'phaser';
 import { GAME_WIDTH, GAME_HEIGHT } from '../config';
-import { playSparkleChime, unlockAudio } from '../audio/beep';
+import { playSparkleChime } from '../audio/beep';
+import { unlockAudio } from '../audio/context';
+import { SpeechBubble } from '../ui/SpeechBubble';
+import { VoiceBank } from '../voice/VoiceBank';
 import { hooks } from '../testHooks';
 
 /** Walk speed in pixels per second. Deliberately unhurried. */
@@ -15,6 +18,9 @@ const INTERACT_RADIUS = 120;
 /** Inset of the walkable floor from the canvas edge. */
 const WALL = 48;
 
+/** The line the stone says. One of Seraphina's, until there is real content. */
+const STONE_LINE = 'seraphina_secret';
+
 /**
  * The one and only room, for now. A flat-colour floor, a placeholder character,
  * and a single object that sparkles when you press A. Everything here is a stand
@@ -26,6 +32,8 @@ export class RoomScene extends Phaser.Scene {
   private sparkles!: Phaser.GameObjects.Particles.ParticleEmitter;
   private prompt!: Phaser.GameObjects.Text;
   private padStatus!: Phaser.GameObjects.Text;
+  private bubble!: SpeechBubble;
+  private readonly voice = new VoiceBank();
 
   private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
   private wasd!: Record<'up' | 'down' | 'left' | 'right', Phaser.Input.Keyboard.Key>;
@@ -63,6 +71,17 @@ export class RoomScene extends Phaser.Scene {
     this.setupInput();
     this.drawHud();
 
+    // The bubble belongs to whoever is talking, which for now is always
+    // Seraphina, so it anchors to the player.
+    this.bubble = new SpeechBubble(this, this.player.x, this.player.y, this.voice);
+    this.setupVoiceHooks();
+    // Fire and forget: the room is playable while the voice is still loading,
+    // and stays playable if it never arrives.
+    void this.voice.load().then(() => {
+      hooks.voice.loaded = this.voice.loaded;
+      hooks.voice.ids = this.voice.ids;
+    });
+
     hooks.player.x = this.player.x;
     hooks.player.y = this.player.y;
     hooks.stone.x = this.stone.x;
@@ -78,11 +97,39 @@ export class RoomScene extends Phaser.Scene {
 
     this.movePlayer(seconds, pad);
     this.handleInteract(pad);
+    this.bubble.tick();
 
     hooks.player.x = this.player.x;
     hooks.player.y = this.player.y;
     hooks.aliveParticles = this.sparkles.getAliveParticleCount();
     hooks.peakParticles = Math.max(hooks.peakParticles, hooks.aliveParticles);
+    hooks.voice.lineId = this.bubble.lineId;
+    hooks.voice.words = this.bubble.spokenWords;
+    hooks.voice.highlighted = this.bubble.highlightedIndex;
+  }
+
+  /**
+   * The bubble is driven directly rather than through gameplay, because a word
+   * can be spoken for under 150 ms — far less than a test's round trip.
+   */
+  private setupVoiceHooks(): void {
+    hooks.voice.say = (id) => {
+      unlockAudio();
+      this.bubble.say(id, this.player);
+      this.syncVoiceHooks();
+    };
+    hooks.voice.scrub = (seconds) => {
+      this.bubble.scrub(seconds);
+      this.syncVoiceHooks();
+    };
+    hooks.voice.timings = (id) => this.voice.get(id)?.words ?? [];
+  }
+
+  /** update() does this every frame, but a paused scene has no frames. */
+  private syncVoiceHooks(): void {
+    hooks.voice.lineId = this.bubble.lineId;
+    hooks.voice.words = this.bubble.spokenWords;
+    hooks.voice.highlighted = this.bubble.highlightedIndex;
   }
 
   // --- input -------------------------------------------------------------
@@ -180,6 +227,7 @@ export class RoomScene extends Phaser.Scene {
   private burst(): void {
     this.sparkles.explode(48, this.stone.x, this.stone.y);
     playSparkleChime();
+    this.bubble.say(STONE_LINE, this.player);
     this.cameras.main.shake(140, 0.004);
 
     this.tweens.add({
