@@ -1,5 +1,12 @@
 [
   {
+    "id": "seraphina_hello",
+    "speaker": "seraphina",
+    "text": "Hi! Let's play!",
+    "say": "Hi, let's play!",
+    "note": "The title screen greeting — the first thing the game ever says. Spoken with a comma: edge-tts puts a full second of silence after a mid-line '!', which on screen is a second with no word lit. The comma keeps the beat without the dead air."
+  },
+  {
     "id": "seraphina_secret",
     "speaker": "seraphina",
     "text": "I need your help making sure Dad never finds this!"

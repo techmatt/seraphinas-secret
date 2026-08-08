@@ -1,4 +1,31 @@
 {
+  "seraphina_hello": {
+    "hash": "ababeabbe92b7dbc",
+    "entry": {
+      "id": "seraphina_hello",
+      "speaker": "seraphina",
+      "text": "Hi! Let's play!",
+      "audio": "voice/seraphina_hello.mp3",
+      "words": [
+        {
+          "word": "Hi!",
+          "start": 0.104,
+          "end": 0.458
+        },
+        {
+          "word": "Let's",
+          "start": 0.716,
+          "end": 1.015
+        },
+        {
+          "word": "play!",
+          "start": 1.028,
+          "end": 1.504
+        }
+      ],
+      "duration": 1.504
+    }
+  },
   "seraphina_secret": {
     "hash": "2f541aa93cb5c3f6",
     "entry": {

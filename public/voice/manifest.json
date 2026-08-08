@@ -3,6 +3,30 @@
   "provider": "edge-tts",
   "lines": [
     {
+      "id": "seraphina_hello",
+      "speaker": "seraphina",
+      "text": "Hi! Let's play!",
+      "audio": "voice/seraphina_hello.mp3",
+      "words": [
+        {
+          "word": "Hi!",
+          "start": 0.104,
+          "end": 0.458
+        },
+        {
+          "word": "Let's",
+          "start": 0.716,
+          "end": 1.015
+        },
+        {
+          "word": "play!",
+          "start": 1.028,
+          "end": 1.504
+        }
+      ],
+      "duration": 1.504
+    },
+    {
       "id": "seraphina_secret",
       "speaker": "seraphina",
       "text": "I need your help making sure Dad never finds this!",
