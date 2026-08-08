@@ -28,8 +28,9 @@ headless boot/screenshot smoke tests.
 | `public/` | Static assets served as-is. `voice/` is generated — do not hand-edit. |
 | `tests/` | Playwright specs, plus `harness.ts` (boot, steer, read hooks). |
 | `tests/screenshots/` | Smoke-test screenshots — the planner's visual audit trail. |
-| `scratch/` | Reports and appendices. Committed on purpose. |
 | `dist/` | `npm run build` output. Ignored. |
+
+Reports live outside the repo entirely — see **Report delivery** below.
 
 **Commands**: `npm run dev` (serve), `npm run build` (static `dist/`),
 `npm run preview` (serve the build), `npm test` (Playwright, headless),
@@ -45,8 +46,9 @@ These apply to every prompt in this repo unless a prompt explicitly overrides th
 
 ### Report contract
 
-Every non-trivial prompt ends with a report at `scratch/<prompt-name>_report.md`.
-Never at repo root.
+Every non-trivial prompt ends with a report at
+`C:\Code\seraphinas-drive-sync\reports\<prompt-name>_report.md`, and nowhere else.
+Reports do not live in this repo — not at the root, not in a scratch folder.
 
 Length: ~60 lines is a **soft** target. Write it once, take at most one trim pass,
 then stop. Going over is fine. Never iterate to squeeze under the number.
@@ -73,9 +75,12 @@ file.
 
 ### Report delivery
 
-After writing a report, copy it and any appendices to
+Write the report and its appendices straight into
 `C:\Code\seraphinas-drive-sync\reports\`, creating the folder if it isn't there.
-This is best-effort: a failed copy is never fatal. The `scratch/` copy is canonical.
+That copy is the only copy — no second one in the repo to drift out of date.
+
+If the folder cannot be written, say so in the final message and paste the report
+into the conversation instead. Never fall back to writing it into the repo.
 
 ### Runtime discipline
 

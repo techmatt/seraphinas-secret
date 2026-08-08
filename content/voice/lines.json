@@ -10,7 +10,7 @@
     "text": "Sss — Sparky!",
     "say": "Suh — Sparky!",
     "rate": "-25%",
-    "note": "edge-tts reads any run of s's as the letter NAME, repeated: 'Sss' comes out 'ess ess ess'. 'Suh' at least leads with a real /s/. Placeholder until ElevenLabs — see scratch/voice_pipeline_spike_report.md."
+    "note": "edge-tts reads any run of s's as the letter NAME, repeated: 'Sss' comes out 'ess ess ess'. 'Suh' at least leads with a real /s/. Placeholder until ElevenLabs — see the voice_pipeline_spike report."
   },
   {
     "id": "seraphina_munchy",

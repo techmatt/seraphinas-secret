@@ -38,5 +38,5 @@ Thumbs.db
 .env.*
 !.env.example
 
-# NOTE: scratch/ is deliberately NOT ignored.
-# Reports are cheap text and useful history.
+# NOTE: reports do not live in this repo at all — they are written straight to
+# C:\Code\seraphinas-drive-sync\reports\. See CLAUDE.md, "Report delivery".
