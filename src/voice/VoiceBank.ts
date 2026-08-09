@@ -40,7 +40,19 @@ export class VoiceBank {
   /** False when the manifest could not be read; the game plays on, silently. */
   loaded = false;
 
-  async load(base = import.meta.env.BASE_URL): Promise<void> {
+  /** The in-flight (or finished) load, so scenes can share one bank freely. */
+  private loading: Promise<void> | null = null;
+
+  /**
+   * Safe to call from anywhere, any number of times — the title screen kicks it
+   * off and the room asks again, and only the first call does any work.
+   */
+  load(base = import.meta.env.BASE_URL): Promise<void> {
+    this.loading ??= this.fetchAll(base);
+    return this.loading;
+  }
+
+  private async fetchAll(base: string): Promise<void> {
     let manifest: VoiceManifestFile;
     try {
       const response = await fetch(`${base}voice/manifest.json`);
@@ -53,7 +65,7 @@ export class VoiceBank {
 
     for (const line of manifest.lines) this.lines.set(line.id, line);
 
-    // Nine short clips is under 200 KB, so decode them all up front rather than
+    // Ten short clips is under 200 KB, so decode them all up front rather than
     // making the first press of A wait on a fetch.
     const ctx = getAudioContext();
     if (ctx) {

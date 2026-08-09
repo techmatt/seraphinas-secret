@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { GAME_WIDTH, GAME_HEIGHT } from './config';
 import { RoomScene } from './scenes/RoomScene';
+import { TitleScene } from './scenes/TitleScene';
 import { installTestHooks } from './testHooks';
 
 installTestHooks();
@@ -18,7 +19,8 @@ const config: Phaser.Types.Core.GameConfig = {
   input: {
     gamepad: true,
   },
-  scene: [RoomScene],
+  // Only the first entry starts on its own. The title screen is the one door in.
+  scene: [TitleScene, RoomScene],
 };
 
 new Phaser.Game(config);

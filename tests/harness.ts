@@ -8,9 +8,14 @@ import path from 'node:path';
 const SHOTS = path.join('tests', 'screenshots');
 export const shot = (name: string) => path.join(SHOTS, name);
 
+/** The greeting the title screen speaks; see GREETING in TitleScene. */
+export const GREETING_LINE = 'seraphina_hello';
+
 /** Mirrors src/testHooks.ts. */
 export type Hooks = {
   ready: boolean;
+  scene: 'title' | 'room' | null;
+  audio: string;
   player: { x: number; y: number };
   stone: { x: number; y: number };
   interactRadius: number;
@@ -39,13 +44,17 @@ export const readHooks = (page: Page) =>
     return { ...rest, voice: voiceRest };
   });
 
-export async function bootGame(page: Page) {
+/**
+ * Load the page and stop at the title screen, which is where the game now
+ * starts. Nothing is playable yet — that needs a press.
+ */
+export async function openTitle(page: Page) {
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(e.message));
 
   await page.goto('/');
   await page.waitForFunction(
-    () => (window as unknown as { __seraphina?: Hooks }).__seraphina?.ready === true,
+    () => (window as unknown as { __seraphina?: Hooks }).__seraphina?.scene === 'title',
     undefined,
     { timeout: 20_000 },
   );
@@ -58,9 +67,33 @@ export async function bootGame(page: Page) {
   expect(box!.width).toBeGreaterThan(100);
   expect(box!.height).toBeGreaterThan(100);
 
-  // A click focuses the page for keyboard input and satisfies the audio gesture.
+  // Focuses the page for keyboard input. Deliberately not a start press: the
+  // title screen only opens for the pad's A or one of its named keys.
   await canvas.click({ position: { x: 20, y: 20 } });
 
+  return { canvas, errors };
+}
+
+/**
+ * Press through the title screen and wait for the room. The greeting plays in
+ * full before the door opens, so this is a couple of seconds, not instant.
+ */
+export async function pressStart(page: Page) {
+  await page.keyboard.press('Enter');
+  await page.waitForFunction(
+    () => (window as unknown as { __seraphina: Hooks }).__seraphina.ready === true,
+    undefined,
+    { timeout: 20_000 },
+  );
+  // The room fades in out of the title's flash. Screenshot before it lands and
+  // the visual audit trail is a picture of the flash.
+  await page.waitForTimeout(400);
+}
+
+/** The usual starting point for a test that cares about the room, not the door. */
+export async function bootGame(page: Page) {
+  const { canvas, errors } = await openTitle(page);
+  await pressStart(page);
   return { canvas, errors };
 }
 

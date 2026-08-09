@@ -89,7 +89,7 @@ test('the stone speaks, and the right word is lit halfway through', async ({ pag
   );
   expect(lit.voice.words[lit.voice.highlighted]).toBe(word.word);
 
-  await canvas.screenshot({ path: shot('04-speech-bubble.png') });
+  await canvas.screenshot({ path: shot('06-speech-bubble.png') });
 
   expect(errors, 'no uncaught page errors').toEqual([]);
 });

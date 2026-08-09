@@ -4,7 +4,7 @@ import { bootGame, readHooks, shot, walk, walkToStone, type Hooks } from './harn
 test('boots, renders a canvas, and walks on arrow keys', async ({ page }) => {
   const { canvas, errors } = await bootGame(page);
 
-  await canvas.screenshot({ path: shot('01-boot.png') });
+  await canvas.screenshot({ path: shot('03-boot.png') });
 
   const before = await readHooks(page);
   await walk(page, 'ArrowRight', 500);
@@ -18,7 +18,7 @@ test('boots, renders a canvas, and walks on arrow keys', async ({ page }) => {
     before.player.y + 10,
   );
 
-  await canvas.screenshot({ path: shot('02-walked.png') });
+  await canvas.screenshot({ path: shot('04-walked.png') });
 
   expect(errors, 'no uncaught page errors').toEqual([]);
 });
@@ -39,7 +39,7 @@ test('walking up to the stone and pressing Z fires the sparkle burst', async ({ 
     (window as unknown as { __seraphina: Hooks }).__seraphina.pause(),
   );
 
-  await canvas.screenshot({ path: shot('03-sparkle.png') });
+  await canvas.screenshot({ path: shot('05-sparkle.png') });
 
   const after = await readHooks(page);
   expect(after.sparkles, 'Z near the stone should sparkle').toBe(1);

@@ -6,9 +6,25 @@
  * never grows test-shaped hacks, and the test spec has exactly one contract to
  * break.
  */
+
+import { getAudioContext } from './audio/context';
+
 export interface TestHooks {
   /** Flips true once the room scene has finished create(). */
   ready: boolean;
+  /**
+   * Which scene is live. The game now opens on the title screen, so "booted" and
+   * "playable" are two different moments and a test has to be able to tell them
+   * apart.
+   */
+  scene: 'title' | 'room' | null;
+  /**
+   * State of the shared AudioContext: 'suspended' until a gesture unlocks it,
+   * 'running' after, or 'none' where the browser has no AudioContext at all.
+   * The title screen exists mostly to move this to 'running', so it is worth
+   * being able to assert on.
+   */
+  audio: string;
   /** Character position in world space. */
   player: { x: number; y: number };
   /** The interactable's position, so tests can steer instead of guessing. */
@@ -26,8 +42,8 @@ export interface TestHooks {
    */
   peakParticles: number;
   /**
-   * Freeze the scene so a screenshot catches the juice mid-flight. Paused scenes
-   * still render, they just stop updating.
+   * Freeze the live scene so a screenshot catches the juice mid-flight. Paused
+   * scenes still render, they just stop updating.
    */
   pause: () => void;
   voice: VoiceHooks;
@@ -65,6 +81,8 @@ declare global {
 
 export const hooks: TestHooks = {
   ready: false,
+  scene: null,
+  audio: 'none',
   player: { x: 0, y: 0 },
   stone: { x: 0, y: 0 },
   interactRadius: 0,
@@ -86,4 +104,12 @@ export const hooks: TestHooks = {
 
 export function installTestHooks(): void {
   window.__seraphina = hooks;
+}
+
+/**
+ * The AudioContext's state lives outside the game's own bookkeeping, so it has
+ * to be read rather than written. Scenes call this once a frame.
+ */
+export function syncAudioHook(): void {
+  hooks.audio = getAudioContext()?.state ?? 'none';
 }

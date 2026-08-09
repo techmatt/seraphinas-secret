@@ -2,9 +2,10 @@ import Phaser from 'phaser';
 import { GAME_WIDTH, GAME_HEIGHT } from '../config';
 import { playSparkleChime } from '../audio/beep';
 import { unlockAudio } from '../audio/context';
+import { makeButtonDot } from '../ui/ButtonDot';
 import { SpeechBubble } from '../ui/SpeechBubble';
 import { VoiceBank } from '../voice/VoiceBank';
-import { hooks } from '../testHooks';
+import { hooks, syncAudioHook } from '../testHooks';
 
 /** Walk speed in pixels per second. Deliberately unhurried. */
 const WALK_SPEED = 260;
@@ -21,6 +22,15 @@ const WALL = 48;
 /** The line the stone says. One of Seraphina's, until there is real content. */
 const STONE_LINE = 'seraphina_secret';
 
+/** How long the room takes to arrive out of the title screen's flash. */
+const FADE_IN = 260;
+
+/** What the title screen hands over when it opens the door. */
+export interface RoomSceneData {
+  /** The bank the title screen already loaded, so nothing fetches twice. */
+  voice?: VoiceBank;
+}
+
 /**
  * The one and only room, for now. A flat-colour floor, a placeholder character,
  * and a single object that sparkles when you press A. Everything here is a stand
@@ -30,10 +40,9 @@ export class RoomScene extends Phaser.Scene {
   private player!: Phaser.GameObjects.Container;
   private stone!: Phaser.GameObjects.Container;
   private sparkles!: Phaser.GameObjects.Particles.ParticleEmitter;
-  private prompt!: Phaser.GameObjects.Text;
-  private padStatus!: Phaser.GameObjects.Text;
+  private prompt!: Phaser.GameObjects.Container;
   private bubble!: SpeechBubble;
-  private readonly voice = new VoiceBank();
+  private voice!: VoiceBank;
 
   private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
   private wasd!: Record<'up' | 'down' | 'left' | 'right', Phaser.Input.Keyboard.Key>;
@@ -46,11 +55,23 @@ export class RoomScene extends Phaser.Scene {
     super('RoomScene');
   }
 
+  /**
+   * The title screen loads the voice bank while the player is still looking at
+   * the green dot, and hands it over. Making one here instead keeps the room
+   * runnable on its own, which is worth more than the duplicated fetch costs.
+   */
+  init(data: RoomSceneData): void {
+    this.voice = data.voice ?? new VoiceBank();
+  }
+
   preload(): void {
     this.makeSparkTexture();
   }
 
   create(): void {
+    // Meet the flash the title screen leaves behind.
+    this.cameras.main.fadeIn(FADE_IN, 255, 246, 255);
+
     this.drawRoom();
     this.stone = this.makeStone(GAME_WIDTH * 0.72, GAME_HEIGHT * 0.42);
     this.player = this.makePlayer(GAME_WIDTH * 0.3, GAME_HEIGHT * 0.6);
@@ -88,6 +109,7 @@ export class RoomScene extends Phaser.Scene {
     hooks.stone.y = this.stone.y;
     hooks.interactRadius = INTERACT_RADIUS;
     hooks.pause = () => this.scene.pause();
+    hooks.scene = 'room';
     hooks.ready = true;
   }
 
@@ -99,6 +121,7 @@ export class RoomScene extends Phaser.Scene {
     this.handleInteract(pad);
     this.bubble.tick();
 
+    syncAudioHook();
     hooks.player.x = this.player.x;
     hooks.player.y = this.player.y;
     hooks.aliveParticles = this.sparkles.getAliveParticleCount();
@@ -147,17 +170,11 @@ export class RoomScene extends Phaser.Scene {
     };
     this.interactKey = keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.Z);
 
-    // An AudioContext stays suspended until the page sees a real gesture.
+    // The title screen already unlocked audio; this is only insurance for a
+    // context the browser suspended again while the tab was in the background.
     keyboard.on('keydown', unlockAudio);
     this.input.on('pointerdown', unlockAudio);
-
-    this.input.gamepad?.on('connected', () => {
-      unlockAudio();
-      this.padStatus?.setText('controller: connected');
-    });
-    this.input.gamepad?.on('disconnected', () => {
-      this.padStatus?.setText('controller: press a button to wake it');
-    });
+    this.input.gamepad?.on('connected', unlockAudio);
   }
 
   /** Left stick if it is pushed, arrow keys / WASD otherwise. */
@@ -311,21 +328,12 @@ export class RoomScene extends Phaser.Scene {
       })
       .setDepth(30);
 
-    this.padStatus = this.add
-      .text(WALL + 12, WALL + 38, 'controller: press a button to wake it', {
-        fontFamily: 'system-ui, sans-serif',
-        fontSize: '16px',
-        color: '#a894c9',
-      })
-      .setDepth(30);
-
-    this.prompt = this.add
-      .text(this.stone.x, this.stone.y - 70, 'A  /  Z', {
-        fontFamily: 'system-ui, sans-serif',
-        fontSize: '24px',
-        color: '#ffe6fb',
-      })
-      .setOrigin(0.5)
+    // A green dot, never the letter "A" — see ButtonDot. The dot over the stone
+    // and the dot on the title screen are the same promise: press green.
+    this.prompt = makeButtonDot(this, this.stone.x, this.stone.y - 74, {
+      radius: 18,
+      pulse: true,
+    })
       .setDepth(30)
       .setVisible(false);
   }
