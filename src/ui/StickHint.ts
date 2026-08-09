@@ -10,9 +10,10 @@
 
 import Phaser from 'phaser';
 
-const BASE_RADIUS = 34;
-const KNOB_RADIUS = 21;
-const THROW = 11;
+const BASE_RADIUS = 36;
+/** Small enough that the gate around it stays visible, which is the throw. */
+const KNOB_RADIUS = 17;
+const THROW = 14;
 
 export interface StickHint {
   container: Phaser.GameObjects.Container;
@@ -21,10 +22,10 @@ export interface StickHint {
 }
 
 export function makeStickHint(scene: Phaser.Scene, x: number, y: number): StickHint {
-  const base = scene.add.circle(0, 0, BASE_RADIUS, 0x1b1030, 0.7).setStrokeStyle(4, 0xd9c7ff, 0.7);
-  const gate = scene.add.circle(0, 0, BASE_RADIUS - 8).setStrokeStyle(2, 0xd9c7ff, 0.35);
-  const knob = scene.add.circle(0, 0, KNOB_RADIUS, 0xd9c7ff, 0.92).setStrokeStyle(3, 0xfff6ff, 0.9);
-  const shine = scene.add.circle(-6, -7, 6, 0xffffff, 0.6);
+  const base = scene.add.circle(0, 0, BASE_RADIUS, 0x1b1030, 0.72).setStrokeStyle(4, 0xd9c7ff, 0.85);
+  const gate = scene.add.circle(0, 0, BASE_RADIUS - 7).setStrokeStyle(2, 0xd9c7ff, 0.45);
+  const knob = scene.add.circle(0, 0, KNOB_RADIUS, 0xd9c7ff, 0.95).setStrokeStyle(3, 0xfff6ff, 0.9);
+  const shine = scene.add.circle(-5, -6, 5, 0xffffff, 0.6);
 
   const container = scene.add.container(x, y, [base, gate, knob, shine]).setAlpha(0.85);
 
@@ -37,7 +38,7 @@ export function makeStickHint(scene: Phaser.Scene, x: number, y: number): StickH
     onUpdate: (tween) => {
       const a = Phaser.Math.DegToRad(tween.getValue() ?? 0);
       knob.setPosition(Math.cos(a) * THROW, Math.sin(a) * THROW);
-      shine.setPosition(knob.x - 6, knob.y - 7);
+      shine.setPosition(knob.x - 5, knob.y - 6);
     },
   });
 

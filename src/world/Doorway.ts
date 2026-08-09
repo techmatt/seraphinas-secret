@@ -59,13 +59,12 @@ export class Doorway {
     const { tint } = this.def;
     const angle = INWARD[this.def.side];
 
-    // The mat: a slab of warm floor reaching into the room, so the invitation
-    // lands where her feet are and not only at eye height.
-    const mat = scene.add
-      .rectangle(DOOR_DEPTH * 0.62, 0, DOOR_DEPTH * 1.24, DOOR_HALF * 1.9, tint, 0.22)
-      .setBlendMode(Phaser.BlendModes.ADD);
-
-    const spill = makeGlow(scene, 6, 0, 210, tint, 0.6);
+    // Two pools of light rather than one: a bright mouth, and a wide soft one
+    // reaching into the room so the invitation lands where her feet are. Both
+    // are the game's soft radial blob — a flat shape here draws a hard edge on
+    // the floor, which reads as a rug someone left out, not as light.
+    const spill = makeGlow(scene, 8, 0, 200, tint, 0.62);
+    const pool = makeGlow(scene, DOOR_DEPTH * 0.95, 0, 320, tint, 0.26);
 
     // The passage itself: dark, so it reads as somewhere else rather than as a
     // painted rectangle on this room's wall.
@@ -77,7 +76,7 @@ export class Doorway {
     const postA = scene.add.rectangle(20, -DOOR_HALF - 6, 74, 18, tint, 0.9);
     const postB = scene.add.rectangle(20, DOOR_HALF + 6, 74, 18, tint, 0.9);
 
-    const arch = scene.add.container(this.x, this.y, [mat, spill, opening, postA, postB]);
+    const arch = scene.add.container(this.x, this.y, [pool, spill, opening, postA, postB]);
     arch.setAngle(angle).setDepth(DEPTH.doorway);
 
     // The light breathes, which is the difference between a doorway and a mural.
@@ -90,8 +89,8 @@ export class Doorway {
       ease: 'Sine.easeInOut',
     });
     scene.tweens.add({
-      targets: mat,
-      alpha: { from: 0.14, to: 0.34 },
+      targets: pool,
+      alpha: { from: 0.16, to: 0.38 },
       duration: 1400,
       yoyo: true,
       repeat: -1,
@@ -100,16 +99,25 @@ export class Doorway {
 
     // Motes drifting out of the passage into the room. Movement outwards is the
     // clearest "there is somewhere through here" a picture can manage.
+    //
+    // The emitter is not a child of the arch, so it gets no free rotation: its
+    // spawn box has to be worked out against the wall by hand. They start a
+    // little clear of the mouth, because inside it they are dark motes on a
+    // dark passage and the one signal that shows direction goes unseen.
+    const inward = new Phaser.Math.Vector2(1, 0).setAngle(Phaser.Math.DegToRad(angle));
+    const alongY = this.def.side === 'left' || this.def.side === 'right';
+    const spread = DOOR_HALF * 0.7;
+
     scene.add
-      .particles(this.x, this.y, 'spark', {
-        x: { min: -4, max: 4 },
-        y: { min: -DOOR_HALF * 0.7, max: DOOR_HALF * 0.7 },
+      .particles(this.x + inward.x * 20, this.y + inward.y * 20, 'spark', {
+        x: alongY ? { min: -7, max: 7 } : { min: -spread, max: spread },
+        y: alongY ? { min: -spread, max: spread } : { min: -7, max: 7 },
         angle: { min: angle - 26, max: angle + 26 },
-        speed: { min: 24, max: 62 },
-        scale: { start: 0.75, end: 0 },
-        alpha: { start: 0.85, end: 0 },
-        lifespan: { min: 900, max: 1700 },
-        frequency: 170,
+        speed: { min: 30, max: 78 },
+        scale: { start: 0.85, end: 0 },
+        alpha: { start: 0.9, end: 0 },
+        lifespan: { min: 1000, max: 1900 },
+        frequency: 140,
         blendMode: 'ADD',
         tint: [tint, 0xffffff],
       })

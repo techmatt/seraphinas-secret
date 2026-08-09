@@ -3,7 +3,6 @@ import {
   bootGame,
   readHooks,
   shot,
-  walk,
   walkThroughDoorway,
   walkToProp,
   type Hooks,
