@@ -18,6 +18,51 @@ export const PAD_COLOR = {
   y: 0xf2c43d,
 } as const;
 
+/** Texture key for the soft radial blob every glow in the game is made of. */
+export const GLOW_TEXTURE = 'glow';
+
+/** Radius the glow texture is drawn at, so callers can scale to a real size. */
+const GLOW_RADIUS = 128;
+
+/**
+ * Bake the soft blob once per game. A flat circle would put a hard edge around
+ * the light, which reads as a disc lying on the background rather than as glow
+ * coming off the button.
+ */
+export function ensureGlowTexture(scene: Phaser.Scene): void {
+  if (scene.textures.exists(GLOW_TEXTURE)) return;
+
+  const size = GLOW_RADIUS * 2;
+  const g = scene.make.graphics({ x: 0, y: 0 }, false);
+  const steps = 48;
+  for (let i = steps; i > 0; i--) {
+    // Squared falloff, so the edge disappears rather than banding.
+    const t = i / steps;
+    g.fillStyle(0xffffff, 0.05 * (1 - t) ** 2 + 0.003);
+    g.fillCircle(GLOW_RADIUS, GLOW_RADIUS, GLOW_RADIUS * t);
+  }
+  g.generateTexture(GLOW_TEXTURE, size, size);
+  g.destroy();
+}
+
+/** A soft pool of light, sized in design pixels rather than texture scale. */
+export function makeGlow(
+  scene: Phaser.Scene,
+  x: number,
+  y: number,
+  radius: number,
+  color: number,
+  alpha = 1,
+): Phaser.GameObjects.Image {
+  ensureGlowTexture(scene);
+  return scene.add
+    .image(x, y, GLOW_TEXTURE)
+    .setScale(radius / GLOW_RADIUS)
+    .setTint(color)
+    .setAlpha(alpha)
+    .setBlendMode(Phaser.BlendModes.ADD);
+}
+
 export interface ButtonDotOptions {
   /** Face colour; one of PAD_COLOR. */
   color?: number;
@@ -37,20 +82,24 @@ export function makeButtonDot(
   y: number,
   { color = PAD_COLOR.a, radius = 20, pulse = false }: ButtonDotOptions = {},
 ): Phaser.GameObjects.Container {
-  const halo = scene.add.circle(0, 0, radius * 1.9, color, 0.22);
-  const rim = scene.add.circle(0, 0, radius * 1.28, color, 0.4);
-  const face = scene.add.circle(0, 0, radius, color).setStrokeStyle(radius * 0.16, 0xffffff, 0.85);
+  // Additive, so the glow adds its colour to the room instead of veiling it —
+  // a translucent green disc over a dark floor just turns the floor grey.
+  const halo = makeGlow(scene, 0, 0, radius * 3.4, color, 0.75);
+  const bloom = makeGlow(scene, 0, 0, radius * 1.7, color, 0.9);
+
+  const face = scene.add.circle(0, 0, radius, color).setStrokeStyle(radius * 0.16, 0xffffff, 0.9);
 
   // A highlight up and left reads as "this is a physical thing you can push".
   const shine = scene.add.circle(-radius * 0.3, -radius * 0.34, radius * 0.3, 0xffffff, 0.55);
 
-  const dot = scene.add.container(x, y, [halo, rim, face, shine]);
+  const dot = scene.add.container(x, y, [halo, bloom, face, shine]);
 
   if (pulse) {
     scene.tweens.add({
-      targets: [rim, halo],
-      scale: { from: 0.86, to: 1.22 },
-      alpha: { from: 1, to: 0.45 },
+      targets: [halo, bloom],
+      scaleX: { from: 0.82, to: 1.18 },
+      scaleY: { from: 0.82, to: 1.18 },
+      alpha: { from: 0.55, to: 1 },
       duration: 780,
       yoyo: true,
       repeat: -1,
@@ -58,7 +107,7 @@ export function makeButtonDot(
     });
     scene.tweens.add({
       targets: face,
-      scale: { from: 1, to: 1.1 },
+      scale: { from: 1, to: 1.09 },
       duration: 780,
       yoyo: true,
       repeat: -1,

@@ -30,6 +30,10 @@ test('walking up to the stone and pressing Z fires the sparkle burst', async ({ 
 
   await walkToStone(page);
 
+  // Close enough that the stone asks to be pressed. The prompt is a green dot,
+  // never a letter — this is the frame that proves it.
+  await canvas.screenshot({ path: shot('05-prompt.png') });
+
   await page.keyboard.press('KeyZ');
 
   // Let the burst spread, then freeze it. A screenshot round trip outlives the
@@ -39,7 +43,7 @@ test('walking up to the stone and pressing Z fires the sparkle burst', async ({ 
     (window as unknown as { __seraphina: Hooks }).__seraphina.pause(),
   );
 
-  await canvas.screenshot({ path: shot('05-sparkle.png') });
+  await canvas.screenshot({ path: shot('06-sparkle.png') });
 
   const after = await readHooks(page);
   expect(after.sparkles, 'Z near the stone should sparkle').toBe(1);

@@ -15,7 +15,7 @@ import Phaser from 'phaser';
 import { GAME_WIDTH, GAME_HEIGHT } from '../config';
 import { playSparkleChime } from '../audio/beep';
 import { unlockAudio } from '../audio/context';
-import { makeButtonDot } from '../ui/ButtonDot';
+import { makeButtonDot, makeGlow } from '../ui/ButtonDot';
 import { SpeechBubble } from '../ui/SpeechBubble';
 import { VoiceBank } from '../voice/VoiceBank';
 import { hooks, syncAudioHook } from '../testHooks';
@@ -241,9 +241,8 @@ export class TitleScene extends Phaser.Scene {
       .rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, 0x1b1030)
       .setDepth(-10);
 
-    this.add
-      .circle(GAME_WIDTH / 2, GAME_HEIGHT * 0.63, 250, 0x5a3b8c, 0.35)
-      .setDepth(-9);
+    // A pool of warm light for the button to sit in.
+    makeGlow(this, GAME_WIDTH / 2, GAME_HEIGHT * 0.63, 590, 0x8a5fd0, 0.85).setDepth(-9);
 
     this.add
       .particles(0, 0, 'spark', {
