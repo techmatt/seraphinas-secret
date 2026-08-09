@@ -1,11 +1,9 @@
 /**
  * The only way this game ever asks for a button press.
  *
- * Seraphina is four and cannot read, so a prompt is never a letter — it is a
- * dot in the colour of the button on the pad in front of her. Matching the
- * physical colour is the whole mechanism: she looks at the screen, sees green,
- * and presses the green one. A label saying "A" would teach her nothing she can
- * use, so there are none anywhere in the game.
+ * The rule this implements — colored dots, never letter labels, and which colour
+ * means which button — lives in CLAUDE.md under "Standing design rules". This
+ * file is where it is built, not where it is decided.
  */
 
 import Phaser from 'phaser';

@@ -40,6 +40,32 @@ timings and phonics against the actual waveform, without listening).
 
 ---
 
+## Standing design rules
+
+These hold for every task in this repo. They are design law, not preferences —
+honor them without being told.
+
+### Button prompts are colored dots, never letter labels
+
+`src/ui/ButtonDot.ts` is the single source for every button prompt in the game.
+Green = A (interact/confirm), red = B (cancel/exit), blue = X (switch tool),
+yellow = Y (help/replay). The player is 4 and cannot read a letter, but "press the
+green button" is literally true of the pad in her hands. No "A"/"B" glyphs, no
+button-name text, anywhere.
+
+### Every piece of on-screen text speaks aloud, with per-word highlighting
+
+She can't read, so audio-first *is* the UI. Any text that appears must have a voice
+line and must highlight each word as it is spoken. Text with no voice is a bug.
+
+### No fail states
+
+A game-design rule: no timers, no death, no lives, no wrong-answer buzzers, no
+losing progress. A wrong choice does something mildly funny and the game carries on.
+(This is about mechanics — code should still be robust and errors still handled.)
+
+---
+
 ## Standing rules
 
 These apply to every prompt in this repo unless a prompt explicitly overrides them.
