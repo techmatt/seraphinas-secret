@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 
-import { bootGame, readHooks, shot, waitForVoice, walkToStone, type Hooks } from './harness';
+import { bootGame, readHooks, shot, waitForVoice, walkToProp, type Hooks } from './harness';
 
 interface ManifestLine {
   id: string;
@@ -21,7 +21,7 @@ const manifest = JSON.parse(
   readFileSync(path.join('public', 'voice', 'manifest.json'), 'utf8'),
 ) as { version: number; provider: string; lines: ManifestLine[] };
 
-/** The line the stone speaks; see STONE_LINE in RoomScene. */
+/** The line the yard's star speaks; see the `star` prop in world/rooms.ts. */
 const STONE_LINE = 'seraphina_secret';
 
 test('the manifest has a timed word for every word that will be shown', () => {
@@ -54,13 +54,13 @@ test('the manifest has a timed word for every word that will be shown', () => {
   }
 });
 
-test('the stone speaks, and the right word is lit halfway through', async ({ page }) => {
+test('the star speaks, and the right word is lit halfway through', async ({ page }) => {
   const { canvas, errors } = await bootGame(page);
   await waitForVoice(page);
 
   expect((await readHooks(page)).voice.lineId, 'nothing is being said yet').toBeNull();
 
-  await walkToStone(page);
+  await walkToProp(page, 'star');
   await page.keyboard.press('KeyZ');
 
   const speaking = await readHooks(page);

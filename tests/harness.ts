@@ -15,9 +15,12 @@ export const GREETING_LINE = 'seraphina_hello';
 export type Hooks = {
   ready: boolean;
   scene: 'title' | 'room' | null;
+  room: string | null;
+  transitioning: boolean;
   audio: string;
   player: { x: number; y: number };
-  stone: { x: number; y: number };
+  interactables: { id: string; x: number; y: number }[];
+  doorways: { id: string; x: number; y: number; to: string }[];
   interactRadius: number;
   sparkles: number;
   aliveParticles: number;
@@ -44,15 +47,23 @@ export const readHooks = (page: Page) =>
     return { ...rest, voice: voiceRest };
   });
 
+export interface OpenOptions {
+  /**
+   * Skip the title screen's spoken greeting — about 2.5 s a test. The press is
+   * still real, so only the sentence is skipped, not the entry path.
+   */
+  fast?: boolean;
+}
+
 /**
  * Load the page and stop at the title screen, which is where the game now
  * starts. Nothing is playable yet — that needs a press.
  */
-export async function openTitle(page: Page) {
+export async function openTitle(page: Page, { fast = false }: OpenOptions = {}) {
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(e.message));
 
-  await page.goto('/');
+  await page.goto(fast ? '/?fastBoot=1' : '/');
   await page.waitForFunction(
     () => (window as unknown as { __seraphina?: Hooks }).__seraphina?.scene === 'title',
     undefined,
@@ -75,8 +86,8 @@ export async function openTitle(page: Page) {
 }
 
 /**
- * Press through the title screen and wait for the room. The greeting plays in
- * full before the door opens, so this is a couple of seconds, not instant.
+ * Press through the title screen and wait for the room. Without ?fastBoot the
+ * greeting plays in full first, so this is a couple of seconds, not instant.
  */
 export async function pressStart(page: Page) {
   await page.keyboard.press('Enter');
@@ -90,9 +101,13 @@ export async function pressStart(page: Page) {
   await page.waitForTimeout(400);
 }
 
-/** The usual starting point for a test that cares about the room, not the door. */
-export async function bootGame(page: Page) {
-  const { canvas, errors } = await openTitle(page);
+/**
+ * The usual starting point for a test that cares about a room, not the door.
+ * Fast by default — the front door has its own spec, and everything else was
+ * paying to hear the same greeting a dozen times a run.
+ */
+export async function bootGame(page: Page, options: OpenOptions = { fast: true }) {
+  const { canvas, errors } = await openTitle(page, options);
   await pressStart(page);
   return { canvas, errors };
 }
@@ -105,27 +120,86 @@ export async function walk(page: Page, key: string, ms: number) {
 }
 
 /**
- * Steer to the stone in short hops, re-reading position each time.
- * Walking for a hardcoded duration bakes in the walk speed and the layout, so
- * it breaks the moment either is tuned — which for this game is constantly.
+ * Steer to a point in short hops, re-reading position each time. Walking for a
+ * hardcoded duration bakes in the walk speed and the layout, so it breaks the
+ * moment either is tuned — which for this game is constantly.
+ *
+ * `arrived` is checked before every hop, which is also how a test steers into
+ * something that ends the room it is standing in.
  */
-export async function walkToStone(page: Page) {
-  for (let hop = 0; hop < 40; hop++) {
-    const { player, stone, interactRadius } = await readHooks(page);
-    const dx = stone.x - player.x;
-    const dy = stone.y - player.y;
+async function steer(
+  page: Page,
+  target: (hooks: Awaited<ReturnType<typeof readHooks>>) => { x: number; y: number },
+  arrived: (hooks: Awaited<ReturnType<typeof readHooks>>) => boolean,
+  what: string,
+) {
+  for (let hop = 0; hop < 50; hop++) {
+    const hooks = await readHooks(page);
+    if (arrived(hooks)) return;
 
-    // Stop comfortably inside the radius rather than right on its edge.
-    if (Math.hypot(dx, dy) <= interactRadius * 0.5) return;
+    const { x, y } = target(hooks);
+    const dx = x - hooks.player.x;
+    const dy = y - hooks.player.y;
 
-    if (Math.abs(dx) > 24) await walk(page, dx > 0 ? 'ArrowRight' : 'ArrowLeft', 100);
-    if (Math.abs(dy) > 24) await walk(page, dy > 0 ? 'ArrowDown' : 'ArrowUp', 100);
+    if (Math.abs(dy) > 20) await walk(page, dy > 0 ? 'ArrowDown' : 'ArrowUp', 100);
+    if (Math.abs(dx) > 20) await walk(page, dx > 0 ? 'ArrowRight' : 'ArrowLeft', 100);
   }
 
-  const { player, stone } = await readHooks(page);
-  throw new Error(
-    `never reached the stone: player ${player.x},${player.y} stone ${stone.x},${stone.y}`,
+  const { player, room } = await readHooks(page);
+  throw new Error(`never reached ${what}: player ${player.x},${player.y} in ${room}`);
+}
+
+/** Walk up to a prop — the named one, or whichever the room lists first. */
+export async function walkToProp(page: Page, id?: string) {
+  const pick = (hooks: Awaited<ReturnType<typeof readHooks>>) => {
+    const prop = id ? hooks.interactables.find((p) => p.id === id) : hooks.interactables[0];
+    if (!prop) throw new Error(`no prop ${id ?? '[first]'} in ${hooks.room}`);
+    return prop;
+  };
+
+  await steer(
+    page,
+    pick,
+    (hooks) => {
+      const prop = pick(hooks);
+      // Stop comfortably inside the radius rather than right on its edge.
+      return Math.hypot(prop.x - hooks.player.x, prop.y - hooks.player.y) <=
+        hooks.interactRadius * 0.5;
+    },
+    `prop ${id ?? '[first]'}`,
   );
+}
+
+/**
+ * Walk into a doorway and come out the other side. Returns the room she landed
+ * in. Doorways are walk-through, so there is no press here by design.
+ */
+export async function walkThroughDoorway(page: Page, id?: string) {
+  const from = (await readHooks(page)).room;
+
+  await steer(
+    page,
+    (hooks) => {
+      const door = id ? hooks.doorways.find((d) => d.id === id) : hooks.doorways[0];
+      if (!door) throw new Error(`no doorway ${id ?? '[first]'} in ${hooks.room}`);
+      return door;
+    },
+    (hooks) => hooks.transitioning || hooks.room !== from,
+    `doorway ${id ?? '[first]'}`,
+  );
+
+  await page.waitForFunction(
+    (before) => {
+      const h = (window as unknown as { __seraphina: Hooks }).__seraphina;
+      return h.room !== before && !h.transitioning;
+    },
+    from,
+    { timeout: 20_000 },
+  );
+
+  // Let the arrival flourish land, or the screenshot is of the colour wash.
+  await page.waitForTimeout(520);
+  return (await readHooks(page)).room;
 }
 
 /** The voice manifest loads after boot; nothing voice-shaped works before it. */

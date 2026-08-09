@@ -1,10 +1,24 @@
 import Phaser from 'phaser';
-import { GAME_WIDTH, GAME_HEIGHT } from '../config';
 import { playSparkleChime } from '../audio/beep';
 import { unlockAudio } from '../audio/context';
 import { makeButtonDot } from '../ui/ButtonDot';
+import { makeStickHint, type StickHint } from '../ui/StickHint';
 import { SpeechBubble } from '../ui/SpeechBubble';
 import { VoiceBank } from '../voice/VoiceBank';
+import { Doorway } from '../world/Doorway';
+import { DEPTH, makeProp, paintRoom } from '../world/scenery';
+import {
+  BOUNDS,
+  STARTING_ROOM,
+  getRoom,
+  spawnOf,
+  type Facing,
+  type FlourishId,
+  type PropDef,
+  type RoomDef,
+  type RoomId,
+} from '../world/rooms';
+import { playArrivalFlourish, playExitFlourish } from '../world/transition';
 import { hooks, syncAudioHook } from '../testHooks';
 
 /** Walk speed in pixels per second. Deliberately unhurried. */
@@ -13,43 +27,86 @@ const WALK_SPEED = 260;
 /** Analog sticks rest slightly off-centre; ignore anything inside this. */
 const STICK_DEADZONE = 0.25;
 
-/** How close the character must be to the stone before it will sparkle. */
+/** How close the character must be to a prop before it will sparkle. */
 const INTERACT_RADIUS = 120;
 
-/** Inset of the walkable floor from the canvas edge. */
-const WALL = 48;
-
-/** The line the stone says. One of Seraphina's, until there is real content. */
-const STONE_LINE = 'seraphina_secret';
-
-/** How long the room takes to arrive out of the title screen's flash. */
+/** How long the first room takes to arrive out of the title screen's flash. */
 const FADE_IN = 260;
 
-/** What the title screen hands over when it opens the door. */
+/** The colour the title screen flashes on its way out. */
+const TITLE_FLASH = [255, 246, 255] as const;
+
+/**
+ * Whether she has been shown how to walk yet, for this page load. It lives
+ * outside the scene because the scene is rebuilt on every doorway, and being
+ * taught to walk once per room would be nagging.
+ */
+let walkHintDone = false;
+
+/** What the title screen — or the room she just left — hands over. */
 export interface RoomSceneData {
   /** The bank the title screen already loaded, so nothing fetches twice. */
   voice?: VoiceBank;
+  /** Which room to build. Defaults to the starting room. */
+  room?: RoomId;
+  /** Which of that room's spawn points to stand on. */
+  spawn?: string;
+  /**
+   * The flourish the doorway she just walked through was playing, so the room
+   * she lands in finishes the gesture the room she left started. Absent means
+   * she arrived off the title screen, which has a flash of its own.
+   */
+  flourish?: FlourishId;
+}
+
+interface Prop {
+  def: PropDef;
+  obj: Phaser.GameObjects.Container;
 }
 
 /**
- * The one and only room, for now. A flat-colour floor, a placeholder character,
- * and a single object that sparkles when you press A. Everything here is a stand
- * in for real content — its job is to smoke-test input, particles and audio.
+ * Every room in the game, one at a time.
+ *
+ * The scene knows how to walk, poke and leave; it knows nothing about which
+ * rooms exist or what is in them. That lives in world/rooms.ts, and a new room
+ * is an entry in that table — never a subclass, never a second scene. Walking
+ * through a doorway restarts this scene with the room on the far side, which is
+ * how the whole graph runs on one set of code.
  */
 export class RoomScene extends Phaser.Scene {
+  private roomDef!: RoomDef;
+  private arrivedVia?: string;
+  private arrivalFlourish?: FlourishId;
+
   private player!: Phaser.GameObjects.Container;
-  private stone!: Phaser.GameObjects.Container;
+  private eyes: Phaser.GameObjects.Arc[] = [];
+
+  private props: Prop[] = [];
+  private doorways: Doorway[] = [];
+
   private sparkles!: Phaser.GameObjects.Particles.ParticleEmitter;
   private prompt!: Phaser.GameObjects.Container;
+  private stickHint?: StickHint;
   private bubble!: SpeechBubble;
   private voice!: VoiceBank;
 
-  private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
-  private wasd!: Record<'up' | 'down' | 'left' | 'right', Phaser.Input.Keyboard.Key>;
-  private interactKey!: Phaser.Input.Keyboard.Key;
+  private cursors?: Phaser.Types.Input.Keyboard.CursorKeys;
+  private wasd?: Record<'up' | 'down' | 'left' | 'right', Phaser.Input.Keyboard.Key>;
+  private interactKey?: Phaser.Input.Keyboard.Key;
 
   /** Previous frame's A-button state, so a held button fires once. */
   private padInteractWasDown = false;
+
+  /** One-way latch: the room is left once. */
+  private leaving = false;
+
+  /**
+   * Doorways ignore her until she has stood clear of every one of them. She
+   * arrives next to the door she came through, and a door that fired on arrival
+   * would bounce her straight back — which is as close to a fail state as this
+   * game is allowed to get.
+   */
+  private doorwaysArmed = false;
 
   constructor() {
     super('RoomScene');
@@ -62,6 +119,18 @@ export class RoomScene extends Phaser.Scene {
    */
   init(data: RoomSceneData): void {
     this.voice = data.voice ?? new VoiceBank();
+    this.roomDef = getRoom(data.room ?? STARTING_ROOM);
+    this.arrivedVia = data.spawn;
+    this.arrivalFlourish = data.flourish;
+
+    // Restarting the scene reuses the instance, so anything remembered across
+    // create() has to be put back by hand.
+    this.props = [];
+    this.doorways = [];
+    this.leaving = false;
+    this.doorwaysArmed = false;
+    this.padInteractWasDown = false;
+    this.stickHint = undefined;
   }
 
   preload(): void {
@@ -69,12 +138,15 @@ export class RoomScene extends Phaser.Scene {
   }
 
   create(): void {
-    // Meet the flash the title screen leaves behind.
-    this.cameras.main.fadeIn(FADE_IN, 255, 246, 255);
+    const spawn = spawnOf(this.roomDef, this.arrivedVia);
 
-    this.drawRoom();
-    this.stone = this.makeStone(GAME_WIDTH * 0.72, GAME_HEIGHT * 0.42);
-    this.player = this.makePlayer(GAME_WIDTH * 0.3, GAME_HEIGHT * 0.6);
+    paintRoom(this, this.roomDef);
+
+    for (const def of this.roomDef.doorways) this.doorways.push(new Doorway(this, def));
+    for (const def of this.roomDef.props) this.props.push({ def, obj: makeProp(this, def) });
+
+    this.player = this.makePlayer(spawn.x, spawn.y);
+    this.face(spawn.facing);
 
     this.sparkles = this.add.particles(0, 0, 'spark', {
       speed: { min: 90, max: 320 },
@@ -87,10 +159,11 @@ export class RoomScene extends Phaser.Scene {
       tint: [0xfff3b0, 0xffd166, 0xf78ddd, 0x9be7ff],
       emitting: false,
     });
-    this.sparkles.setDepth(20);
+    this.sparkles.setDepth(DEPTH.sparkles);
 
     this.setupInput();
     this.drawHud();
+    this.arrive();
 
     // The bubble belongs to whoever is talking, which for now is always
     // Seraphina, so it anchors to the player.
@@ -103,13 +176,11 @@ export class RoomScene extends Phaser.Scene {
       hooks.voice.ids = this.voice.ids;
     });
 
-    hooks.player.x = this.player.x;
-    hooks.player.y = this.player.y;
-    hooks.stone.x = this.stone.x;
-    hooks.stone.y = this.stone.y;
+    this.syncWorldHooks();
     hooks.interactRadius = INTERACT_RADIUS;
     hooks.pause = () => this.scene.pause();
     hooks.scene = 'room';
+    hooks.transitioning = false;
     hooks.ready = true;
   }
 
@@ -117,8 +188,11 @@ export class RoomScene extends Phaser.Scene {
     const seconds = delta / 1000;
     const pad = this.input.gamepad?.getPad(0);
 
-    this.movePlayer(seconds, pad);
-    this.handleInteract(pad);
+    if (!this.leaving) {
+      this.movePlayer(seconds, pad);
+      this.checkDoorways();
+      this.handleInteract(pad);
+    }
     this.bubble.tick();
 
     syncAudioHook();
@@ -155,6 +229,24 @@ export class RoomScene extends Phaser.Scene {
     hooks.voice.highlighted = this.bubble.highlightedIndex;
   }
 
+  /** What is in this room, for a test that wants to walk somewhere. */
+  private syncWorldHooks(): void {
+    hooks.room = this.roomDef.id;
+    hooks.player.x = this.player.x;
+    hooks.player.y = this.player.y;
+    hooks.interactables = this.props.map(({ def, obj }) => ({
+      id: def.id,
+      x: obj.x,
+      y: obj.y,
+    }));
+    hooks.doorways = this.doorways.map((d) => ({
+      id: d.def.id,
+      x: d.x,
+      y: d.y,
+      to: d.def.to,
+    }));
+  }
+
   // --- input -------------------------------------------------------------
 
   private setupInput(): void {
@@ -186,7 +278,7 @@ export class RoomScene extends Phaser.Scene {
       if (stick.length() > STICK_DEADZONE) move.set(stick.x, stick.y);
     }
 
-    if (move.lengthSq() === 0 && this.cursors) {
+    if (move.lengthSq() === 0 && this.cursors && this.wasd) {
       if (this.cursors.left.isDown || this.wasd.left.isDown) move.x -= 1;
       if (this.cursors.right.isDown || this.wasd.right.isDown) move.x += 1;
       if (this.cursors.up.isDown || this.wasd.up.isDown) move.y -= 1;
@@ -205,14 +297,22 @@ export class RoomScene extends Phaser.Scene {
 
     this.player.x = Phaser.Math.Clamp(
       this.player.x + move.x * WALK_SPEED * seconds,
-      WALL + 28,
-      GAME_WIDTH - WALL - 28,
+      BOUNDS.left,
+      BOUNDS.right,
     );
     this.player.y = Phaser.Math.Clamp(
       this.player.y + move.y * WALK_SPEED * seconds,
-      WALL + 28,
-      GAME_HEIGHT - WALL - 28,
+      BOUNDS.top,
+      BOUNDS.bottom,
     );
+
+    if (Math.abs(move.x) > 0.2) this.face(move.x > 0 ? 1 : -1);
+
+    // She has worked out the stick. The picture has done its job.
+    if (!walkHintDone) {
+      walkHintDone = true;
+      this.stickHint?.dismiss();
+    }
   }
 
   private handleInteract(pad?: Phaser.Input.Gamepad.Gamepad): void {
@@ -224,31 +324,97 @@ export class RoomScene extends Phaser.Scene {
       ? Phaser.Input.Keyboard.JustDown(this.interactKey)
       : false;
 
-    const inRange = this.distanceToStone() <= INTERACT_RADIUS;
-    this.prompt.setVisible(inRange);
+    const near = this.nearestProp();
+    this.prompt.setVisible(near !== null);
+    if (near) this.prompt.setPosition(near.obj.x, near.obj.y - 74);
 
-    if ((padPressed || keyPressed) && inRange) this.burst();
+    if ((padPressed || keyPressed) && near) this.burst(near);
   }
 
-  private distanceToStone(): number {
-    return Phaser.Math.Distance.Between(
-      this.player.x,
-      this.player.y,
-      this.stone.x,
-      this.stone.y,
+  /** The closest prop within arm's reach, or null. */
+  private nearestProp(): Prop | null {
+    let best: Prop | null = null;
+    let bestDistance = INTERACT_RADIUS;
+
+    for (const prop of this.props) {
+      const distance = Phaser.Math.Distance.Between(
+        this.player.x,
+        this.player.y,
+        prop.obj.x,
+        prop.obj.y,
+      );
+      if (distance <= bestDistance) {
+        bestDistance = distance;
+        best = prop;
+      }
+    }
+
+    return best;
+  }
+
+  // --- doorways ------------------------------------------------------------
+
+  private checkDoorways(): void {
+    const inside = this.doorways.find((d) => d.contains(this.player.x, this.player.y));
+
+    if (!this.doorwaysArmed) {
+      if (!inside) this.doorwaysArmed = true;
+      return;
+    }
+
+    if (inside) this.leaveThrough(inside);
+  }
+
+  private leaveThrough(door: Doorway): void {
+    this.leaving = true;
+    hooks.transitioning = true;
+
+    this.bubble.stop();
+    this.prompt.setVisible(false);
+    this.stickHint?.dismiss();
+
+    playExitFlourish(
+      this,
+      { x: door.x, y: door.y, kind: door.def.flourish, sparkles: this.sparkles },
+      () => {
+        this.scene.start('RoomScene', {
+          voice: this.voice,
+          room: door.def.to,
+          spawn: door.def.toSpawn,
+          flourish: door.def.flourish,
+        } satisfies RoomSceneData);
+      },
     );
+  }
+
+  /**
+   * Coming in. Through a doorway it is the far half of that doorway's flourish;
+   * out of the title screen it is the title's own flash, unchanged.
+   */
+  private arrive(): void {
+    if (!this.arrivalFlourish) {
+      this.cameras.main.fadeIn(FADE_IN, ...TITLE_FLASH);
+      return;
+    }
+
+    playArrivalFlourish(this, {
+      x: this.player.x,
+      y: this.player.y,
+      kind: this.arrivalFlourish,
+      sparkles: this.sparkles,
+    });
   }
 
   // --- the juice ---------------------------------------------------------
 
-  private burst(): void {
-    this.sparkles.explode(48, this.stone.x, this.stone.y);
+  private burst(prop: Prop): void {
+    this.sparkles.explode(48, prop.obj.x, prop.obj.y);
     playSparkleChime();
-    this.bubble.say(STONE_LINE, this.player);
+    this.bubble.say(prop.def.line, this.player);
     this.cameras.main.shake(140, 0.004);
 
     this.tweens.add({
-      targets: this.stone,
+      targets: prop.obj,
       scale: { from: 1.35, to: 1 },
       duration: 340,
       ease: 'Back.easeOut',
@@ -271,70 +437,38 @@ export class RoomScene extends Phaser.Scene {
     g.destroy();
   }
 
-  private drawRoom(): void {
-    this.add
-      .rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, 0x2a1c3a)
-      .setDepth(-10);
-
-    this.add
-      .rectangle(
-        GAME_WIDTH / 2,
-        GAME_HEIGHT / 2,
-        GAME_WIDTH - WALL * 2,
-        GAME_HEIGHT - WALL * 2,
-        0x4a3b63,
-      )
-      .setStrokeStyle(6, 0x6d5a8c)
-      .setDepth(-9);
-  }
-
   private makePlayer(x: number, y: number): Phaser.GameObjects.Container {
     const body = this.add.circle(0, 0, 26, 0xffd9a0).setStrokeStyle(4, 0xb9834f);
     const hair = this.add.circle(0, -12, 22, 0x7b4b2a);
     const eyeL = this.add.circle(-8, 2, 3.5, 0x2a1c3a);
     const eyeR = this.add.circle(8, 2, 3.5, 0x2a1c3a);
 
+    this.eyes = [eyeL, eyeR];
+
     const container = this.add.container(x, y, [body, hair, eyeL, eyeR]);
-    container.setDepth(10);
+    container.setDepth(DEPTH.player);
     return container;
   }
 
-  private makeStone(x: number, y: number): Phaser.GameObjects.Container {
-    const glow = this.add.circle(0, 0, 44, 0xf7c0ff, 0.18);
-    const gem = this.add.star(0, 0, 5, 14, 30, 0xf78ddd).setStrokeStyle(4, 0xffe6fb);
-
-    const container = this.add.container(x, y, [glow, gem]);
-    container.setDepth(5);
-
-    // A slow breath so it reads as "come poke me" without demanding attention.
-    this.tweens.add({
-      targets: glow,
-      scale: { from: 0.9, to: 1.15 },
-      duration: 1600,
-      yoyo: true,
-      repeat: -1,
-      ease: 'Sine.easeInOut',
-    });
-
-    return container;
+  /** Shifting the eyes is the whole of "facing", and it is enough to read. */
+  private face(facing: Facing): void {
+    const shift = facing * 5;
+    this.eyes[0]?.setX(-8 + shift);
+    this.eyes[1]?.setX(8 + shift);
   }
 
   private drawHud(): void {
-    this.add
-      .text(WALL + 12, WALL + 10, 'Walk: left stick or arrow keys', {
-        fontFamily: 'system-ui, sans-serif',
-        fontSize: '20px',
-        color: '#e9dcff',
-      })
-      .setDepth(30);
+    // The room used to caption itself "Walk: left stick or arrow keys". She
+    // cannot read it, so it is a picture now — and it leaves once she walks.
+    if (!walkHintDone) {
+      this.stickHint = makeStickHint(this, 108, 640);
+      this.stickHint.container.setDepth(DEPTH.hud);
+    }
 
-    // A green dot, never the letter "A" — see ButtonDot. The dot over the stone
+    // A green dot, never the letter "A" — see ButtonDot. The dot over a prop
     // and the dot on the title screen are the same promise: press green.
-    this.prompt = makeButtonDot(this, this.stone.x, this.stone.y - 74, {
-      radius: 18,
-      pulse: true,
-    })
-      .setDepth(30)
+    this.prompt = makeButtonDot(this, 0, 0, { radius: 18, pulse: true })
+      .setDepth(DEPTH.hud)
       .setVisible(false);
   }
 }

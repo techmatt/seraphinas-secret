@@ -9,8 +9,20 @@
 
 import { getAudioContext } from './audio/context';
 
+/** Anything on screen a test might want to walk to, in world space. */
+export interface Marker {
+  id: string;
+  x: number;
+  y: number;
+}
+
+export interface DoorwayMarker extends Marker {
+  /** Room id on the far side. */
+  to: string;
+}
+
 export interface TestHooks {
-  /** Flips true once the room scene has finished create(). */
+  /** Flips true once a room scene has finished create(). */
   ready: boolean;
   /**
    * Which scene is live. The game now opens on the title screen, so "booted" and
@@ -18,6 +30,16 @@ export interface TestHooks {
    * apart.
    */
   scene: 'title' | 'room' | null;
+  /**
+   * Which room is on screen. One scene serves the whole room graph, so `scene`
+   * cannot answer "did walking through the archway actually take her anywhere".
+   */
+  room: string | null;
+  /**
+   * True from the moment a doorway fires until the far room has been built. The
+   * character is not under her own control during this.
+   */
+  transitioning: boolean;
   /**
    * State of the shared AudioContext: 'suspended' until a gesture unlocks it,
    * 'running' after, or 'none' where the browser has no AudioContext at all.
@@ -27,9 +49,11 @@ export interface TestHooks {
   audio: string;
   /** Character position in world space. */
   player: { x: number; y: number };
-  /** The interactable's position, so tests can steer instead of guessing. */
-  stone: { x: number; y: number };
-  /** How close the character must get before the interaction will fire. */
+  /** This room's pokeable props, so tests can steer instead of guessing. */
+  interactables: Marker[];
+  /** This room's doorways, at the centre of each opening. */
+  doorways: DoorwayMarker[];
+  /** How close the character must get before an interaction will fire. */
   interactRadius: number;
   /** How many times the juicy interaction has fired. */
   sparkles: number;
@@ -79,12 +103,27 @@ declare global {
   }
 }
 
+/**
+ * `?fastBoot=1` skips the title screen's spoken greeting, which costs every
+ * test that only wants to be in a room about two and a half seconds. The press
+ * itself still happens, because it is what unlocks audio and wakes the pad —
+ * skipping that would mean the suite stopped testing the real entry path.
+ *
+ * A query flag rather than a hook function: the title screen has already begun
+ * by the time Playwright could call anything.
+ */
+export const FAST_BOOT =
+  typeof location !== 'undefined' && new URLSearchParams(location.search).has('fastBoot');
+
 export const hooks: TestHooks = {
   ready: false,
   scene: null,
+  room: null,
+  transitioning: false,
   audio: 'none',
   player: { x: 0, y: 0 },
-  stone: { x: 0, y: 0 },
+  interactables: [],
+  doorways: [],
   interactRadius: 0,
   sparkles: 0,
   aliveParticles: 0,

@@ -18,7 +18,7 @@ import { unlockAudio } from '../audio/context';
 import { makeButtonDot, makeGlow } from '../ui/ButtonDot';
 import { SpeechBubble } from '../ui/SpeechBubble';
 import { VoiceBank } from '../voice/VoiceBank';
-import { hooks, syncAudioHook } from '../testHooks';
+import { FAST_BOOT, hooks, syncAudioHook } from '../testHooks';
 
 /** The line Seraphina says the moment the game wakes up. */
 const GREETING = 'seraphina_hello';
@@ -204,6 +204,14 @@ export class TitleScene extends Phaser.Scene {
   private greetAndLeave(): void {
     if (this.leaving || !this.scene.isActive()) return;
     this.leaving = true;
+
+    // Under ?fastBoot the press still happens — it is what unlocks audio and
+    // wakes the pad — but the greeting is skipped, which is the two and a half
+    // seconds every room test was paying to hear the same sentence again.
+    if (FAST_BOOT) {
+      this.toRoom();
+      return;
+    }
 
     this.bubble.say(GREETING, { x: this.dot.x, y: this.dot.y + 20 });
 
