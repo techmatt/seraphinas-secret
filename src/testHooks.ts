@@ -117,6 +117,13 @@ export interface TestHooks {
   /** How close the character must get before an interaction will fire. */
   interactRadius: number;
   /**
+   * Whether the debug hitbox overlay is on screen — see DebugHitboxes. It is
+   * normally a held key, which a screenshot cannot hold, so `debugHitboxes`
+   * pins it and this reports what actually happened either way.
+   */
+  hitboxes: boolean;
+  debugHitboxes: (on: boolean) => void;
+  /**
    * What the renderer is actually managing. Headless Chromium runs this game an
    * order of magnitude slower than a real machine, and the exterior is a
    * culled tile layer plus a few hundred sprites, so it is worth being able to
@@ -215,6 +222,8 @@ export const hooks: TestHooks = {
   doorways: [],
   landmarks: [],
   interactRadius: 0,
+  hitboxes: false,
+  debugHitboxes: () => undefined,
   fps: 0,
   sparkles: 0,
   aliveParticles: 0,

@@ -45,6 +45,17 @@ export interface MapImage {
   fps?: number;
   /** Lies on the floor: drawn under everything that stands on it. */
   flat?: boolean;
+  /**
+   * Which part of the picture is solid, as a tile rectangle from its top-left.
+   * Absent means the whole thing is walk-through. Halves are allowed and are
+   * normal: the pack centres a tree's trunk on its slot, so the trunk straddles
+   * two columns — see `tools/world/footing.ts`, which is what puts the sprite
+   * down so these land on whole tiles.
+   *
+   * Collision itself comes from the `blocked` string; this is here so the debug
+   * overlay can show *which* sprite made a cell solid, which a bitmap cannot.
+   */
+  blocks?: { x: number; y: number; w: number; h: number };
 }
 
 /** A ground tile that cycles: one global tile id per frame. */

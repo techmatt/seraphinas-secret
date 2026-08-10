@@ -287,6 +287,7 @@ function buildZone(zone: ZoneLayout, sheets: Map<string, Sheet>): BuiltMap {
         h: def.h,
         ...(def.frames && def.frames > 1 ? { frames: def.frames, fps: def.fps ?? 8 } : {}),
         ...(def.flat ? { flat: true } : {}),
+        ...(def.blocks ? { blocks: def.blocks } : {}),
       });
     }
     return def;

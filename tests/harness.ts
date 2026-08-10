@@ -39,6 +39,8 @@ export type Hooks = {
   doorways: { id: string; x: number; y: number; to: string; enter: 'walk' | 'press' }[];
   landmarks: { id: string; x: number; y: number }[];
   interactRadius: number;
+  hitboxes: boolean;
+  debugHitboxes: (on: boolean) => void;
   fps: number;
   sparkles: number;
   aliveParticles: number;
@@ -62,7 +64,7 @@ export const readHooks = (page: Page) =>
   page.evaluate(() => {
     const h = (window as unknown as { __seraphina: Hooks }).__seraphina;
     // Functions do not survive the serialisation back to node; drop them.
-    const { pause, teleport, overview, voice, ...rest } = h;
+    const { pause, teleport, overview, debugHitboxes, voice, ...rest } = h;
     const { say, scrub, timings, ...voiceRest } = voice;
     return { ...rest, voice: voiceRest };
   });
@@ -523,6 +525,27 @@ export async function fromAbove(page: Page, take: () => Promise<unknown>) {
   await take();
   await zoom(false);
   await page.waitForTimeout(300);
+}
+
+/**
+ * Turn the hitbox overlay on, run `take`, and turn it back off.
+ *
+ * In the game the overlay is the B key held down, which is not a thing a
+ * screenshot can do — Playwright's key-up would land somewhere unpredictable in
+ * a page running at twenty frames a second, and half the audit trail would come
+ * back without the overlay on it. So the pinning hook is used instead, and the
+ * spec that cares proves the key itself works by holding it.
+ */
+export async function withHitboxes(page: Page, take: () => Promise<unknown>) {
+  const pin = (on: boolean) =>
+    page.evaluate(
+      (v) => (window as unknown as { __seraphina: Hooks }).__seraphina.debugHitboxes(v),
+      on,
+    );
+  await pin(true);
+  await page.waitForTimeout(200);
+  await take();
+  await pin(false);
 }
 
 /** The voice manifest loads after boot; nothing voice-shaped works before it. */

@@ -113,12 +113,26 @@ export class TileWorld {
 
   // --- what the scene asks it ---------------------------------------------
 
+  /**
+   * Her collision box, given where her feet are. Public because the debug
+   * overlay draws exactly this rectangle — a picture of a box the collision test
+   * does not actually use would be worse than no picture at all.
+   */
+  static body(footX: number, footY: number): Phaser.Geom.Rectangle {
+    return new Phaser.Geom.Rectangle(
+      footX - BODY_HALF_W,
+      footY - BODY_HEIGHT,
+      BODY_HALF_W * 2,
+      BODY_HEIGHT,
+    );
+  }
+
   /** Can she stand with her feet here? */
   canStand(footX: number, footY: number): boolean {
-    const top = footY - BODY_HEIGHT;
-    const bottom = footY - 1;
-    const left = footX - BODY_HALF_W;
-    const right = footX + BODY_HALF_W;
+    const box = TileWorld.body(footX, footY);
+    const { left, top } = box;
+    const right = box.right;
+    const bottom = box.bottom - 1;
 
     // The box is smaller than a tile both ways, so any tile it overlaps has one
     // of its corners in it.

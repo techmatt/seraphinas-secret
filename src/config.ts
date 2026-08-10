@@ -41,6 +41,8 @@ export const DEPTH = {
   /** Light on the floor: under the things standing on it. */
   doorLight: -50,
   /** ...y-sorted world objects live here, at their own base y... */
+  /** The hitbox overlay: over everything in the world, under everything in the UI. */
+  debug: 80_000,
   prompt: 90_000,
   sparkles: 95_000,
   speech: 100_000,

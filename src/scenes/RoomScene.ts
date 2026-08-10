@@ -13,6 +13,7 @@ import {
   registerCharacterAnims,
 } from '../world/Character';
 import { SERAPHINA } from '../world/characterSheets';
+import { DebugHitboxes } from '../world/DebugHitboxes';
 import { Doorway } from '../world/Doorway';
 import { loadMap, spawnOf, type FlourishId, type MapData } from '../world/mapData';
 import { makeProp, nudgeProp, type Prop } from '../world/scenery';
@@ -125,6 +126,12 @@ export class RoomScene extends Phaser.Scene {
   private wasd?: Record<'up' | 'down' | 'left' | 'right', Phaser.Input.Keyboard.Key>;
   private interactKey?: Phaser.Input.Keyboard.Key;
 
+  /** Hold this and the collision grid shows. See DebugHitboxes. */
+  private hitboxKey?: Phaser.Input.Keyboard.Key;
+  private hitboxes!: DebugHitboxes;
+  /** Forced on by a test, so a headless screenshot can hold no key at all. */
+  private hitboxesPinned = false;
+
   /** Previous frame's A-button state, so a held button fires once. */
   private padInteractWasDown = false;
 
@@ -164,6 +171,7 @@ export class RoomScene extends Phaser.Scene {
     this.doorwaysArmed = false;
     this.padInteractWasDown = false;
     this.stickHint = undefined;
+    this.hitboxesPinned = false;
   }
 
   preload(): void {
@@ -238,6 +246,8 @@ export class RoomScene extends Phaser.Scene {
     });
     this.sparkles.setDepth(DEPTH.sparkles);
 
+    this.hitboxes = new DebugHitboxes(this, this.world);
+
     this.setupInput();
     this.drawHud();
     this.arrive();
@@ -283,6 +293,10 @@ export class RoomScene extends Phaser.Scene {
       camera.centerOn(this.world.widthPx / 2, this.world.heightPx / 2);
       this.syncCameraHooks();
     };
+    hooks.debugHitboxes = (on) => {
+      this.hitboxesPinned = on;
+      this.updateHitboxes();
+    };
     hooks.scene = 'room';
     hooks.transitioning = false;
     hooks.ready = true;
@@ -303,6 +317,7 @@ export class RoomScene extends Phaser.Scene {
     }
     this.player.setDepth(this.player.y);
     this.world.revealBehind(this.player.x, this.player.y);
+    this.updateHitboxes();
     this.bubble.tick();
 
     syncAudioHook();
@@ -428,6 +443,7 @@ export class RoomScene extends Phaser.Scene {
       right: keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D),
     };
     this.interactKey = keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.Z);
+    this.hitboxKey = keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.B);
 
     // The title screen already unlocked audio; this is only insurance for a
     // context the browser suspended again while the tab was in the background.
@@ -502,6 +518,17 @@ export class RoomScene extends Phaser.Scene {
       walkHintDone = true;
       this.stickHint?.dismiss();
     }
+  }
+
+  /**
+   * The hitbox overlay, for as long as B is held. Kept out of `handleInteract`
+   * because it is not an interaction: it stays live while she is walking through
+   * a doorway, which is exactly when a collision question is worth asking.
+   */
+  private updateHitboxes(): void {
+    this.hitboxes.setVisible(this.hitboxesPinned || (this.hitboxKey?.isDown ?? false));
+    this.hitboxes.draw(this.player.x, this.player.y);
+    hooks.hitboxes = this.hitboxes.visible;
   }
 
   private handleInteract(pad?: Phaser.Input.Gamepad.Gamepad): void {

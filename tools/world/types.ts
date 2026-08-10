@@ -209,6 +209,15 @@ export interface BuiltImage {
   fps?: number;
   /** Lies on the floor: drawn under everything that stands on it. */
   flat?: boolean;
+  /**
+   * The catalog's own `blocks` rectangle, passed through untouched.
+   *
+   * Collision is already resolved into the `blocked` string by the time the game
+   * reads a map, so nothing in it needs this to *play*. The debug overlay needs
+   * it to *explain*: a bitmap can say a tile is solid and cannot say which tree
+   * made it so, and the whole point of holding B is being able to see which.
+   */
+  blocks?: TileRect;
 }
 
 /**
