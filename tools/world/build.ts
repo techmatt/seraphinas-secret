@@ -24,6 +24,7 @@ import {
   FILLS,
   FLOOR_PATTERNS,
   IMAGES,
+  OVERLAYS,
   TILE,
   TILESETS,
   WALL_TILES,
@@ -37,6 +38,7 @@ import type {
   BuiltMarker,
   BuiltProp,
   BuiltSprite,
+  BuiltTileAnim,
   BuiltTileset,
   TerrainKind,
   ZoneLayout,
@@ -136,6 +138,7 @@ function buildZone(zone: ZoneLayout, sheets: Map<string, Sheet>): BuiltMap {
   }
 
   const ground: number[] = new Array(n).fill(-1);
+  const tileAnims: BuiltTileAnim[] = [];
   for (let y = 0; y < rows; y++) {
     for (let x = 0; x < cols; x++) {
       const i = at(x, y);
@@ -169,7 +172,48 @@ function buildZone(zone: ZoneLayout, sheets: Map<string, Sheet>): BuiltMap {
       const same = (px: number, py: number) =>
         !inside(px, py) || terrain[at(px, py)] === kind;
       const offset = blobOffset(same, x, y);
-      ground[i] = gidOf(sheets, blob.tileset, blob.col + offset.col, blob.row + offset.row);
+      // An animated blob is the same block repeated across the sheet, so a
+      // frame is the block's own offset shifted three columns per step.
+      const frameCol = (frame: number) => blob.col + frame * 3 + offset.col;
+      ground[i] = gidOf(sheets, blob.tileset, frameCol(0), blob.row + offset.row);
+      if (blob.frames && blob.frames > 1) {
+        tileAnims.push({
+          i,
+          gids: Array.from({ length: blob.frames }, (_, f) =>
+            gidOf(sheets, blob.tileset, frameCol(f), blob.row + offset.row),
+          ),
+          fps: blob.fps ?? 8,
+        });
+      }
+    }
+  }
+
+  // --- the overlay layer --------------------------------------------------
+
+  const overlayKind: (string | null)[] = new Array(n).fill(null);
+  for (const paint of zone.overlay ?? []) {
+    if (!OVERLAYS[paint.kind]) throw new Error(`world: no overlay "${paint.kind}"`);
+    for (const [x, y] of paint.cells) if (inside(x, y)) overlayKind[at(x, y)] = paint.kind;
+  }
+
+  const overlay: number[] = new Array(n).fill(-1);
+  let overlaid = 0;
+  for (let y = 0; y < rows; y++) {
+    for (let x = 0; x < cols; x++) {
+      const i = at(x, y);
+      const kind = overlayKind[i];
+      if (kind === null) continue;
+      const def = OVERLAYS[kind]!;
+      // Off the map counts as more of the same, so a patch running under the
+      // tree line does not draw a shoreline against the edge of the world.
+      const same = (px: number, py: number) =>
+        !inside(px, py) || overlayKind[at(px, py)] === kind;
+      const offset = blobOffset(same, x, y);
+      overlay[i] =
+        offset.col === 1 && offset.row === 1
+          ? gidOf(sheets, def.fill.tileset, def.fill.col, def.fill.row)
+          : gidOf(sheets, def.edge.tileset, def.edge.col + offset.col, def.edge.row + offset.row);
+      overlaid++;
     }
   }
 
@@ -196,7 +240,15 @@ function buildZone(zone: ZoneLayout, sheets: Map<string, Sheet>): BuiltMap {
     const def = IMAGES[key];
     if (!def) throw new Error(`world: no catalog image "${key}"`);
     if (!used.has(key)) {
-      used.set(key, { key, file: encodeURI(def.file), x: def.x, y: def.y, w: def.w, h: def.h });
+      used.set(key, {
+        key,
+        file: encodeURI(def.file),
+        x: def.x,
+        y: def.y,
+        w: def.w,
+        h: def.h,
+        ...(def.frames && def.frames > 1 ? { frames: def.frames, fps: def.fps ?? 8 } : {}),
+      });
     }
     return def;
   };
@@ -239,6 +291,7 @@ function buildZone(zone: ZoneLayout, sheets: Map<string, Sheet>): BuiltMap {
 
   const doorways: BuiltDoorway[] = zone.doorways.map((door) => ({
     ...door,
+    enter: door.enter ?? 'walk',
     x: Math.round(door.x * TILE),
     y: Math.round(door.y * TILE),
     w: Math.round(door.w * TILE),
@@ -260,11 +313,14 @@ function buildZone(zone: ZoneLayout, sheets: Map<string, Sheet>): BuiltMap {
     };
   }
 
+  assertRoadsClear(zone, terrain, blocked, cols);
   assertReachable(zone, blocked, cols, rows);
 
-  const usedSheets = [...sheets.values()].filter((sheet) =>
-    ground.some((gid) => gid >= sheet.firstgid && gid < sheet.firstgid + sheet.total),
-  );
+  const drawn = (sheet: Sheet) => {
+    const owns = (gid: number) => gid >= sheet.firstgid && gid < sheet.firstgid + sheet.total;
+    return ground.some(owns) || overlay.some(owns);
+  };
+  const usedSheets = [...sheets.values()].filter(drawn);
 
   return {
     id: zone.id,
@@ -281,6 +337,8 @@ function buildZone(zone: ZoneLayout, sheets: Map<string, Sheet>): BuiltMap {
     })),
     images: [...used.values()],
     ground,
+    ...(overlaid ? { overlay } : {}),
+    ...(tileAnims.length ? { tileAnims } : {}),
     blocked: Array.from(blocked, (b) => (b ? '1' : '0')).join(''),
     sprites,
     spawns,
@@ -288,6 +346,35 @@ function buildZone(zone: ZoneLayout, sheets: Map<string, Sheet>): BuiltMap {
     props,
     landmarks,
   };
+}
+
+/**
+ * Nothing solid may stand on a road.
+ *
+ * A road is the one thing in this world a four-year-old is expected to follow
+ * without being told, so a lamp post planted in the middle of one is a worse
+ * bug than it looks: she walks the dirt, meets a thing, and the road has lied
+ * to her. Scatters already keep off the roads — this catches the *hand-placed*
+ * prop, which is exactly the kind that gets nudged two tiles in a later edit
+ * and never looked at again.
+ */
+function assertRoadsClear(
+  zone: ZoneLayout,
+  terrain: (TerrainKind | null)[],
+  blocked: Uint8Array,
+  cols: number,
+): void {
+  const on: string[] = [];
+  for (let i = 0; i < terrain.length; i++) {
+    if (terrain[i] !== 'path' || !blocked[i]) continue;
+    on.push(`${i % cols},${Math.floor(i / cols)}`);
+  }
+  if (on.length) {
+    throw new Error(
+      `world: ${zone.id} — ${on.length} road tiles have something solid on them: ` +
+        `${on.slice(0, 12).join(' ')}${on.length > 12 ? ' …' : ''}`,
+    );
+  }
 }
 
 /**
@@ -362,10 +449,13 @@ async function main(): Promise<void> {
     await writeFile(file, `${JSON.stringify(map)}\n`);
 
     const solid = [...map.blocked].filter((c) => c === '1').length;
+    const moving = map.images.filter((i) => i.frames).length;
     console.log(
       `world: ${zone.id} — ${map.cols}x${map.rows} tiles, ` +
-        `${map.tilesets.length} tilesets, ${map.images.length} images, ` +
+        `${map.tilesets.length} tilesets, ${map.images.length} images (${moving} animated), ` +
         `${map.sprites.length} sprites, ${map.props.length} props, ` +
+        `${map.overlay?.filter((g) => g >= 0).length ?? 0} overlaid, ` +
+        `${map.tileAnims?.length ?? 0} moving tiles, ` +
         `${solid}/${map.cols * map.rows} solid → ${file}`,
     );
   }

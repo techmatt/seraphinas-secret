@@ -78,6 +78,53 @@ export function disc(cx: number, cy: number, r: number): Cell[] {
 }
 
 /**
+ * The ring of tiles `depth` deep around the outside of a map — the band the
+ * tree line is planted in, and the band the world is fenced off with.
+ */
+export function frame(cols: number, rows: number, depth: number): Cell[] {
+  return union(
+    rect(0, 0, cols, depth),
+    rect(0, rows - depth, cols, depth),
+    rect(0, 0, depth, rows),
+    rect(cols - depth, 0, depth, rows),
+  );
+}
+
+/** A polyline road with a width, as a layout writes one down. */
+export interface RoadSpec {
+  /** What it is for, so a diff on the roads reads as a sentence. */
+  name: string;
+  points: Cell[];
+  width: number;
+}
+
+/** Every road in a set, as one region of cells. */
+export function roadCells(specs: readonly RoadSpec[]): Cell[] {
+  return union(...specs.map((spec) => road(spec.points, spec.width)));
+}
+
+/**
+ * Points evenly spaced along a polyline, `every` tiles apart, offset `off`
+ * tiles perpendicular to the run. This is how a street gets lamp posts down
+ * both sides without anybody writing out forty coordinates.
+ */
+export function alongRoad(spec: RoadSpec, every: number, off: number): Cell[] {
+  const out: Cell[] = [];
+  for (let i = 0; i < spec.points.length - 1; i++) {
+    const [x1, y1] = spec.points[i]!;
+    const [x2, y2] = spec.points[i + 1]!;
+    const horizontal = y1 === y2;
+    const from = horizontal ? x1 : y1;
+    const to = horizontal ? x2 : y2;
+    const step = to > from ? every : -every;
+    for (let at = from + step; step > 0 ? at < to : at > to; at += step) {
+      out.push(horizontal ? [at, y1 + off] : [x1 + off, at]);
+    }
+  }
+  return out;
+}
+
+/**
  * A road: axis-aligned runs between waypoints, `width` tiles across. Corners
  * are square, which for a dirt track through a farm is exactly right.
  */

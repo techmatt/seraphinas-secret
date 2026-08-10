@@ -19,8 +19,8 @@ import type { TileWorld } from './TileWorld';
 
 export interface Prop {
   def: MapProp;
-  /** The picture. A facade's is a whole building. */
-  sprite: Phaser.GameObjects.Image | null;
+  /** The picture. A facade's is a whole building; a chest's is animated. */
+  sprite: Phaser.GameObjects.Image | Phaser.GameObjects.Sprite | null;
   /** Where she walks up to and where the green dot sits, in world pixels. */
   x: number;
   y: number;

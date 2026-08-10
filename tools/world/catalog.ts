@@ -29,6 +29,9 @@ export const TILE = 16;
 /** Where `npm run assets:sync` puts the pack, from the browser's point of view. */
 const A = 'assets/Cute_Fantasy';
 
+/** The pack keeps every outdoor animation strip under one long path. */
+const ANIM = 'Outdoor decoration/Outdoor_Decor_Animations';
+
 export interface TilesetDef {
   /** Phaser texture key, and the tileset name inside the map. */
   key: string;
@@ -44,7 +47,18 @@ export interface TilesetDef {
 export const TILESETS: Record<string, TilesetDef> = {
   grassMid: { key: 'grassMid', file: `${A}/Tiles/Grass/Grass_1_Middle.png` },
   grassEdge: { key: 'grassEdge', file: `${A}/Tiles/Grass/Grass_Tiles_1.png` },
-  water: { key: 'water', file: `${A}/Tiles/Water/Water_Tile_1.png` },
+  // The other three grass colours, and the edge set that blends each of them
+  // over the first. Middles are their own one-tile files because the middle of
+  // every edge sheet is deliberately blank — see OVERLAYS.
+  grass2Mid: { key: 'grass2Mid', file: `${A}/Tiles/Grass/Grass_2_Middle.png` },
+  grass2Edge: { key: 'grass2Edge', file: `${A}/Tiles/Grass/Grass_Tiles_2.png` },
+  grass3Mid: { key: 'grass3Mid', file: `${A}/Tiles/Grass/Grass_3_Middle.png` },
+  grass3Edge: { key: 'grass3Edge', file: `${A}/Tiles/Grass/Grass_Tiles_3.png` },
+  grass4Mid: { key: 'grass4Mid', file: `${A}/Tiles/Grass/Grass_4_Middle.png` },
+  grass4Edge: { key: 'grass4Edge', file: `${A}/Tiles/Grass/Grass_Tiles_4.png` },
+  // Eight copies of the water block side by side: one sheet, one tileset, and a
+  // pond that moves. The still sheet is not loaded at all any more.
+  water: { key: 'water', file: `${A}/Tiles/Water/Water_Tile_1_Anim.png` },
   farmland: { key: 'farmland', file: `${A}/Tiles/FarmLand/FarmLand_Tile.png` },
   floor: { key: 'floor', file: `${A}/Buildings/Houses_Interiors/Wood_Floor_Tiles.png` },
   wall: { key: 'wall', file: `${A}/Buildings/Houses_Interiors/Interior_Walls.png` },
@@ -62,13 +76,21 @@ export interface BlobDef {
   row: number;
   /** For the report and for anyone reading a map: what this is carved into. */
   over: string;
+  /**
+   * How many copies of the block sit side by side across the sheet, when it is
+   * an animation strip. The whole 3x5 block repeats every `frames` × 3 columns.
+   */
+  frames?: number;
+  fps?: number;
 }
 
 export const BLOBS: Record<string, BlobDef> = {
   // Sand-coloured dirt paths, cut into grass. Bottom-left block of the grass
   // sheet; the top-left block of the same sheet is grass cut into nothing.
   path: { tileset: 'grassEdge', col: 0, row: 5, over: 'grass' },
-  water: { tileset: 'water', col: 0, row: 0, over: 'grass' },
+  // Six frames a second is the pack's own animation speed: fast enough to read
+  // as water, slow enough not to strobe on a screen a four-year-old sits close to.
+  water: { tileset: 'water', col: 0, row: 0, over: 'grass', frames: 8, fps: 6 },
 };
 
 /** Plain fills: terrain that is one tile repeated. */
@@ -76,6 +98,45 @@ export const FILLS: Record<string, { tileset: string; col: number; row: number }
   grass: { tileset: 'grassMid', col: 0, row: 0 },
   // The middle of the ploughed-field autotile, used flat for the vegetable patch.
   farm: { tileset: 'farmland', col: 3, row: 3 },
+};
+
+/**
+ * A grass variant, drawn on the overlay layer above the ground.
+ *
+ * The pack's four grass colours are four flat tiles and four edge sheets, and
+ * every edge sheet's *middle* is blank — the middle is the flat file. So an
+ * overlay is a pair: which flat tile fills the inside, and which 3x5 block draws
+ * the ragged border where it meets whatever it was laid over. That border is
+ * transparent on its outer side, which is why this cannot share a layer with the
+ * ground it is blending into.
+ *
+ * Roads are deliberately not overlaid: a dirt path draws its own grass-coloured
+ * corners out of `grassEdge`, and those corners are grass *one*. Regions keep a
+ * tile clear of every road so the two never meet.
+ */
+export interface OverlayDef {
+  fill: { tileset: string; col: number; row: number };
+  edge: { tileset: string; col: number; row: number };
+  /** What the eye should read it as, for anyone reading a layout. */
+  reads: string;
+}
+
+export const OVERLAYS: Record<string, OverlayDef> = {
+  meadowGrass: {
+    fill: { tileset: 'grass2Mid', col: 0, row: 0 },
+    edge: { tileset: 'grass2Edge', col: 0, row: 0 },
+    reads: 'bright mown green — the village green',
+  },
+  dryGrass: {
+    fill: { tileset: 'grass3Mid', col: 0, row: 0 },
+    edge: { tileset: 'grass3Edge', col: 0, row: 0 },
+    reads: 'sun-bleached olive — the farm',
+  },
+  woodGrass: {
+    fill: { tileset: 'grass4Mid', col: 0, row: 0 },
+    edge: { tileset: 'grass4Edge', col: 0, row: 0 },
+    reads: 'cold blue-green — under the trees',
+  },
 };
 
 /**
@@ -119,6 +180,15 @@ export interface ImageDef {
    * wood feel like a wood rather than a wall.
    */
   blocks?: { x: number; y: number; w: number; h: number };
+  /**
+   * Frames laid out to the right of this rectangle at `w`-pixel intervals, for
+   * the pack's animation strips. The pack ships fire, water plants, grass tufts
+   * and chests as strips and the world used to draw frame zero of every one of
+   * them, which is how a cozy village ends up looking like a photograph of one.
+   */
+  frames?: number;
+  /** Frames per second. Absent with `frames` means the pack's usual eight. */
+  fps?: number;
 }
 
 /**
@@ -152,10 +222,28 @@ export const IMAGES: Record<string, ImageDef> = {
     x: 0, y: 0, w: 96, h: 112,
     blocks: { x: 0, y: 0, w: 6, h: 6 },
   },
+  // The biggest thing in the village, and the reason the main road reads as a
+  // street rather than a track: two building fronts side by side facing it.
+  villageHall: {
+    file: `${A}/Buildings/Buildings/Houses/Limestone/House_2_Limestone_Base_Blue.png`,
+    x: 0, y: 0, w: 144, h: 128,
+    blocks: { x: 0, y: 0, w: 9, h: 7 },
+  },
   caveMouth: {
     file: `${A}/Tiles/Cliff/Stone_Cliff_1_Cave_Entrance.png`,
     x: 0, y: 0, w: 48, h: 48,
     blocks: { x: 0, y: 0, w: 3, h: 2 },
+  },
+  // Four awnings across one sheet, 48 apart. The counter blocks; the awning
+  // does not, so she can stand behind a stall and be drawn behind its roof.
+  stallRed: stall(0),
+  stallGreen: stall(1),
+  stallBlue: stall(2),
+  stallYellow: stall(3),
+  silo: {
+    file: `${A}/Buildings/Buildings/Unique_Buildings/Silo/Silo.png`,
+    x: 0, y: 0, w: 48, h: 80,
+    blocks: { x: 0, y: 3, w: 3, h: 2 },
   },
 
   // --- trees -------------------------------------------------------------
@@ -230,17 +318,59 @@ export const IMAGES: Record<string, ImageDef> = {
   bloomRed: flower(0, 4),
   bloomPurple: flower(3, 4),
 
+  // --- living ground dressing --------------------------------------------
+  // The pack's animated tufts and blooms: eight 16x16 frames across one strip
+  // each. Scattered thinly through open grass, these are what stop a field of
+  // one flat colour from reading as a printed backdrop.
+  swayGrass: anim(`${A}/${ANIM}/Grass_Animations/Grass_1_Anim.png`, 16, 16, 8),
+  swayGrass2: anim(`${A}/${ANIM}/Grass_Animations/Grass_2_Anim.png`, 16, 16, 8),
+  swayGrass3: anim(`${A}/${ANIM}/Grass_Animations/Grass_3_Anim.png`, 16, 16, 8),
+  swayFlowers: anim(`${A}/${ANIM}/Grass_Animations/Flower_Grass_2_Anim.png`, 16, 16, 8),
+  swayFlowers2: anim(`${A}/${ANIM}/Grass_Animations/Flower_Grass_7_Anim.png`, 16, 16, 8),
+  swayFlowers3: anim(`${A}/${ANIM}/Grass_Animations/Flower_Grass_12_Anim.png`, 16, 16, 8),
+  swayToadstool: anim(`${A}/${ANIM}/Muschroom_Animations/muschroom_1_Anim.png`, 16, 16, 6),
+  swayToadstool2: anim(`${A}/${ANIM}/Muschroom_Animations/muschroom_5_Anim.png`, 16, 16, 6),
+  // Six frames per row, ten colours down the sheet. Pots go beside doors.
+  potRed: potted(0),
+  potYellow: potted(3),
+  potBlue: potted(6),
+  potPink: potted(8),
+
+  // --- water dressing ----------------------------------------------------
+  lilypadRed: anim(`${A}/${ANIM}/Water_Decor_Animations/Water_Plants/Lillypad_Red_2_Anim.png`, 16, 16, 8),
+  lilypadPurple: anim(`${A}/${ANIM}/Water_Decor_Animations/Water_Plants/Lillypad_Purple_3_Anim.png`, 16, 16, 8),
+  reeds: anim(`${A}/${ANIM}/Water_Decor_Animations/Water_Plants/Water_Grass_1_Anim.png`, 16, 16, 8),
+  reeds2: anim(`${A}/${ANIM}/Water_Decor_Animations/Water_Plants/Water_Grass_2_Anim.png`, 16, 16, 8),
+  wetRock: anim(`${A}/${ANIM}/Water_Decor_Animations/Water_Rocks/Rock_5_Water_Anim.png`, 16, 16, 8),
+  wetRock2: anim(`${A}/${ANIM}/Water_Decor_Animations/Water_Rocks/Rock_9_Water_Anim.png`, 16, 16, 8),
+
   // --- outdoor props -----------------------------------------------------
   well: {
     file: `${A}/Outdoor decoration/Well.png`, x: 0, y: 0, w: 32, h: 48,
     blocks: { x: 0, y: 1, w: 2, h: 2 },
   },
-  // Eight 16x32 frames of it burning; the world is still, so this is frame one.
   campfire: {
-    file: `${A}/Outdoor decoration/Outdoor_Decor_Animations/Other_Animations/Campfire_Anim.png`,
-    x: 0, y: 0, w: 16, h: 32,
+    file: `${A}/${ANIM}/Other_Animations/Campfire_Anim.png`,
+    x: 0, y: 0, w: 16, h: 32, frames: 8,
   },
-  chest: { file: `${A}/Buildings/House_Decor/Chest_Anim.png`, x: 0, y: 0, w: 16, h: 16 },
+  chest: {
+    file: `${A}/Buildings/House_Decor/Chest_Anim.png`, x: 0, y: 0, w: 16, h: 16, frames: 6, fps: 6,
+  },
+  fountain: {
+    file: `${A}/${ANIM}/Other_Animations/Fountain_Anim.png`,
+    x: 0, y: 0, w: 32, h: 48, frames: 8,
+    blocks: { x: 0, y: 1, w: 2, h: 2 },
+  },
+  torch: {
+    file: `${A}/${ANIM}/Other_Animations/Torch_Anim.png`,
+    x: 0, y: 0, w: 16, h: 32, frames: 8,
+    blocks: { x: 0, y: 1, w: 1, h: 1 },
+  },
+  // Bunting over a street: eight 32x32 frames of it stirring in the wind.
+  bunting: {
+    file: `${A}/${ANIM}/Other_Animations/Pole_and_Bunting_1_Anim.png`,
+    x: 0, y: 0, w: 32, h: 32, frames: 8, fps: 6,
+  },
   scarecrow: {
     file: `${A}/Outdoor decoration/Scarecrows.png`, x: 0, y: 0, w: 32, h: 32,
     blocks: { x: 0, y: 1, w: 2, h: 1 },
@@ -253,6 +383,67 @@ export const IMAGES: Record<string, ImageDef> = {
     file: `${A}/Outdoor decoration/Fences.png`, x: 0, y: 0, w: 16, h: 48,
     blocks: { x: 0, y: 2, w: 1, h: 1 },
   },
+
+  // --- street furniture ---------------------------------------------------
+  // Lamp posts are six styles across by six down, in 16x48 slots; the base is
+  // the bottom tile, so only that one blocks and she walks behind the lamp.
+  lampPost: {
+    file: `${A}/Outdoor decoration/Lanter_Posts.png`, x: 0, y: 0, w: 16, h: 48,
+    blocks: { x: 0, y: 2, w: 1, h: 1 },
+  },
+  lampPostWarm: {
+    file: `${A}/Outdoor decoration/Lanter_Posts.png`, x: 0, y: 144, w: 16, h: 48,
+    blocks: { x: 0, y: 2, w: 1, h: 1 },
+  },
+  // A post with a board hanging off it. The board is the right half of the slot.
+  signPost: {
+    file: `${A}/Outdoor decoration/Signs.png`, x: 0, y: 192, w: 32, h: 48,
+    blocks: { x: 0, y: 2, w: 1, h: 1 },
+  },
+  signPostWood: {
+    file: `${A}/Outdoor decoration/Signs.png`, x: 0, y: 384, w: 32, h: 48,
+    blocks: { x: 0, y: 2, w: 1, h: 1 },
+  },
+  bench: {
+    file: `${A}/Outdoor decoration/Benches.png`, x: 0, y: 0, w: 32, h: 32,
+    blocks: { x: 0, y: 1, w: 2, h: 1 },
+  },
+  benchWood: {
+    file: `${A}/Outdoor decoration/Benches.png`, x: 32, y: 0, w: 32, h: 32,
+    blocks: { x: 0, y: 1, w: 2, h: 1 },
+  },
+
+  // --- farmyard -----------------------------------------------------------
+  hayBale: {
+    file: `${A}/Outdoor decoration/Hay_Bales.png`, x: 16, y: 0, w: 32, h: 16,
+    blocks: { x: 0, y: 0, w: 2, h: 1 },
+  },
+  haySmall: {
+    file: `${A}/Outdoor decoration/Hay_Bales.png`, x: 0, y: 0, w: 16, h: 16,
+    blocks: { x: 0, y: 0, w: 1, h: 1 },
+  },
+  barrel: {
+    file: `${A}/Outdoor decoration/barrels.png`, x: 0, y: 0, w: 16, h: 32,
+    blocks: { x: 0, y: 1, w: 1, h: 1 },
+  },
+  barrelBlue: {
+    file: `${A}/Outdoor decoration/barrels.png`, x: 32, y: 0, w: 16, h: 32,
+    blocks: { x: 0, y: 1, w: 1, h: 1 },
+  },
+  trough: {
+    file: `${A}/Outdoor decoration/Water_Troughs.png`, x: 0, y: 0, w: 32, h: 32,
+    blocks: { x: 0, y: 1, w: 2, h: 1 },
+  },
+  picnicBasket: {
+    file: `${A}/Outdoor decoration/Picnic_Basket.png`, x: 0, y: 0, w: 16, h: 16,
+  },
+  // Twenty-two crops down one sheet, seven stages across. Column five is the
+  // ripe one; the band is two tiles tall because the tall ones lean out of it.
+  cropLeafy: crop(1),
+  cropRound: crop(3),
+  cropTall: crop(8),
+  cropBushy: crop(12),
+  cropRoot: crop(16),
 
   // --- interior furniture ------------------------------------------------
   // Beds come six colours deep at 32 pixel intervals; pink is Seraphina's.
@@ -303,6 +494,38 @@ export const IMAGES: Record<string, ImageDef> = {
   rugRound: { file: `${A}/Buildings/House_Decor/Carpets.png`, x: 0, y: 368, w: 32, h: 32 },
   door: { file: `${A}/Buildings/House_Decor/Doors.png`, x: 0, y: 0, w: 16, h: 32 },
 };
+
+/** One of the four market stalls, 48 pixels apart across their sheet. */
+function stall(index: number): ImageDef {
+  return {
+    file: `${A}/Buildings/Buildings/Unique_Buildings/Stalls/Market_Stalls.png`,
+    x: index * 48, y: 0, w: 48, h: 48,
+    blocks: { x: 0, y: 1, w: 3, h: 2 },
+  };
+}
+
+/** A horizontal strip of `frames` pictures, each `w` by `h`, starting at 0,0. */
+function anim(file: string, w: number, h: number, frames: number, fps?: number): ImageDef {
+  return { file, x: 0, y: 0, w, h, frames, ...(fps ? { fps } : {}) };
+}
+
+/** One of the ten potted-flower colours: six frames across, colours down. */
+function potted(row: number): ImageDef {
+  return {
+    file: `${A}/${ANIM}/Flower_Animations/Potted/Flowers_1_Potted_Anim.png`,
+    x: 0, y: row * TILE, w: TILE, h: TILE, frames: 6, fps: 5,
+  };
+}
+
+/**
+ * A ripe crop. `Crops.png` gives each of its twenty-two crops a 32-pixel band
+ * and seven 16-wide stages across it; the ripe stage is the fifth. The whole
+ * band is taken rather than its bottom tile, because corn and beans lean up out
+ * of theirs — and crops do not block, so she can wade through the vegetables.
+ */
+function crop(index: number): ImageDef {
+  return { file: `${A}/Crops/Crops.png`, x: 5 * TILE, y: index * 32, w: TILE, h: 32 };
+}
 
 function decor(col: number, row: number): ImageDef {
   return {

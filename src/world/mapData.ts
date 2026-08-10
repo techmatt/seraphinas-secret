@@ -17,6 +17,13 @@ export type Direction = 'down' | 'up' | 'left' | 'right';
 /** Which little transition flourish a doorway plays; see world/transition.ts. */
 export type FlourishId = 'sparkle' | 'hush';
 
+/**
+ * Walk through it, or stand at it and press green. Walking out of a building is
+ * automatic; walking into one is a press, the way Stardew does it — see
+ * RoomScene, where a `press` doorway becomes an interactable like any prop.
+ */
+export type DoorwayEntry = 'walk' | 'press';
+
 export interface MapTileset {
   key: string;
   file: string;
@@ -33,6 +40,17 @@ export interface MapImage {
   y: number;
   w: number;
   h: number;
+  /** Frames following it across the sheet at `w` intervals. Absent means still. */
+  frames?: number;
+  fps?: number;
+}
+
+/** A ground tile that cycles: one global tile id per frame. */
+export interface MapTileAnim {
+  /** Index into the ground grid. */
+  i: number;
+  gids: number[];
+  fps: number;
 }
 
 export interface MapSprite {
@@ -65,6 +83,7 @@ export interface MapDoorway {
   h: number;
   to: string;
   toSpawn: string;
+  enter: DoorwayEntry;
   flourish: FlourishId;
   tint: number;
   /** Which way the light spills into the room. */
@@ -88,6 +107,10 @@ export interface MapData {
   images: MapImage[];
   /** Global tile ids, row-major; -1 is nothing. */
   ground: number[];
+  /** A second tile layer above the first, for grass variants; -1 is nothing. */
+  overlay?: number[];
+  /** Ground tiles that cycle — the pond, mostly. */
+  tileAnims?: MapTileAnim[];
   /** One character per tile, '1' where she cannot stand. */
   blocked: string;
   sprites: MapSprite[];

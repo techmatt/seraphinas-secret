@@ -37,8 +37,19 @@ const OCCLUDER_ALPHA = 0.42;
 /** Per-frame approach to the target alpha. Fast enough to feel instant. */
 const FADE_RATE = 0.22;
 
+/** Anything in the world that can be faded, whether it is animated or not. */
+type WorldSprite = Phaser.GameObjects.Image | Phaser.GameObjects.Sprite;
+
+/**
+ * Frame zero of a strip keeps the image's own name, because a still sprite and
+ * the first frame of a moving one are the same rectangle — so nothing has to
+ * know whether a key it was handed animates.
+ */
+const frameName = (key: string, frame: number) => `${key}#${frame}`;
+const animKey = (key: string) => `img:${key}`;
+
 interface Occluder {
-  image: Phaser.GameObjects.Image;
+  image: WorldSprite;
   left: number;
   right: number;
   top: number;
@@ -54,6 +65,9 @@ export class TileWorld {
   private readonly cols: number;
   private readonly rows: number;
   private readonly occluders: Occluder[] = [];
+
+  /** How many sprites have been placed, so animations can be staggered. */
+  private placed = 0;
 
   constructor(
     private readonly scene: Phaser.Scene,
@@ -232,18 +246,57 @@ export class TileWorld {
       )
       .filter((t): t is Phaser.Tilemaps.Tileset => t !== null);
 
-    const layer = tilemap.createBlankLayer('ground', tilesets, 0, 0);
-    if (!layer) return;
+    const paint = (name: string, gids: number[], depth: number) => {
+      const layer = tilemap.createBlankLayer(name, tilesets, 0, 0);
+      if (!layer) return null;
+      const grid: number[][] = [];
+      for (let y = 0; y < map.rows; y++) grid.push(gids.slice(y * map.cols, (y + 1) * map.cols));
+      layer.putTilesAt(grid, 0, 0);
+      layer.setScale(WORLD_SCALE).setDepth(depth);
+      // Culling is what makes a map this size cheap; say so rather than rely on it.
+      layer.setSkipCull(false);
+      return layer;
+    };
 
-    const grid: number[][] = [];
-    for (let y = 0; y < map.rows; y++) {
-      grid.push(map.ground.slice(y * map.cols, (y + 1) * map.cols));
+    const ground = paint('ground', map.ground, DEPTH.ground);
+    // Grass variants ride a tile above the ground: their edge tiles are
+    // transparent on the outside, so they can only blend by being drawn over
+    // what they are blending into. Nothing else lives between the two.
+    if (map.overlay) paint('overlay', map.overlay, DEPTH.ground + 1);
+
+    if (ground && map.tileAnims?.length) this.animateTiles(ground, map.tileAnims);
+  }
+
+  /**
+   * Cycle the pond. One timer per distinct rate rather than per tile: the
+   * generator already resolved every frame's tile id, so a frame is a handful
+   * of writes into a layer that was going to be redrawn anyway.
+   */
+  private animateTiles(
+    layer: Phaser.Tilemaps.TilemapLayer,
+    anims: NonNullable<MapData['tileAnims']>,
+  ): void {
+    const byRate = new Map<number, typeof anims>();
+    for (const anim of anims) {
+      const group = byRate.get(anim.fps);
+      if (group) group.push(anim);
+      else byRate.set(anim.fps, [anim]);
     }
-    layer.putTilesAt(grid, 0, 0);
 
-    layer.setScale(WORLD_SCALE).setDepth(DEPTH.ground);
-    // Culling is what makes a 64x44 map cheap; say so rather than rely on it.
-    layer.setSkipCull(false);
+    for (const [fps, group] of byRate) {
+      let frame = 0;
+      this.scene.time.addEvent({
+        delay: 1000 / fps,
+        loop: true,
+        callback: () => {
+          frame++;
+          for (const anim of group) {
+            const gid = anim.gids[frame % anim.gids.length]!;
+            layer.putTileAt(gid, anim.i % this.cols, Math.floor(anim.i / this.cols));
+          }
+        },
+      });
+    }
   }
 
   private placeSprites(): void {
@@ -251,6 +304,30 @@ export class TileWorld {
       if (!this.scene.textures.exists(image.file)) continue;
       const texture = this.scene.textures.get(image.file);
       if (!texture.has(image.key)) texture.add(image.key, 0, image.x, image.y, image.w, image.h);
+
+      // An animation strip is the same rectangle stepped across the sheet. Its
+      // frames are registered on the shared texture under the image's own key,
+      // and the animation is global to the game — a second zone using the same
+      // campfire finds it already made.
+      if (!image.frames || image.frames < 2) continue;
+      for (let f = 1; f < image.frames; f++) {
+        const name = frameName(image.key, f);
+        if (!texture.has(name)) {
+          texture.add(name, 0, image.x + f * image.w, image.y, image.w, image.h);
+        }
+      }
+      const key = animKey(image.key);
+      if (!this.scene.anims.exists(key)) {
+        this.scene.anims.create({
+          key,
+          frames: Array.from({ length: image.frames }, (_, f) => ({
+            key: image.file,
+            frame: f === 0 ? image.key : frameName(image.key, f),
+          })),
+          frameRate: image.fps ?? 8,
+          repeat: -1,
+        });
+      }
     }
 
     for (const sprite of this.map.sprites) {
@@ -262,7 +339,7 @@ export class TileWorld {
    * One catalog image, standing on the map. Depth is the bottom of the sprite,
    * so the whole world and the player sort in one shared space.
    */
-  addSprite(key: string, packX: number, packY: number): Phaser.GameObjects.Image | null {
+  addSprite(key: string, packX: number, packY: number): WorldSprite | null {
     const image = this.map.images.find((i) => i.key === key);
     if (!image || !this.scene.textures.exists(image.file)) return null;
 
@@ -271,11 +348,21 @@ export class TileWorld {
     const width = image.w * WORLD_SCALE;
     const height = image.h * WORLD_SCALE;
 
-    const sprite = this.scene.add
-      .image(x, y, image.file, image.key)
-      .setOrigin(0, 0)
-      .setScale(WORLD_SCALE)
-      .setDepth(y + height);
+    let sprite: WorldSprite;
+    if (image.frames && image.frames > 1 && this.scene.anims.exists(animKey(image.key))) {
+      const animated = this.scene.add.sprite(x, y, image.file, image.key);
+      animated.play(animKey(image.key));
+      // Every campfire in the world starting on frame zero reads as one machine
+      // rather than several fires. Staggered by placement order, so it is still
+      // the same world on every load.
+      animated.anims.setProgress(((this.placed * 7) % 16) / 16);
+      sprite = animated;
+    } else {
+      sprite = this.scene.add.image(x, y, image.file, image.key);
+    }
+    this.placed++;
+
+    sprite.setOrigin(0, 0).setScale(WORLD_SCALE).setDepth(y + height);
 
     if (image.h >= OCCLUDER_TILES * this.map.tile) {
       this.occluders.push({

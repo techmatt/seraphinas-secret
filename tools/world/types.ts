@@ -19,11 +19,36 @@ export type Direction = 'down' | 'up' | 'left' | 'right';
 /** Which little transition flourish a doorway plays; see world/transition.ts. */
 export type FlourishId = 'sparkle' | 'hush';
 
+/**
+ * How a doorway is used. Stardew's convention, and Matt's (2026-08-10): you
+ * walk *out* of a building without thinking about it, and you press the green
+ * button to walk *in*. A door you can fall through on the way past is the
+ * nearest thing to a fail state a no-fail game has.
+ */
+export type DoorwayEntry = 'walk' | 'press';
+
 /** Terrain that is one tile repeated, or a blob autotiled against its base. */
 export type TerrainKind = 'grass' | 'path' | 'water' | 'farm';
 
 export interface TerrainPaint {
   kind: TerrainKind;
+  cells: Iterable<Cell>;
+}
+
+/**
+ * A patch of a different grass, drawn on a second tile layer over the first.
+ *
+ * The pack ships four grass colours and an edge set for each, and the edge sets
+ * blend a grass into *transparency* rather than into another grass — the middle
+ * tile of every block is blank, because the flat middle is a separate file. So
+ * a variant cannot live in the same layer as the ground it blends over: it has
+ * to be painted above it. Which is the whole reason `overlay` exists, and why
+ * one is worth the second layer — a world of one flat green is the thing that
+ * makes a bought art pack look cheap.
+ */
+export interface OverlayPaint {
+  /** Key into OVERLAYS. */
+  kind: string;
   cells: Iterable<Cell>;
 }
 
@@ -57,6 +82,8 @@ export interface DoorwayLayout {
   /** Zone on the far side, and which of its spawns to land on. */
   to: string;
   toSpawn: string;
+  /** Walk through it, or stand at it and press green. Defaults to walking. */
+  enter?: DoorwayEntry;
   flourish: FlourishId;
   /** Colour of the light spilling out of it. */
   tint: number;
@@ -99,6 +126,8 @@ export interface ZoneLayout {
   rows: number;
   /** Painted in order; later paints win. */
   terrain?: TerrainPaint[];
+  /** Grass variants, on a second layer above the terrain. Later paints win. */
+  overlay?: OverlayPaint[];
   floors?: FloorPaint[];
   /** One-tile interior walls. */
   walls?: Iterable<Cell>;
@@ -134,6 +163,27 @@ export interface BuiltImage {
   y: number;
   w: number;
   h: number;
+  /**
+   * How many frames follow this rectangle across the sheet, if it is one of the
+   * pack's animation strips. Absent or 1 means a still picture.
+   */
+  frames?: number;
+  /** Frames per second, when there are frames. */
+  fps?: number;
+}
+
+/**
+ * One ground tile that cycles. The pack draws its water as eight copies of the
+ * same autotile block laid out across one sheet, so a moving pond is the same
+ * tile index shifted a block to the right per frame — resolved here, at build
+ * time, because the game should not have to know how a sheet is laid out.
+ */
+export interface BuiltTileAnim {
+  /** Index into the ground grid. */
+  i: number;
+  /** Global tile id per frame, in order. */
+  gids: number[];
+  fps: number;
 }
 
 export interface BuiltSprite {
@@ -171,6 +221,7 @@ export interface BuiltDoorway {
   h: number;
   to: string;
   toSpawn: string;
+  enter: DoorwayEntry;
   flourish: FlourishId;
   tint: number;
   facing: Direction;
@@ -193,6 +244,10 @@ export interface BuiltMap {
   images: BuiltImage[];
   /** Global tile ids, row-major. -1 is nothing. */
   ground: number[];
+  /** A second tile layer over the first, for grass variants. -1 is nothing. */
+  overlay?: number[];
+  /** Ground tiles that cycle — moving water, mostly. */
+  tileAnims?: BuiltTileAnim[];
   /** '1' where she cannot stand, row-major, one character per tile. */
   blocked: string;
   sprites: BuiltSprite[];

@@ -36,6 +36,7 @@ export const CATEGORIES = [
   'Cute_Fantasy/Trees',
   'Cute_Fantasy/Buildings',
   'Cute_Fantasy/Outdoor decoration',
+  'Cute_Fantasy/Crops',
 ];
 
 /** For the failure message and the README attribution. */
