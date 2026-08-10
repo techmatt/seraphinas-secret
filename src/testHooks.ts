@@ -47,8 +47,27 @@ export interface TestHooks {
    * being able to assert on.
    */
   audio: string;
-  /** Character position in world space. */
-  player: { x: number; y: number };
+  /**
+   * The character: where she is in world space, and what she is doing there.
+   *
+   * `facing` is one of the game's four directions; `anim` is the logical
+   * animation, which only ever names the three the sheet actually draws — so
+   * facing left reports `walk-right` with `flipped` true. Those three together
+   * are the only way to tell a real mirror from a missing animation.
+   *
+   * `artLoaded` is false when a sprite sheet did not arrive. Her art is a
+   * side-loaded, gitignored asset pack now, so "the pipeline ran" is something
+   * the suite has to be able to fail on — an animation key plays perfectly well
+   * over Phaser's missing-texture square.
+   */
+  player: {
+    x: number;
+    y: number;
+    facing: 'down' | 'up' | 'left' | 'right';
+    anim: string;
+    flipped: boolean;
+    artLoaded: boolean;
+  };
   /** This room's pokeable props, so tests can steer instead of guessing. */
   interactables: Marker[];
   /** This room's doorways, at the centre of each opening. */
@@ -121,7 +140,7 @@ export const hooks: TestHooks = {
   room: null,
   transitioning: false,
   audio: 'none',
-  player: { x: 0, y: 0 },
+  player: { x: 0, y: 0, facing: 'down', anim: 'idle-down', flipped: false, artLoaded: false },
   interactables: [],
   doorways: [],
   interactRadius: 0,

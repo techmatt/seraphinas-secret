@@ -18,7 +18,14 @@ export type Hooks = {
   room: string | null;
   transitioning: boolean;
   audio: string;
-  player: { x: number; y: number };
+  player: {
+    x: number;
+    y: number;
+    facing: 'down' | 'up' | 'left' | 'right';
+    anim: string;
+    flipped: boolean;
+    artLoaded: boolean;
+  };
   interactables: { id: string; x: number; y: number }[];
   doorways: { id: string; x: number; y: number; to: string }[];
   interactRadius: number;
@@ -112,11 +119,48 @@ export async function bootGame(page: Page, options: OpenOptions = { fast: true }
   return { canvas, errors };
 }
 
+/**
+ * Wait until she is standing still, or until standing still has stopped being
+ * a thing that can happen.
+ *
+ * Headless Chromium renders this game at somewhere around fifteen frames a
+ * second, and a key-up can sit unprocessed for a couple of hundred milliseconds
+ * at that rate. A position read straight after `keyboard.up` is therefore of
+ * where she was, not where she is — and steering on stale readings walks her in
+ * circles. Her idle animation is the game's own word for "I have seen the key
+ * come up", so that is what gets waited on.
+ */
+async function settle(page: Page) {
+  await page.waitForFunction(
+    () => {
+      const h = (window as unknown as { __seraphina: Hooks }).__seraphina;
+      // A doorway takes her out of her own hands; nothing idles during one.
+      return h.scene !== 'room' || h.transitioning || h.player.anim.startsWith('idle');
+    },
+    undefined,
+    { timeout: 20_000 },
+  );
+}
+
 /** Hold a key for a while so the character actually covers some ground. */
 export async function walk(page: Page, key: string, ms: number) {
   await page.keyboard.down(key);
   await page.waitForTimeout(ms);
   await page.keyboard.up(key);
+  await settle(page);
+}
+
+/**
+ * Walk, and read the hooks with the key still held down. Anything about being
+ * in motion — the walk animation, most obviously — is gone by the time `walk()`
+ * returns, because letting go is the last thing it does.
+ */
+export async function walkAndRead(page: Page, key: string, ms: number) {
+  await page.keyboard.down(key);
+  await page.waitForTimeout(ms);
+  const hooks = await readHooks(page);
+  await page.keyboard.up(key);
+  return hooks;
 }
 
 /**
@@ -126,12 +170,20 @@ export async function walk(page: Page, key: string, ms: number) {
  *
  * `arrived` is checked before every hop, which is also how a test steers into
  * something that ends the room it is standing in.
+ *
+ * `slack` is how far off an axis may be before a hop is worth taking. A hop is
+ * asked for 100 ms but lands anywhere up to about 120 px away, because the page
+ * is slow enough that the key-up arrives late; correcting an error smaller than
+ * half of that only overshoots the other way, for ever. Somewhere she has to
+ * arrive exactly — a doorway — keeps the tight default and reaches it by
+ * walking through, not by stopping on it.
  */
 async function steer(
   page: Page,
   target: (hooks: Awaited<ReturnType<typeof readHooks>>) => { x: number; y: number },
   arrived: (hooks: Awaited<ReturnType<typeof readHooks>>) => boolean,
   what: string,
+  slack = 20,
 ) {
   for (let hop = 0; hop < 50; hop++) {
     const hooks = await readHooks(page);
@@ -141,13 +193,19 @@ async function steer(
     const dx = x - hooks.player.x;
     const dy = y - hooks.player.y;
 
-    if (Math.abs(dy) > 20) await walk(page, dy > 0 ? 'ArrowDown' : 'ArrowUp', 100);
-    if (Math.abs(dx) > 20) await walk(page, dx > 0 ? 'ArrowRight' : 'ArrowLeft', 100);
+    if (Math.abs(dy) > slack) await walk(page, dy > 0 ? 'ArrowDown' : 'ArrowUp', 100);
+    if (Math.abs(dx) > slack) await walk(page, dx > 0 ? 'ArrowRight' : 'ArrowLeft', 100);
   }
 
   const { player, room } = await readHooks(page);
   throw new Error(`never reached ${what}: player ${player.x},${player.y} in ${room}`);
 }
+
+/**
+ * Half the biggest hop the page can accidentally take. Aiming closer than this
+ * at a prop is aiming closer than the harness can steer.
+ */
+const PROP_SLACK = 60;
 
 /** Walk up to a prop — the named one, or whichever the room lists first. */
 export async function walkToProp(page: Page, id?: string) {
@@ -162,11 +220,13 @@ export async function walkToProp(page: Page, id?: string) {
     pick,
     (hooks) => {
       const prop = pick(hooks);
-      // Stop comfortably inside the radius rather than right on its edge.
+      // Inside the radius with room to spare, but not so tight that a hop she
+      // cannot make smaller keeps knocking her back out of it.
       return Math.hypot(prop.x - hooks.player.x, prop.y - hooks.player.y) <=
-        hooks.interactRadius * 0.5;
+        hooks.interactRadius * 0.8;
     },
     `prop ${id ?? '[first]'}`,
+    PROP_SLACK,
   );
 }
 

@@ -5,6 +5,13 @@ import { makeButtonDot } from '../ui/ButtonDot';
 import { makeStickHint, type StickHint } from '../ui/StickHint';
 import { SpeechBubble } from '../ui/SpeechBubble';
 import { VoiceBank } from '../voice/VoiceBank';
+import {
+  Character,
+  characterArtLoaded,
+  preloadCharacter,
+  registerCharacterAnims,
+} from '../world/Character';
+import { SERAPHINA, type Direction } from '../world/characterSheets';
 import { Doorway } from '../world/Doorway';
 import { DEPTH, makeProp, paintRoom } from '../world/scenery';
 import {
@@ -65,6 +72,18 @@ interface Prop {
 }
 
 /**
+ * A spawn's `facing` predates the character having four of them: it says which
+ * way she is turned along the wall, and 0 means "towards whoever is watching".
+ * That is still exactly the three cases the room table needs, so it stays as it
+ * is and gets translated here.
+ */
+function directionOf(facing: Facing): Direction {
+  if (facing > 0) return 'right';
+  if (facing < 0) return 'left';
+  return 'down';
+}
+
+/**
  * Every room in the game, one at a time.
  *
  * The scene knows how to walk, poke and leave; it knows nothing about which
@@ -78,8 +97,7 @@ export class RoomScene extends Phaser.Scene {
   private arrivedVia?: string;
   private arrivalFlourish?: FlourishId;
 
-  private player!: Phaser.GameObjects.Container;
-  private eyes: Phaser.GameObjects.Arc[] = [];
+  private player!: Character;
 
   private props: Prop[] = [];
   private doorways: Doorway[] = [];
@@ -135,6 +153,7 @@ export class RoomScene extends Phaser.Scene {
 
   preload(): void {
     this.makeSparkTexture();
+    preloadCharacter(this, SERAPHINA);
   }
 
   create(): void {
@@ -145,8 +164,10 @@ export class RoomScene extends Phaser.Scene {
     for (const def of this.roomDef.doorways) this.doorways.push(new Doorway(this, def));
     for (const def of this.roomDef.props) this.props.push({ def, obj: makeProp(this, def) });
 
-    this.player = this.makePlayer(spawn.x, spawn.y);
-    this.face(spawn.facing);
+    registerCharacterAnims(this, SERAPHINA);
+    this.player = new Character(this, spawn.x, spawn.y, SERAPHINA);
+    this.player.setDepth(DEPTH.player);
+    this.player.face(directionOf(spawn.facing));
 
     this.sparkles = this.add.particles(0, 0, 'spark', {
       speed: { min: 90, max: 320 },
@@ -196,8 +217,7 @@ export class RoomScene extends Phaser.Scene {
     this.bubble.tick();
 
     syncAudioHook();
-    hooks.player.x = this.player.x;
-    hooks.player.y = this.player.y;
+    this.syncPlayerHooks();
     hooks.aliveParticles = this.sparkles.getAliveParticleCount();
     hooks.peakParticles = Math.max(hooks.peakParticles, hooks.aliveParticles);
     hooks.voice.lineId = this.bubble.lineId;
@@ -229,11 +249,25 @@ export class RoomScene extends Phaser.Scene {
     hooks.voice.highlighted = this.bubble.highlightedIndex;
   }
 
+  /**
+   * Where she is, which way she is turned and what she is playing. The sprite
+   * only has three directions drawn, so `facing: 'left'` always comes with the
+   * right-hand animation and `flipped` — asserting on that pair is how a test
+   * proves the mirror is doing the work.
+   */
+  private syncPlayerHooks(): void {
+    hooks.player.x = this.player.x;
+    hooks.player.y = this.player.y;
+    hooks.player.facing = this.player.facing;
+    hooks.player.anim = this.player.animKey;
+    hooks.player.flipped = this.player.flipped;
+    hooks.player.artLoaded = characterArtLoaded(this, SERAPHINA);
+  }
+
   /** What is in this room, for a test that wants to walk somewhere. */
   private syncWorldHooks(): void {
     hooks.room = this.roomDef.id;
-    hooks.player.x = this.player.x;
-    hooks.player.y = this.player.y;
+    this.syncPlayerHooks();
     hooks.interactables = this.props.map(({ def, obj }) => ({
       id: def.id,
       x: obj.x,
@@ -293,6 +327,9 @@ export class RoomScene extends Phaser.Scene {
 
   private movePlayer(seconds: number, pad?: Phaser.Input.Gamepad.Gamepad): void {
     const move = this.readMoveVector(pad);
+
+    // Letting go idles her where she stands, still facing the way she went.
+    this.player.setMoving(move.lengthSq() > 0);
     if (move.lengthSq() === 0) return;
 
     this.player.x = Phaser.Math.Clamp(
@@ -306,7 +343,17 @@ export class RoomScene extends Phaser.Scene {
       BOUNDS.bottom,
     );
 
-    if (Math.abs(move.x) > 0.2) this.face(move.x > 0 ? 1 : -1);
+    // The bigger half of the push wins, so a diagonal picks one row of the
+    // sheet and stays there rather than flickering between two.
+    this.player.face(
+      Math.abs(move.x) >= Math.abs(move.y)
+        ? move.x > 0
+          ? 'right'
+          : 'left'
+        : move.y > 0
+          ? 'down'
+          : 'up',
+    );
 
     // She has worked out the stick. The picture has done its job.
     if (!walkHintDone) {
@@ -435,26 +482,6 @@ export class RoomScene extends Phaser.Scene {
     g.fillCircle(8, 8, 8);
     g.generateTexture('spark', 16, 16);
     g.destroy();
-  }
-
-  private makePlayer(x: number, y: number): Phaser.GameObjects.Container {
-    const body = this.add.circle(0, 0, 26, 0xffd9a0).setStrokeStyle(4, 0xb9834f);
-    const hair = this.add.circle(0, -12, 22, 0x7b4b2a);
-    const eyeL = this.add.circle(-8, 2, 3.5, 0x2a1c3a);
-    const eyeR = this.add.circle(8, 2, 3.5, 0x2a1c3a);
-
-    this.eyes = [eyeL, eyeR];
-
-    const container = this.add.container(x, y, [body, hair, eyeL, eyeR]);
-    container.setDepth(DEPTH.player);
-    return container;
-  }
-
-  /** Shifting the eyes is the whole of "facing", and it is enough to read. */
-  private face(facing: Facing): void {
-    const shift = facing * 5;
-    this.eyes[0]?.setX(-8 + shift);
-    this.eyes[1]?.setX(8 + shift);
   }
 
   private drawHud(): void {
