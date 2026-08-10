@@ -9,6 +9,7 @@
  */
 
 import { IMAGES } from '../../../tools/world/catalog.js';
+import { footing } from '../../../tools/world/footing.js';
 import {
   Cells,
   disc,
@@ -21,8 +22,16 @@ import {
 } from '../../../tools/world/shapes.js';
 import { APRONS, BUILDINGS, GREEN, POND, ROADS, T } from './plan.js';
 
-/** What part of a catalog image is solid, for a scatter to keep off roads. */
-export const blocksOf = (image: string) => IMAGES[image]?.blocks;
+/**
+ * Which tiles a catalog image would make solid, put down here — the same
+ * question the generator asks, answered by the same function, so a scatter
+ * keeping off the roads and the build blocking cells cannot disagree.
+ */
+export const cellsOf = (image: string, x: number, y: number) => {
+  const def = IMAGES[image];
+  if (!def) throw new Error(`layout: no catalog image "${image}"`);
+  return footing(def, x, y).cells;
+};
 
 /** Every tile a sprite's picture covers, so nothing gets planted through a roof. */
 export function coverage(placements: Placement[], pad = 0): Cell[] {
@@ -79,10 +88,8 @@ export const KEEP_CLEAR = new Cells([
  */
 export function clearOfRoads(placements: Placement[]): Placement[] {
   return placements.filter(({ image, x, y }) => {
-    const solid = blocksOf(image);
+    const solid = cellsOf(image, x, y);
     if (!solid) return true;
-    return !rect(Math.round(x) + solid.x, Math.round(y) + solid.y, solid.w, solid.h).some(
-      ([cx, cy]) => KEEP_CLEAR.has(cx, cy),
-    );
+    return !rect(solid.x, solid.y, solid.w, solid.h).some(([cx, cy]) => KEEP_CLEAR.has(cx, cy));
   });
 }

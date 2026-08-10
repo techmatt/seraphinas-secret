@@ -257,16 +257,31 @@ export interface ScatterOptions {
   /** Cells nothing may land on — paths, water, building footprints. */
   avoid?: Cells;
   /**
-   * What part of an image is solid, as a tile rectangle from its top-left. A
-   * tree's trunk is four tiles below where the tree is anchored, so checking
-   * only the anchor against `avoid` plants trunks in the middle of roads — and
-   * a road with a tree growing out of it is exactly the kind of bug no
-   * screenshot shows and every player walks into.
+   * Which tiles an image would make solid, put down here. A tree's trunk is
+   * three tiles below where the tree is anchored, so checking only the anchor
+   * against `avoid` plants trunks in the middle of roads — and a road with a
+   * tree growing out of it is exactly the kind of bug no screenshot shows and
+   * every player walks into.
+   *
+   * It takes the placement as well as the image because the answer depends on
+   * both: a solid thing is nudged onto the grid when it is put down, so where
+   * its cells land is not a fixed offset from where it was asked to go. See
+   * `tools/world/footing.ts` — this is that function, injected, because shapes
+   * are meant to know nothing about the art pack.
    */
-  blocksOf?: (image: string) => { x: number; y: number; w: number; h: number } | undefined;
+  cellsOf?: (
+    image: string,
+    x: number,
+    y: number,
+  ) => { x: number; y: number; w: number; h: number } | undefined;
   /** Keep this many tiles clear around each placement. */
   spacing?: number;
-  /** Random offset in tiles, so a scatter is not visibly on the grid. */
+  /**
+   * Random offset in tiles, so a scatter is not visibly on the grid. Ignored in
+   * effect for anything solid: a solid thing is snapped to its own footprint
+   * when it is placed, so all a jitter does there is decide which tile it lands
+   * on — which is what `chance` and `spacing` were already for.
+   */
   jitter?: number;
 }
 
@@ -280,7 +295,7 @@ export function scatter({
   chance,
   seed,
   avoid,
-  blocksOf,
+  cellsOf,
   spacing = 0,
   jitter = 0,
 }: ScatterOptions): Placement[] {
@@ -295,19 +310,27 @@ export function scatter({
 
     const image = pick(random, images);
 
-    const solid = blocksOf?.(image);
+    // Both wobbles are always drawn, whether or not they are used, so that the
+    // random stream depends on the region and the seed alone — a generator whose
+    // numbers shift when a rule changes its mind is a generator whose diffs
+    // cannot be read.
+    const wobbleX = (random() - 0.5) * jitter;
+    const wobbleY = (random() - 0.5) * jitter;
+
+    // Anything solid stands on the tile it was given: it is going to be snapped
+    // to its own footprint anyway, so a wobble would only ever move the picture
+    // and not the thing she walks into.
+    const solid = cellsOf?.(image, x, y);
+    const at = solid
+      ? { image, x, y }
+      : { image, x: x + (jitter ? wobbleX : 0), y: y + (jitter ? wobbleY : 0) };
+
     if (avoid && solid) {
-      const clash = rect(x + solid.x, y + solid.y, solid.w, solid.h).some(([cx, cy]) =>
-        avoid.has(cx, cy),
-      );
+      const clash = rect(solid.x, solid.y, solid.w, solid.h).some(([cx, cy]) => avoid.has(cx, cy));
       if (clash) continue;
     }
 
-    out.push({
-      image,
-      x: x + (jitter ? (random() - 0.5) * jitter : 0),
-      y: y + (jitter ? (random() - 0.5) * jitter : 0),
-    });
+    out.push(at);
 
     if (spacing > 0) taken.add(rect(x - spacing, y - spacing, spacing * 2 + 1, spacing * 2 + 1));
     else taken.add([[x, y]]);

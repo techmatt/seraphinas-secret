@@ -19,6 +19,7 @@ import path from 'node:path';
 
 import { PACK_DIR } from '../assets/config.js';
 import { blobOffset } from './blob.js';
+import { footing } from './footing.js';
 import { rect, union, type Cell } from './shapes.js';
 import {
   BLOBS,
@@ -293,38 +294,35 @@ function buildZone(zone: ZoneLayout, sheets: Map<string, Sheet>): BuiltMap {
     return def;
   };
 
-  const applyBlocks = (def: ImageDef, tileX: number, tileY: number) => {
-    if (!def.blocks) return;
-    blockRect(
-      Math.round(tileX) + def.blocks.x,
-      Math.round(tileY) + def.blocks.y,
-      def.blocks.w,
-      def.blocks.h,
-    );
+  /**
+   * Put one picture down. Where it ends up and what it makes solid are the same
+   * decision, taken once in `footing.ts` — a sprite drawn from one rule and a
+   * hitbox from another is exactly how the wood came to block bare grass.
+   */
+  const place = (def: ImageDef, tileX: number, tileY: number) => {
+    const spot = footing(def, tileX, tileY);
+    if (spot.cells) blockRect(spot.cells.x, spot.cells.y, spot.cells.w, spot.cells.h);
+    return spot;
   };
 
   const sprites: BuiltSprite[] = [];
   for (const placement of zone.place) {
     const def = useImage(placement.image);
-    applyBlocks(def, placement.x, placement.y);
-    sprites.push({
-      key: placement.image,
-      x: Math.round(placement.x * TILE),
-      y: Math.round(placement.y * TILE),
-    });
+    const spot = place(def, placement.x, placement.y);
+    sprites.push({ key: placement.image, x: spot.x, y: spot.y });
   }
 
   const props: BuiltProp[] = zone.props.map((prop) => {
     const def = useImage(prop.image);
-    applyBlocks(def, prop.x, prop.y);
-    const spot = prop.at ?? { x: prop.x + def.w / TILE / 2, y: prop.y + def.h / TILE / 2 };
+    const spot = place(def, prop.x, prop.y);
+    const at = prop.at ?? { x: prop.x + def.w / TILE / 2, y: prop.y + def.h / TILE / 2 };
     return {
       id: prop.id,
       key: prop.image,
-      sx: Math.round(prop.x * TILE),
-      sy: Math.round(prop.y * TILE),
-      x: Math.round(spot.x * TILE),
-      y: Math.round(spot.y * TILE),
+      sx: spot.x,
+      sy: spot.y,
+      x: Math.round(at.x * TILE),
+      y: Math.round(at.y * TILE),
       ...(prop.line ? { line: prop.line } : {}),
     };
   });

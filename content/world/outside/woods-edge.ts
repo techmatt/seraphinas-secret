@@ -14,7 +14,7 @@
 
 import { scatter } from '../../../tools/world/shapes.js';
 import { BUILDINGS, WOODS } from './plan.js';
-import { blocksOf, KEEP_CLEAR } from './roads.js';
+import { cellsOf, KEEP_CLEAR } from './roads.js';
 import { campsite } from './prefabs.js';
 
 const SEED = 20_260_809;
@@ -29,7 +29,7 @@ export const WOOD_TREES = scatter({
   jitter: 0.6,
   seed: SEED,
   avoid: KEEP_CLEAR,
-  blocksOf,
+  cellsOf,
 });
 
 export const UNDERGROWTH = scatter({
@@ -44,7 +44,7 @@ export const UNDERGROWTH = scatter({
   jitter: 0.4,
   seed: SEED + 1,
   avoid: KEEP_CLEAR,
-  blocksOf,
+  cellsOf,
 });
 
 /**

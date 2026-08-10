@@ -11,7 +11,7 @@
 
 import { scatter, type Placement } from '../../../tools/world/shapes.js';
 import { BUILDINGS, FARM } from './plan.js';
-import { blocksOf, clearOfRoads, KEEP_CLEAR } from './roads.js';
+import { cellsOf, clearOfRoads, KEEP_CLEAR } from './roads.js';
 import {
   cropRows,
   farmyardCorner,
@@ -74,5 +74,5 @@ export const FARM_GROUND = scatter({
   jitter: 0.4,
   seed: SEED,
   avoid: KEEP_CLEAR,
-  blocksOf,
+  cellsOf,
 });

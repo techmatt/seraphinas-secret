@@ -12,7 +12,7 @@
 
 import { frame, rect, scatter, union, without, Cells } from '../../../tools/world/shapes.js';
 import { EDGE_DEPTH, COLS, ROWS, TREE_BAND, WOODS_GAP } from './plan.js';
-import { blocksOf, KEEP_CLEAR } from './roads.js';
+import { cellsOf, KEEP_CLEAR } from './roads.js';
 
 const SEED = 90_210;
 
@@ -38,7 +38,7 @@ export const EDGE_TREES = scatter({
   jitter: 0.35,
   seed: SEED,
   avoid: KEEP_CLEAR,
-  blocksOf,
+  cellsOf,
 });
 
 /**

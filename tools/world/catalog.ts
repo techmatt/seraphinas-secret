@@ -200,6 +200,14 @@ export interface ImageDef {
    * top-left. Absent means the whole thing is walk-through. A tree only blocks
    * its trunk, so she can walk behind a canopy — which is most of what makes a
    * wood feel like a wood rather than a wall.
+   *
+   * `x` and `y` may be halves, and for anything the pack centred in its own slot
+   * they have to be: a big oak's trunk straddles the middle line of a four-tile
+   * picture, so no whole tile is under it. `footing.ts` nudges the sprite by that
+   * half tile when it puts it down, so the cells still land on the grid.
+   *
+   * Every one of these is a measurement, not a guess — `npm run world:footings`
+   * prints each rectangle against the pixels it claims to describe.
    */
   blocks?: { x: number; y: number; w: number; h: number };
   /**
@@ -279,42 +287,52 @@ export const IMAGES: Record<string, ImageDef> = {
   },
 
   // --- trees -------------------------------------------------------------
-  // Only the trunk blocks, and only the one tile it actually stands on. The
+  // Only the trunk blocks, and only the one tile it actually stands in. The
   // canopy is scenery she walks under, which is most of what makes a wood feel
   // like a wood rather than a maze — and a one-tile trunk leaves two-tile gaps
   // between trees, which is what a four-year-old with a thumbstick can steer
   // through without ever being stuck.
+  //
+  // Every trunk here is the same shape of measurement, because the pack draws
+  // every tree the same way: the trunk centred on the slot's middle line, its
+  // foot on the boundary of the slot's bottom tile. So the tile that contains a
+  // trunk always starts half a tile in from the slot's centre — `x: 1.5` on a
+  // four-tile picture, `x: 0.5` on a two-tile one — and `y` is the trunk's own
+  // row, never the row of shadow underneath it. Getting that second part wrong
+  // is what had the whole wood blocking bare grass a tile below every tree.
   oakBig: {
     file: `${A}/Trees/Big_Oak_Tree.png`, x: 64, y: 0, w: 64, h: 80,
-    blocks: { x: 2, y: 4, w: 1, h: 1 },
+    blocks: { x: 1.5, y: 3, w: 1, h: 1 },
   },
+  // The second slot of each big-tree sheet is the same tree without its shadow,
+  // and with the last six pixels of trunk cut off. Same trunk, same tile.
   oakBig2: {
     file: `${A}/Trees/Big_Oak_Tree.png`, x: 128, y: 0, w: 64, h: 80,
-    blocks: { x: 2, y: 4, w: 1, h: 1 },
+    blocks: { x: 1.5, y: 3, w: 1, h: 1 },
   },
   spruceBig: {
     file: `${A}/Trees/Big_Spruce_tree.png`, x: 64, y: 0, w: 64, h: 80,
-    blocks: { x: 2, y: 4, w: 1, h: 1 },
+    blocks: { x: 1.5, y: 3, w: 1, h: 1 },
   },
   spruceBig2: {
     file: `${A}/Trees/Big_Spruce_tree.png`, x: 128, y: 0, w: 64, h: 80,
-    blocks: { x: 2, y: 4, w: 1, h: 1 },
+    blocks: { x: 1.5, y: 3, w: 1, h: 1 },
   },
   birchBig: {
     file: `${A}/Trees/Big_Birch_Tree.png`, x: 32, y: 0, w: 32, h: 80,
-    blocks: { x: 1, y: 4, w: 1, h: 1 },
+    blocks: { x: 0.5, y: 3, w: 1, h: 1 },
   },
   fruitBig: {
     file: `${A}/Trees/Big_Fruit_Tree.png`, x: 32, y: 0, w: 32, h: 64,
-    blocks: { x: 1, y: 3, w: 1, h: 1 },
+    blocks: { x: 0.5, y: 2, w: 1, h: 1 },
   },
   oakMed: {
     file: `${A}/Trees/Medium_Oak_Tree.png`, x: 32, y: 0, w: 32, h: 48,
-    blocks: { x: 1, y: 2, w: 1, h: 1 },
+    blocks: { x: 0.5, y: 1, w: 1, h: 1 },
   },
   spruceMed: {
     file: `${A}/Trees/Medium_Spruce_Tree.png`, x: 32, y: 0, w: 32, h: 48,
-    blocks: { x: 1, y: 2, w: 1, h: 1 },
+    blocks: { x: 0.5, y: 1, w: 1, h: 1 },
   },
   oakSmall: { file: `${A}/Trees/Small_Oak_Tree.png`, x: 32, y: 0, w: 32, h: 64 },
   stump: { file: `${A}/Trees/Big_Oak_Tree.png`, x: 16, y: 48, w: 32, h: 32 },
@@ -427,14 +445,17 @@ export const IMAGES: Record<string, ImageDef> = {
     file: `${A}/Outdoor decoration/Lanter_Posts.png`, x: 0, y: 144, w: 16, h: 48,
     blocks: { x: 0, y: 2, w: 1, h: 1 },
   },
-  // A post with a board hanging off it. The board is the right half of the slot.
+  // A board with a post holding it up. The post is the *right* half of the slot
+  // and the board hangs off to its left, which the footprint used to have the
+  // wrong way round: the post was walk-through and the empty air beside it was
+  // solid.
   signPost: {
     file: `${A}/Outdoor decoration/Signs.png`, x: 0, y: 192, w: 32, h: 48,
-    blocks: { x: 0, y: 2, w: 1, h: 1 },
+    blocks: { x: 1, y: 2, w: 1, h: 1 },
   },
   signPostWood: {
     file: `${A}/Outdoor decoration/Signs.png`, x: 0, y: 384, w: 32, h: 48,
-    blocks: { x: 0, y: 2, w: 1, h: 1 },
+    blocks: { x: 1, y: 2, w: 1, h: 1 },
   },
   bench: {
     file: `${A}/Outdoor decoration/Benches.png`, x: 0, y: 0, w: 32, h: 32,
@@ -462,9 +483,13 @@ export const IMAGES: Record<string, ImageDef> = {
     file: `${A}/Outdoor decoration/barrels.png`, x: 32, y: 0, w: 16, h: 32,
     blocks: { x: 0, y: 1, w: 1, h: 1 },
   },
+  // One tile wide, not two. The old rectangle ran a tile past the end of the
+  // upright trough and took in the left edge of the long one standing beside it
+  // — so the farmyard had a trough with a slice of a second trough floating next
+  // to it, and a footprint two tiles wide under a thing one tile wide.
   trough: {
-    file: `${A}/Outdoor decoration/Water_Troughs.png`, x: 0, y: 0, w: 32, h: 32,
-    blocks: { x: 0, y: 1, w: 2, h: 1 },
+    file: `${A}/Outdoor decoration/Water_Troughs.png`, x: 0, y: 0, w: 16, h: 32,
+    blocks: { x: 0, y: 1, w: 1, h: 1 },
   },
   picnicBasket: {
     file: `${A}/Outdoor decoration/Picnic_Basket.png`, x: 0, y: 0, w: 16, h: 16,
@@ -628,8 +653,10 @@ export const IMAGES: Record<string, ImageDef> = {
   plantTall: plant_(1, 0),
   plantFlowers: plant_(4, 0),
   plantBlue: plant_(7, 0),
-  plantBig: { ...plant_(8, 0), w: 32 },
-  plantBigWhite: { ...plant_(8, 4), w: 32 },
+  // The monstera is two tiles wide with its pot under the right-hand one, so it
+  // blocks that tile and not the leaves hanging over the left.
+  plantBig: { ...plant_(8, 0), w: 32, blocks: { x: 1, y: 1, w: 1, h: 1 } },
+  plantBigWhite: { ...plant_(8, 4), w: 32, blocks: { x: 1, y: 1, w: 1, h: 1 } },
   // Small things left on the floor, one tile each, off `Placeable_Decoration`.
   // Only ever on the floor: everything in the world sorts by the bottom of its
   // own picture, so a jar put on a table would be drawn behind the table.
