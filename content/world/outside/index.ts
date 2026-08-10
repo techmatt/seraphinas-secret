@@ -24,26 +24,19 @@ import {
 import { EDGE, EDGE_TREES, GAP_UNDERGROWTH } from './perimeter.js';
 import { POND_CELLS, ROAD_CELLS } from './roads.js';
 import { POND_DRESSING, POND_SIDE } from './pond.js';
-import {
-  CAVE_CLEARING,
-  UNDERGROWTH,
-  WOOD_FLOOR,
-  WOOD_TREES,
-  WOODS_PROPS,
-} from './woods-edge.js';
+import { CAVE_CLEARING, UNDERGROWTH, WOOD_TREES, WOODS_PROPS } from './woods-edge.js';
 import {
   ALLOTMENT_DRESSING,
   BUILDING_SPRITES,
   FRONTS,
   GREEN_DRESSING,
-  GREEN_GRASS,
   SQUARE,
   STREET_FURNITURE,
   VILLAGE_GROUND,
   VILLAGE_PROPS,
   VILLAGE_TREES,
 } from './village.js';
-import { FARM_GRASS, FARM_GROUND, ORCHARD, PATCH_DRESSING, YARD } from './farm-garden.js';
+import { FARM_GROUND, ORCHARD, PATCH_DRESSING, YARD } from './farm-garden.js';
 
 export const OUTSIDE: ZoneLayout = {
   id: 'outside',
@@ -56,14 +49,11 @@ export const OUTSIDE: ZoneLayout = {
     { kind: 'path', cells: ROAD_CELLS },
     { kind: 'water', cells: POND_CELLS },
   ],
-  // Grass variants ride above the terrain. Each keeps a tile clear of every
-  // road, because a dirt path draws its own grass-one corners and the two
-  // greens meeting at a kerb is the one seam this system can make.
-  overlay: [
-    { kind: 'woodGrass', cells: WOOD_FLOOR },
-    { kind: 'dryGrass', cells: FARM_GRASS },
-    { kind: 'meadowGrass', cells: GREEN_GRASS },
-  ],
+  // No overlay. The three grass variants that used to lie here each carried a
+  // different base green, so every patch boundary read as a seam between two
+  // biomes rather than as a change of ground — see OVERLAYS in the catalog for
+  // the measurements and the rule. The wood, the farm and the green now read
+  // through what grows on them.
   place: [
     ...EDGE_TREES,
     ...GAP_UNDERGROWTH,

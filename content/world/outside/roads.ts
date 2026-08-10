@@ -16,11 +16,10 @@ import {
   rect,
   roadCells,
   smooth,
-  without,
   type Cell,
   type Placement,
 } from '../../../tools/world/shapes.js';
-import { APRONS, BUILDINGS, GREEN, PATCHES, POND, ROADS, T } from './plan.js';
+import { APRONS, BUILDINGS, GREEN, POND, ROADS, T } from './plan.js';
 
 /** What part of a catalog image is solid, for a scatter to keep off roads. */
 export const blocksOf = (image: string) => IMAGES[image]?.blocks;
@@ -87,18 +86,3 @@ export function clearOfRoads(placements: Placement[]): Placement[] {
     );
   });
 }
-
-/**
- * Ground no grass variant may be laid over.
- *
- * The overlay layer draws *above* the ground, so a variant painted across a
- * road would simply hide the road — and painted over the vegetable patches it
- * would turn ploughed earth back into lawn. Roads keep a tile of margin as
- * well, because a dirt path autotiles its own grass-coloured verge out of the
- * *first* grass sheet, and two greens meeting at a kerb is the one seam this
- * system is capable of drawing.
- */
-export const NO_OVERLAY = new Cells([...grow(ROAD_CELLS, 1), ...POND_CELLS, ...PATCHES]);
-
-/** A region as it may actually be overlaid. */
-export const overlayable = (region: Iterable<Cell>): Cell[] => without(region, NO_OVERLAY);

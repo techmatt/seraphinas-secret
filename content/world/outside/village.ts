@@ -13,8 +13,8 @@
  */
 
 import { alongRoad, rect, scatter, union, type Placement } from '../../../tools/world/shapes.js';
-import { BUILDINGS, GREEN, ROADS, VILLAGE } from './plan.js';
-import { blocksOf, KEEP_CLEAR, overlayable } from './roads.js';
+import { BUILDINGS, ROADS, VILLAGE } from './plan.js';
+import { blocksOf, KEEP_CLEAR } from './roads.js';
 import {
   benchBesidePath,
   flowerBed,
@@ -26,9 +26,6 @@ import {
 } from './prefabs.js';
 
 const SEED = 4242;
-
-/** The bright mown grass of the green, so the lawn reads as looked-after. */
-export const GREEN_GRASS = overlayable(GREEN);
 
 /** Seraphina's house is placed here; the facades are placed as props. */
 export const BUILDING_SPRITES: Placement[] = [

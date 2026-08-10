@@ -9,9 +9,9 @@
  * something she can see happen.
  */
 
-import { ragged, scatter, type Placement } from '../../../tools/world/shapes.js';
-import { BUILDINGS, FARM, FARM_FLOOR } from './plan.js';
-import { blocksOf, clearOfRoads, KEEP_CLEAR, overlayable } from './roads.js';
+import { scatter, type Placement } from '../../../tools/world/shapes.js';
+import { BUILDINGS, FARM } from './plan.js';
+import { blocksOf, clearOfRoads, KEEP_CLEAR } from './roads.js';
 import {
   cropRows,
   farmyardCorner,
@@ -22,9 +22,6 @@ import {
 } from './prefabs.js';
 
 const SEED = 31_337;
-
-/** Sun-bleached grass over the whole quarter, so the farm reads warmer. */
-export const FARM_GRASS = ragged(overlayable(FARM_FLOOR), SEED + 5);
 
 export const PATCH_DRESSING: Placement[] = [
   ...fencedPatch(61, 17, 6, 7),

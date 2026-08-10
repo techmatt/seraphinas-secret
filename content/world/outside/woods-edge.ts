@@ -6,20 +6,18 @@
  * maze you solve. The trail through it is a road like any other, so there is
  * always a way she can see.
  *
- * The floor is the pack's cold blue-green grass, laid over the ordinary green
- * on the overlay layer. That colour change is most of why the woods read as a
- * different place from twenty tiles away.
+ * The floor is the one outdoor green, the same as everywhere else: the pack's
+ * other three greens each carried their own base colour, so a patch of them
+ * read as a seam rather than as shade. What makes this a wood is the canopy and
+ * the undergrowth under it, which is the only thing that ever really did.
  */
 
-import { ragged, scatter } from '../../../tools/world/shapes.js';
-import { BUILDINGS, WOODS, WOODS_FLOOR } from './plan.js';
-import { blocksOf, KEEP_CLEAR, overlayable } from './roads.js';
+import { scatter } from '../../../tools/world/shapes.js';
+import { BUILDINGS, WOODS } from './plan.js';
+import { blocksOf, KEEP_CLEAR } from './roads.js';
 import { campsite } from './prefabs.js';
 
 const SEED = 20_260_809;
-
-/** Cold grass under the canopy: ragged at the village end, clear of every path. */
-export const WOOD_FLOOR = ragged(overlayable(WOODS_FLOOR), SEED + 5);
 
 export const WOOD_TREES = scatter({
   region: WOODS,

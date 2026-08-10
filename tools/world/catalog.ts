@@ -45,23 +45,18 @@ export interface TilesetDef {
  * shift every tile index in the world.
  */
 export const TILESETS: Record<string, TilesetDef> = {
+  // The one outdoor green, and the edge set drawn against it. Every other
+  // outdoor tile in this list has to blend into `#3e8948` or it does not
+  // belong on the map at all — see OVERLAYS.
   grassMid: { key: 'grassMid', file: `${A}/Tiles/Grass/Grass_1_Middle.png` },
   grassEdge: { key: 'grassEdge', file: `${A}/Tiles/Grass/Grass_Tiles_1.png` },
-  // The other three grass colours, and the edge set that blends each of them
-  // over the first. Middles are their own one-tile files because the middle of
-  // every edge sheet is deliberately blank — see OVERLAYS.
-  grass2Mid: { key: 'grass2Mid', file: `${A}/Tiles/Grass/Grass_2_Middle.png` },
-  grass2Edge: { key: 'grass2Edge', file: `${A}/Tiles/Grass/Grass_Tiles_2.png` },
-  grass3Mid: { key: 'grass3Mid', file: `${A}/Tiles/Grass/Grass_3_Middle.png` },
-  grass3Edge: { key: 'grass3Edge', file: `${A}/Tiles/Grass/Grass_Tiles_3.png` },
-  grass4Mid: { key: 'grass4Mid', file: `${A}/Tiles/Grass/Grass_4_Middle.png` },
-  grass4Edge: { key: 'grass4Edge', file: `${A}/Tiles/Grass/Grass_Tiles_4.png` },
   // Eight copies of the water block side by side: one sheet, one tileset, and a
   // pond that moves. The still sheet is not loaded at all any more.
   water: { key: 'water', file: `${A}/Tiles/Water/Water_Tile_1_Anim.png` },
   farmland: { key: 'farmland', file: `${A}/Tiles/FarmLand/FarmLand_Tile.png` },
   floor: { key: 'floor', file: `${A}/Buildings/Houses_Interiors/Wood_Floor_Tiles.png` },
   wall: { key: 'wall', file: `${A}/Buildings/Houses_Interiors/Interior_Walls.png` },
+  trim: { key: 'trim', file: `${A}/Buildings/Houses_Interiors/Wood_Wall_Fillers.png` },
 };
 
 /**
@@ -101,18 +96,30 @@ export const FILLS: Record<string, { tileset: string; col: number; row: number }
 };
 
 /**
- * A grass variant, drawn on the overlay layer above the ground.
+ * A ground variant, drawn on the overlay layer above the ground.
  *
- * The pack's four grass colours are four flat tiles and four edge sheets, and
- * every edge sheet's *middle* is blank — the middle is the flat file. So an
- * overlay is a pair: which flat tile fills the inside, and which 3x5 block draws
- * the ragged border where it meets whatever it was laid over. That border is
- * transparent on its outer side, which is why this cannot share a layer with the
- * ground it is blending into.
+ * **Empty on purpose** (Matt, 2026-08-10, from screenshots). The rule the
+ * Outside is held to now: *a tile may sit on or beside the base outdoor grass
+ * only if its own background is that base grass.* Base grass is `#3e8948`, the
+ * one colour she stands on.
  *
- * Roads are deliberately not overlaid: a dirt path draws its own grass-coloured
- * corners out of `grassEdge`, and those corners are grass *one*. Regions keep a
- * tile clear of every road so the two never meet.
+ * The pack ships four grass colours, and the other three are `#33984b`,
+ * `#7c963c` and `#3f886c` — measured off `Grass_2/3/4_Middle.png`, and their
+ * edge sheets carry the same greens. Laid over the first grass they did not
+ * read as a meadow, a dry field and a wood: they read as three hard-edged
+ * seams where the ground changed biome, which is exactly what a scalloped
+ * border between two different greens looks like from a metre away. So all
+ * three came out, and the woods, the farm and the green now read through what
+ * grows on them instead.
+ *
+ * The machinery below stays wired up — the layer, the builder pass and the
+ * paint type — because it costs nothing dormant and the moment the pack (or
+ * ElevenLabs-era replacement art) ships a variant whose own background *is*
+ * `#3e8948`, one entry here brings it back.
+ *
+ * An overlay is a pair: which flat tile fills the inside, and which 3x5 block
+ * draws the ragged border. The border is transparent on its outer side, which
+ * is why an overlay cannot share a layer with the ground it blends into.
  */
 export interface OverlayDef {
   fill: { tileset: string; col: number; row: number };
@@ -121,23 +128,7 @@ export interface OverlayDef {
   reads: string;
 }
 
-export const OVERLAYS: Record<string, OverlayDef> = {
-  meadowGrass: {
-    fill: { tileset: 'grass2Mid', col: 0, row: 0 },
-    edge: { tileset: 'grass2Edge', col: 0, row: 0 },
-    reads: 'bright mown green — the village green',
-  },
-  dryGrass: {
-    fill: { tileset: 'grass3Mid', col: 0, row: 0 },
-    edge: { tileset: 'grass3Edge', col: 0, row: 0 },
-    reads: 'sun-bleached olive — the farm',
-  },
-  woodGrass: {
-    fill: { tileset: 'grass4Mid', col: 0, row: 0 },
-    edge: { tileset: 'grass4Edge', col: 0, row: 0 },
-    reads: 'cold blue-green — under the trees',
-  },
-};
+export const OVERLAYS: Record<string, OverlayDef> = {};
 
 /**
  * Interior floors come in 2x2 patterns, so a floor is addressed by which
