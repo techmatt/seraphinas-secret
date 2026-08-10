@@ -69,6 +69,16 @@ interior sheets are not on one grid and its readmes are license text, so those
 rectangles were measured: `npm run world:measure -- <pack-relative.png>` prints
 the bounding box of everything actually drawn on a sheet.
 
+A catalog entry also says which part of its picture is **solid**, and that half
+is measured too — `npm run world:footings` prints every hitbox against the
+pixels it claims to describe, because a hitbox is the one thing in this world
+with no picture and nothing on screen can tell you it is in the wrong place.
+Those rectangles may name a half tile: the pack centres a tree's trunk on its
+own slot, so no whole tile is ever under one, and `tools/world/footing.ts`
+nudges the sprite by that half tile when it puts it down. Hold **B** while
+playing to see the whole grid — solid cells, each sprite's footprint, and her
+own collision box.
+
 Ground is two tile layers. The lower one is terrain — grass, dirt roads, water,
 ploughed earth, interior floors and walls. The upper one is for ground variants
 and is **empty today**: a tile may only sit beside the base outdoor grass if its

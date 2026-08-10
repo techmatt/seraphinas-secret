@@ -48,7 +48,10 @@ waveform, without listening), `npm run world:build` (regenerate the maps in
 `public/world/` from `content/world/layout.ts`; needs the art pack side-loaded,
 and refuses to write a world you cannot walk across),
 `npm run world:measure -- <pack-relative.png>` (print the bounding box of
-everything drawn on a pack sheet, which is where catalog rectangles come from).
+everything drawn on a pack sheet, which is where catalog rectangles come from),
+`npm run world:footings` (check every catalog hitbox against the pixels it is
+supposed to be the hitbox of; hold **B** in the game to see the same thing
+drawn over the world).
 
 ---
 
