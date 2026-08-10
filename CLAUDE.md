@@ -24,19 +24,29 @@ headless boot/screenshot smoke tests.
 | --- | --- |
 | `src/` | Game source. `main.ts` boots Phaser; `scenes/` holds scenes. |
 | `content/voice/` | Authored dialog: `lines.json` and `voices.json`. Source of truth. |
-| `tools/voice/` | The generator. Providers live under `providers/`; nothing else may. |
-| `public/` | Static assets served as-is. `voice/` is generated — do not hand-edit. |
-| `tests/` | Playwright specs, plus `harness.ts` (boot, steer, read hooks). |
+| `content/world/` | Authored map layout: regions, roads, where buildings go. Source of truth. |
+| `tools/voice/` | The voice generator. Providers live under `providers/`; nothing else may. |
+| `tools/world/` | The map generator, plus the catalog of which pack rectangle is which. |
+| `tools/assets/` | Mirrors the side-loaded art pack into `public/assets/`. |
+| `public/` | Static assets served as-is. `voice/` and `world/` are generated — do not hand-edit. |
+| `tests/` | Playwright specs, plus `harness.ts` (boot, route, steer, read hooks). |
 | `tests/screenshots/` | Smoke-test screenshots — the planner's visual audit trail. |
 | `dist/` | `npm run build` output. Ignored. |
+
+**Art** is the side-loaded Cute Fantasy pack at `C:\Code\seraphinas-assets`
+(override with `SERAPHINA_ASSETS`). Pack pixels never enter the repo; generated
+map data does. See README, "Art assets" and "The world".
 
 Reports live outside the repo entirely — see **Report delivery** below.
 
 **Commands**: `npm run dev` (serve), `npm run build` (static `dist/`),
 `npm run preview` (serve the build), `npm test` (Playwright, headless),
-`npm run typecheck` (`src/` and `tools/`), `npm run voice:build` (regenerate audio;
-incremental, `--force` to redo everything), `npm run voice:inspect` (check word
-timings and phonics against the actual waveform, without listening).
+`npm run typecheck` (`src/`, `tools/` and `content/`), `npm run voice:build`
+(regenerate audio; incremental, `--force` to redo everything),
+`npm run voice:inspect` (check word timings and phonics against the actual
+waveform, without listening), `npm run world:build` (regenerate the maps in
+`public/world/` from `content/world/layout.ts`; needs the art pack side-loaded,
+and refuses to write a world you cannot walk across).
 
 ---
 

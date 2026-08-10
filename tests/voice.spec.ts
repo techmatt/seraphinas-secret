@@ -54,19 +54,26 @@ test('the manifest has a timed word for every word that will be shown', () => {
   }
 });
 
-test('the star speaks, and the right word is lit halfway through', async ({ page }) => {
+/**
+ * The prop this test walks up to, and what it says. The vector star retired
+ * with the tile world; the well is what stands near her front door now.
+ */
+const POKED_PROP = 'well';
+const POKED_LINE = 'dad_sparkle';
+
+test('a poked prop speaks, and the right word is lit halfway through', async ({ page }) => {
   const { canvas, errors } = await bootGame(page);
   await waitForVoice(page);
 
   expect((await readHooks(page)).voice.lineId, 'nothing is being said yet').toBeNull();
 
-  await walkToProp(page, 'star');
+  await walkToProp(page, POKED_PROP);
   await page.keyboard.press('KeyZ');
 
   const speaking = await readHooks(page);
-  expect(speaking.voice.lineId, 'pressing Z should start the line').toBe(STONE_LINE);
+  expect(speaking.voice.lineId, 'pressing Z should start the line').toBe(POKED_LINE);
 
-  const line = manifest.lines.find((l) => l.id === STONE_LINE)!;
+  const line = manifest.lines.find((l) => l.id === POKED_LINE)!;
   expect(speaking.voice.words, 'the bubble shows every word of the line').toEqual(
     line.words.map((w) => w.word),
   );

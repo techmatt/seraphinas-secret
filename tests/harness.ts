@@ -26,13 +26,25 @@ export type Hooks = {
     flipped: boolean;
     artLoaded: boolean;
   };
+  camera: { x: number; y: number; width: number; height: number };
+  world: {
+    width: number;
+    height: number;
+    tile: number;
+    cols: number;
+    rows: number;
+    blocked: string;
+  };
   interactables: { id: string; x: number; y: number }[];
   doorways: { id: string; x: number; y: number; to: string }[];
+  landmarks: { id: string; x: number; y: number }[];
   interactRadius: number;
+  fps: number;
   sparkles: number;
   aliveParticles: number;
   peakParticles: number;
   pause: () => void;
+  teleport: (x: number, y: number) => void;
   voice: {
     loaded: boolean;
     ids: string[];
@@ -49,10 +61,21 @@ export const readHooks = (page: Page) =>
   page.evaluate(() => {
     const h = (window as unknown as { __seraphina: Hooks }).__seraphina;
     // Functions do not survive the serialisation back to node; drop them.
-    const { pause, voice, ...rest } = h;
+    const { pause, teleport, voice, ...rest } = h;
     const { say, scrub, timings, ...voiceRest } = voice;
     return { ...rest, voice: voiceRest };
   });
+
+export type Snapshot = Awaited<ReturnType<typeof readHooks>>;
+
+/** Is the world solid at this world-space point? */
+export function isBlocked(hooks: Snapshot, x: number, y: number): boolean {
+  const { tile, cols, rows, blocked } = hooks.world;
+  const col = Math.floor(x / tile);
+  const row = Math.floor(y / tile);
+  if (col < 0 || row < 0 || col >= cols || row >= rows) return true;
+  return blocked[row * cols + col] === '1';
+}
 
 export interface OpenOptions {
   /**
@@ -93,7 +116,7 @@ export async function openTitle(page: Page, { fast = false }: OpenOptions = {}) 
 }
 
 /**
- * Press through the title screen and wait for the room. Without ?fastBoot the
+ * Press through the title screen and wait for the world. Without ?fastBoot the
  * greeting plays in full first, so this is a couple of seconds, not instant.
  */
 export async function pressStart(page: Page) {
@@ -103,13 +126,13 @@ export async function pressStart(page: Page) {
     undefined,
     { timeout: 20_000 },
   );
-  // The room fades in out of the title's flash. Screenshot before it lands and
+  // The world fades in out of the title's flash. Screenshot before it lands and
   // the visual audit trail is a picture of the flash.
   await page.waitForTimeout(400);
 }
 
 /**
- * The usual starting point for a test that cares about a room, not the door.
+ * The usual starting point for a test that cares about the world, not the door.
  * Fast by default — the front door has its own spec, and everything else was
  * paying to hear the same greeting a dozen times a run.
  */
@@ -163,81 +186,268 @@ export async function walkAndRead(page: Page, key: string, ms: number) {
   return hooks;
 }
 
+/** Walk speed in the game, so a hop can be asked for in pixels. See RoomScene. */
+const WALK_SPEED = 300;
+
+/** Shortest hop worth taking; below this the key-up latency dominates anyway. */
+const MIN_HOP_MS = 70;
+const MAX_HOP_MS = 700;
+
 /**
- * Steer to a point in short hops, re-reading position each time. Walking for a
- * hardcoded duration bakes in the walk speed and the layout, so it breaks the
- * moment either is tuned — which for this game is constantly.
- *
- * `arrived` is checked before every hop, which is also how a test steers into
- * something that ends the room it is standing in.
- *
- * `slack` is how far off an axis may be before a hop is worth taking. A hop is
- * asked for 100 ms but lands anywhere up to about 120 px away, because the page
- * is slow enough that the key-up arrives late; correcting an error smaller than
- * half of that only overshoots the other way, for ever. Somewhere she has to
- * arrive exactly — a doorway — keeps the tight default and reaches it by
- * walking through, not by stopping on it.
+ * How long to hold a key to cover roughly `pixels`, aiming a little short so a
+ * hop lands before its target rather than past it. The world is thousands of
+ * pixels across now, so a fixed 100 ms hop would need hundreds of round trips
+ * to cross it; this makes a long walk a few long hops and a final approach a
+ * few short ones.
  */
-async function steer(
+function hopFor(pixels: number): number {
+  return Math.round(
+    Math.min(MAX_HOP_MS, Math.max(MIN_HOP_MS, (Math.abs(pixels) / WALK_SPEED) * 800)),
+  );
+}
+
+/**
+ * A route across the zone, as world-space corners.
+ *
+ * Walking straight at a target worked while a room was one empty rectangle. The
+ * exterior has a wood and five buildings in it and the house has four rooms, so
+ * a test that walks at a landmark walks into a wall — or, worse, walks into the
+ * front door on its way past. So the harness plans: breadth-first over the same
+ * collision grid the game uses, then only the corners are kept, because the
+ * straight bits between them are what `walk()` is for.
+ *
+ * If the target cannot be reached at all, the nearest reachable tile is used
+ * instead and the caller's own `arrived` test decides whether that was close
+ * enough. That is deliberate: a prop stands on solid tiles, and "walk up to the
+ * well" means the tile beside it.
+ */
+function planRoute(hooks: Snapshot, to: { x: number; y: number }): { x: number; y: number }[] {
+  const { tile, cols, rows, blocked } = hooks.world;
+  if (!cols || !rows) return [to];
+
+  const free = (c: number, r: number) =>
+    c >= 0 && r >= 0 && c < cols && r < rows && blocked[r * cols + c] !== '1';
+
+  const startC = Math.floor(hooks.player.x / tile);
+  const startR = Math.floor(hooks.player.y / tile);
+  const clamp = (v: number, hi: number) => Math.min(hi, Math.max(0, v));
+  const goalC = clamp(Math.floor(to.x / tile), cols - 1);
+  const goalR = clamp(Math.floor(to.y / tile), rows - 1);
+
+  const prev = new Int32Array(cols * rows).fill(-1);
+  const seen = new Uint8Array(cols * rows);
+  const from = startR * cols + startC;
+  seen[from] = 1;
+
+  let best = from;
+  let bestDistance = Math.hypot(startC - goalC, startR - goalR);
+
+  const queue = [from];
+  for (let head = 0; head < queue.length; head++) {
+    const here = queue[head]!;
+    const c = here % cols;
+    const r = Math.floor(here / cols);
+
+    const distance = Math.hypot(c - goalC, r - goalR);
+    if (distance < bestDistance) {
+      bestDistance = distance;
+      best = here;
+    }
+    if (c === goalC && r === goalR) {
+      best = here;
+      break;
+    }
+
+    for (const [dc, dr] of [[1, 0], [-1, 0], [0, 1], [0, -1]] as const) {
+      const nc = c + dc;
+      const nr = r + dr;
+      if (!free(nc, nr)) continue;
+      const next = nr * cols + nc;
+      if (seen[next]) continue;
+      seen[next] = 1;
+      prev[next] = here;
+      queue.push(next);
+    }
+  }
+
+  const cells: number[] = [];
+  for (let step = best; step !== -1; step = prev[step]!) {
+    cells.unshift(step);
+    if (step === from) break;
+  }
+
+  // Keep only the corners; a straight run of tiles is one hop, not fifteen.
+  // The exact target is deliberately not appended: a prop stands on solid
+  // tiles, so the route ends at the last tile she can stand on and the caller's
+  // own final approach closes the rest.
+  const corners: { x: number; y: number }[] = [];
+  for (let i = 1; i < cells.length; i++) {
+    const turn =
+      i === cells.length - 1 ||
+      cells[i]! - cells[i - 1]! !== cells[i + 1]! - cells[i]!;
+    if (!turn) continue;
+    corners.push({
+      x: (cells[i]! % cols) * tile + tile / 2,
+      y: Math.floor(cells[i]! / cols) * tile + tile / 2,
+    });
+  }
+  return corners;
+}
+
+/**
+ * The shortest hop the page can actually take. `walk()` asks for 70 ms and the
+ * key-up lands late, so nothing under about this distance is steerable — and
+ * asking for it just overshoots the other way, for ever.
+ */
+const MIN_STEP = 44;
+
+/** Close enough to a corner to start heading for the next one. */
+const CORNER_SLACK = 48;
+
+/**
+ * How far off the corridor she may drift before it is worth a correcting hop.
+ * Under half a tile, deliberately: a route along the line between two rows puts
+ * her body in the upper one, and if that row happens to be a shed she walks
+ * into it for ever while the plan insists the way is clear. Correcting costs one
+ * hop and overshooting the correction is harmless — the next hop re-measures.
+ */
+const DRIFT_SLACK = 24;
+
+/**
+ * Follow a route, then close the last gap by hand. Re-plans whenever it stops
+ * making progress, because the plan is only as good as the frame it was made on
+ * and she is being driven by a keyboard over a laggy page.
+ *
+ * There is exactly one `readHooks` per hop. Each one is a round trip to a page
+ * running at twenty frames a second, and crossing this world is dozens of hops:
+ * a second read to check "did that hop help" doubled the cost of the whole
+ * suite, so progress is judged against the previous hop's reading instead.
+ */
+async function travel(
   page: Page,
-  target: (hooks: Awaited<ReturnType<typeof readHooks>>) => { x: number; y: number },
-  arrived: (hooks: Awaited<ReturnType<typeof readHooks>>) => boolean,
+  target: (hooks: Snapshot) => { x: number; y: number },
+  arrived: (hooks: Snapshot) => boolean,
   what: string,
-  slack = 20,
 ) {
-  for (let hop = 0; hop < 50; hop++) {
-    const hooks = await readHooks(page);
+  const hopToward = async (dx: number, dy: number) => {
+    // The legs between a route's corners are axis-aligned, so the shorter delta
+    // is drift off the corridor. Correct that first, then advance.
+    const alongX = Math.abs(dx) >= Math.abs(dy);
+    const drift = alongX ? dy : dx;
+    if (Math.abs(drift) > DRIFT_SLACK) {
+      const key = alongX
+        ? drift > 0
+          ? 'ArrowDown'
+          : 'ArrowUp'
+        : drift > 0
+          ? 'ArrowRight'
+          : 'ArrowLeft';
+      await walk(page, key, hopFor(drift));
+    }
+    const main = alongX ? dx : dy;
+    if (Math.abs(main) < MIN_STEP) return;
+    const key = alongX ? (main > 0 ? 'ArrowRight' : 'ArrowLeft') : main > 0 ? 'ArrowDown' : 'ArrowUp';
+    await walk(page, key, hopFor(main));
+  };
+
+  for (let attempt = 0; attempt < 4; attempt++) {
+    let hooks = await readHooks(page);
     if (arrived(hooks)) return;
 
-    const { x, y } = target(hooks);
-    const dx = x - hooks.player.x;
-    const dy = y - hooks.player.y;
+    for (const corner of planRoute(hooks, target(hooks))) {
+      let last = { x: Number.NaN, y: Number.NaN };
 
-    if (Math.abs(dy) > slack) await walk(page, dy > 0 ? 'ArrowDown' : 'ArrowUp', 100);
-    if (Math.abs(dx) > slack) await walk(page, dx > 0 ? 'ArrowRight' : 'ArrowLeft', 100);
+      for (let hop = 0; hop < 6; hop++) {
+        hooks = await readHooks(page);
+        if (arrived(hooks)) return;
+
+        const here = { x: hooks.player.x, y: hooks.player.y };
+        const dx = corner.x - here.x;
+        const dy = corner.y - here.y;
+        if (Math.hypot(dx, dy) <= CORNER_SLACK) break;
+        // Wedged on something the plan did not know about. Re-plan from here.
+        if (hop > 0 && Math.hypot(here.x - last.x, here.y - last.y) < 6) break;
+        last = here;
+
+        await hopToward(dx, dy);
+      }
+    }
+
+    // The route ends on the last tile she can stand on. Whatever she was
+    // actually sent to — a prop standing on solid tiles, a doorway — is closed
+    // by walking straight at it from there.
+    for (let hop = 0; hop < 8; hop++) {
+      hooks = await readHooks(page);
+      if (arrived(hooks)) return;
+
+      const here = { x: hooks.player.x, y: hooks.player.y };
+      const to = target(hooks);
+      await hopToward(to.x - here.x, to.y - here.y);
+
+      const now = await readHooks(page);
+      if (arrived(now)) return;
+      if (Math.hypot(now.player.x - here.x, now.player.y - here.y) < 6) break;
+    }
   }
 
   const { player, room } = await readHooks(page);
   throw new Error(`never reached ${what}: player ${player.x},${player.y} in ${room}`);
 }
 
-/**
- * Half the biggest hop the page can accidentally take. Aiming closer than this
- * at a prop is aiming closer than the harness can steer.
- */
-const PROP_SLACK = 60;
-
-/** Walk up to a prop — the named one, or whichever the room lists first. */
+/** Walk up to a prop — the named one, or whichever the zone lists first. */
 export async function walkToProp(page: Page, id?: string) {
-  const pick = (hooks: Awaited<ReturnType<typeof readHooks>>) => {
+  const pick = (hooks: Snapshot) => {
     const prop = id ? hooks.interactables.find((p) => p.id === id) : hooks.interactables[0];
     if (!prop) throw new Error(`no prop ${id ?? '[first]'} in ${hooks.room}`);
     return prop;
   };
 
-  await steer(
+  await travel(
     page,
     pick,
     (hooks) => {
       const prop = pick(hooks);
       // Inside the radius with room to spare, but not so tight that a hop she
-      // cannot make smaller keeps knocking her back out of it.
-      return Math.hypot(prop.x - hooks.player.x, prop.y - hooks.player.y) <=
-        hooks.interactRadius * 0.8;
+      // cannot make smaller keeps knocking her back out of it. A prop's marker
+      // is the middle of the prop, and a well is solid, so the nearest she can
+      // physically stand to one is most of the radius away already — a tighter
+      // margin than this asks her to reach a tile that does not exist.
+      return (
+        Math.hypot(prop.x - hooks.player.x, prop.y - hooks.player.y) <=
+        hooks.interactRadius * 0.9
+      );
     },
     `prop ${id ?? '[first]'}`,
-    PROP_SLACK,
   );
 }
 
+/** Walk to a named place in the map data — "the woods", "the facade row". */
+export async function walkToLandmark(page: Page, id: string, within = 90) {
+  const pick = (hooks: Snapshot) => {
+    const mark = hooks.landmarks.find((m) => m.id === id);
+    if (!mark) throw new Error(`no landmark ${id} in ${hooks.room}`);
+    return mark;
+  };
+
+  await travel(
+    page,
+    pick,
+    (hooks) => Math.hypot(pick(hooks).x - hooks.player.x, pick(hooks).y - hooks.player.y) <= within,
+    `landmark ${id}`,
+  );
+
+  // Let the camera's lerp catch up before anyone photographs the place.
+  await page.waitForTimeout(500);
+}
+
 /**
- * Walk into a doorway and come out the other side. Returns the room she landed
+ * Walk into a doorway and come out the other side. Returns the zone she landed
  * in. Doorways are walk-through, so there is no press here by design.
  */
 export async function walkThroughDoorway(page: Page, id?: string) {
   const from = (await readHooks(page)).room;
 
-  await steer(
+  await travel(
     page,
     (hooks) => {
       const door = id ? hooks.doorways.find((d) => d.id === id) : hooks.doorways[0];
@@ -258,8 +468,25 @@ export async function walkThroughDoorway(page: Page, id?: string) {
   );
 
   // Let the arrival flourish land, or the screenshot is of the colour wash.
-  await page.waitForTimeout(520);
+  await page.waitForTimeout(560);
   return (await readHooks(page)).room;
+}
+
+/**
+ * Stand her at a named place and let the camera settle. For screenshots only —
+ * anything claiming a place is reachable uses `walkToLandmark`, which walks.
+ */
+export async function standAt(page: Page, id: string) {
+  const { landmarks } = await readHooks(page);
+  const mark = landmarks.find((m) => m.id === id);
+  if (!mark) throw new Error(`no landmark ${id}`);
+
+  await page.evaluate(
+    ([x, y]) => (window as unknown as { __seraphina: Hooks }).__seraphina.teleport(x!, y!),
+    [mark.x, mark.y],
+  );
+  // One frame for the camera, one for the occlusion fade to finish.
+  await page.waitForTimeout(400);
 }
 
 /** The voice manifest loads after boot; nothing voice-shaped works before it. */

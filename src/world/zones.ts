@@ -1,0 +1,27 @@
+/**
+ * What used to be the room table.
+ *
+ * There were two vector rooms and a table describing everything in them. There
+ * are now two *zones* — one scrolling exterior and one scrolling house — and
+ * everything in them lives in generated map data under `public/world/`, because
+ * a wood is four hundred trees and nobody is typing those into a table.
+ *
+ * So all that is left here is the list of zones that exist and which one the
+ * front door opens onto. Adding a zone is a layout in `content/world/`, a
+ * `world:build`, and a name in this list. It is still never a new scene.
+ *
+ * `SpawnDef.facing` used to be -1 / 0 / 1, from before the character had four
+ * directions drawn. It is now a plain Direction in the map data — the fold the
+ * last prompt deferred — and the translation it needed has gone with it.
+ */
+
+export type ZoneId = 'outside' | 'house';
+
+export const ZONE_IDS: readonly ZoneId[] = ['outside', 'house'];
+
+/** Where the title screen opens the door onto. */
+export const STARTING_ZONE: ZoneId = 'outside';
+
+export function isZoneId(id: string): id is ZoneId {
+  return (ZONE_IDS as readonly string[]).includes(id);
+}

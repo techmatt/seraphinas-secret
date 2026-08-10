@@ -8,6 +8,7 @@
  */
 
 import Phaser from 'phaser';
+import { WORLD_SCALE } from '../config';
 import {
   animKeyFor,
   sheetDirection,
@@ -17,13 +18,21 @@ import {
 } from './characterSheets';
 
 /**
- * A 16x18 px character in a 720 px room needs scaling up a long way. Five is
- * what the screenshots wanted: at four she is a detail of the yard, and at five
- * she is the subject of it, still shorter than the doorway she walks through.
- * A whole number, because a fractional one is what turns square pixels into
- * uneven ones.
+ * She is drawn at the same pixel density as the tiles she walks on, so she is
+ * scaled by the same number — see WORLD_SCALE. She used to have a scale of her
+ * own, which was fine while the rooms were vector shapes with no opinion about
+ * how big a pixel is, and would now make her the wrong size for her own door.
  */
-export const CHARACTER_SCALE = 5;
+export const CHARACTER_SCALE = WORLD_SCALE;
+
+/**
+ * Where the soles of her feet are inside the 64 px frame, as a fraction of it.
+ * Measured off the sheet: she occupies y 23-40 of every frame, so the ground
+ * line is 41. Making that the container's origin means a Character's position
+ * *is* the point she is standing on — which is what collision, depth sorting
+ * and every spawn in the map data want to talk about.
+ */
+export const FOOT_ORIGIN_Y = 41 / 64;
 
 /** Queue every layer of `sheet` onto the scene's loader. Call from preload(). */
 export function preloadCharacter(scene: Phaser.Scene, sheet: CharacterSheet): void {
@@ -106,7 +115,10 @@ export class Character extends Phaser.GameObjects.Container {
     super(scene, x, y);
 
     for (const layer of sheet.layers) {
-      const sprite = scene.add.sprite(0, 0, layer.key, 0).setScale(CHARACTER_SCALE);
+      const sprite = scene.add
+        .sprite(0, 0, layer.key, 0)
+        .setOrigin(0.5, FOOT_ORIGIN_Y)
+        .setScale(CHARACTER_SCALE);
       this.layers.push(sprite);
       this.add(sprite);
     }

@@ -13,8 +13,8 @@ test('she is a drawn character, out of the side-loaded pack', async ({ page }) =
   expect(boot.player.artLoaded, 'every layer of her sprite loaded').toBe(true);
 
   // Standing still is an animation of its own, not a held frame.
-  expect(boot.player.anim, 'she idles the way the yard spawns her').toBe('idle-right');
-  expect(boot.player.facing).toBe('right');
+  expect(boot.player.anim, 'she idles the way the map spawns her').toBe('idle-down');
+  expect(boot.player.facing).toBe('down');
 
   await canvas.screenshot({ path: shot('11-player.png') });
 

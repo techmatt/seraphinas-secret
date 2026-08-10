@@ -13,7 +13,7 @@
 
 import Phaser from 'phaser';
 import { playArriveChime, playDoorChime } from '../audio/beep';
-import type { FlourishId } from './rooms';
+import type { FlourishId } from './mapData';
 
 interface Flourish {
   /** The colour the screen fades through, and comes back out of. */

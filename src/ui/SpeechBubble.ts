@@ -10,7 +10,7 @@
  */
 
 import Phaser from 'phaser';
-import { GAME_WIDTH } from '../config';
+import { DEPTH, GAME_WIDTH } from '../config';
 import type { VoiceBank, VoiceLine, VoicePlayback } from '../voice/VoiceBank';
 
 const MAX_WIDTH = 620;
@@ -70,7 +70,8 @@ export class SpeechBubble extends Phaser.GameObjects.Container {
     this.slab = scene.add.rectangle(0, 0, 10, 10, 0xff8fd8).setVisible(false);
 
     this.add([this.balloon, this.slab]);
-    this.setDepth(40).setVisible(false);
+    // Above every y-sorted thing in the world: a tree must never eat a word.
+    this.setDepth(DEPTH.speech).setVisible(false);
     scene.add.existing(this);
   }
 
@@ -259,12 +260,18 @@ export class SpeechBubble extends Phaser.GameObjects.Container {
     const left = offsetX - PAD_X;
     const top = offsetY - PAD_Y;
 
-    // Sit above the speaker, but never off the edge of the room.
+    // Sit above the speaker, but never off the edge of what is on screen. The
+    // world scrolls now, so "the edge" is the camera's view of it and not the
+    // canvas — a balloon clamped to the canvas would drift off in a big zone.
+    const view = this.scene.cameras.main.worldView;
+    const [viewLeft, viewRight] =
+      view.width > 0 ? [view.left, view.right] : [0, GAME_WIDTH];
+
     this.setPosition(
       Phaser.Math.Clamp(
         this.speaker.x,
-        w / 2 + SCREEN_MARGIN,
-        GAME_WIDTH - w / 2 - SCREEN_MARGIN,
+        viewLeft + w / 2 + SCREEN_MARGIN,
+        viewRight - w / 2 - SCREEN_MARGIN,
       ),
       this.speaker.y - SPEAKER_GAP - h / 2,
     );

@@ -9,7 +9,10 @@ export default defineConfig({
   fullyParallel: false,
   workers: 1,
   reporter: [['list']],
-  timeout: 60_000,
+  // The world is several screens across now and the harness steers by walking,
+  // one round trip per hop, at the fifteen frames a second headless Chromium
+  // manages. Crossing it honestly takes most of a minute.
+  timeout: 150_000,
 
   use: {
     baseURL: BASE_URL,

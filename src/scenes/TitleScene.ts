@@ -18,6 +18,8 @@ import { unlockAudio } from '../audio/context';
 import { makeButtonDot, makeGlow } from '../ui/ButtonDot';
 import { SpeechBubble } from '../ui/SpeechBubble';
 import { VoiceBank } from '../voice/VoiceBank';
+import { loadMap, type MapData } from '../world/mapData';
+import { STARTING_ZONE } from '../world/zones';
 import { FAST_BOOT, hooks, syncAudioHook } from '../testHooks';
 
 /** The line Seraphina says the moment the game wakes up. */
@@ -58,6 +60,14 @@ export class TitleScene extends Phaser.Scene {
   private bubble!: SpeechBubble;
 
   private readonly voice = new VoiceBank();
+
+  /**
+   * The first zone's map, fetched while she is still looking at the green dot.
+   * The room scene cannot queue its textures until it knows which ones the map
+   * asks for, so somebody has to have the map before the scene starts — and the
+   * title screen is a couple of free seconds nobody is waiting on.
+   */
+  private map?: Promise<MapData>;
 
   /** One-way latches: the door opens once, and the game leaves once. */
   private pressed = false;
@@ -114,6 +124,7 @@ export class TitleScene extends Phaser.Scene {
       hooks.voice.loaded = this.voice.loaded;
       hooks.voice.ids = this.voice.ids;
     });
+    this.map = loadMap(STARTING_ZONE);
 
     hooks.scene = 'title';
     hooks.ready = false;
@@ -225,7 +236,12 @@ export class TitleScene extends Phaser.Scene {
   private toRoom(): void {
     this.cameras.main.fadeOut(300, FLASH.r, FLASH.g, FLASH.b);
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
-      this.scene.start('RoomScene', { voice: this.voice });
+      // The map has had the whole title screen to arrive. If it somehow has
+      // not, the room scene fetches it itself and restarts — a slower way in,
+      // never a dead end.
+      void (this.map ?? Promise.resolve(undefined)).then((map) => {
+        this.scene.start('RoomScene', { voice: this.voice, map });
+      });
     });
   }
 

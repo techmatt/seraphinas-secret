@@ -48,17 +48,19 @@ export interface TestHooks {
    */
   audio: string;
   /**
-   * The character: where she is in world space, and what she is doing there.
+   * The character: where her feet are in world space, and what she is doing
+   * there. Her position is the point she is standing on — the same space every
+   * marker below is in — not the middle of her sprite.
    *
    * `facing` is one of the game's four directions; `anim` is the logical
    * animation, which only ever names the three the sheet actually draws — so
    * facing left reports `walk-right` with `flipped` true. Those three together
    * are the only way to tell a real mirror from a missing animation.
    *
-   * `artLoaded` is false when a sprite sheet did not arrive. Her art is a
-   * side-loaded, gitignored asset pack now, so "the pipeline ran" is something
-   * the suite has to be able to fail on — an animation key plays perfectly well
-   * over Phaser's missing-texture square.
+   * `artLoaded` is false when any sprite sheet did not arrive — hers or the
+   * world's. The art is a side-loaded, gitignored asset pack, so "the pipeline
+   * ran" is something the suite has to be able to fail on: an animation key
+   * plays perfectly well over Phaser's missing-texture square.
    */
   player: {
     x: number;
@@ -68,12 +70,51 @@ export interface TestHooks {
     flipped: boolean;
     artLoaded: boolean;
   };
-  /** This room's pokeable props, so tests can steer instead of guessing. */
+  /**
+   * The camera's top-left in world space, and how much of the world it shows.
+   * The map is several screens across now, so "did walking move anything" and
+   * "did the view stop at the edge of the world" are separate questions.
+   */
+  camera: { x: number; y: number; width: number; height: number };
+  /**
+   * The zone's shape, including where its walls are: `blocked` is one character
+   * per tile, row-major, '1' where she cannot stand — the same string the map
+   * file carries.
+   *
+   * A test used to steer by walking at a thing and hoping. There are buildings
+   * and a wood in the way now, so it plans a route across this instead, which
+   * is both more honest about what the world is and the only thing that gets
+   * across a house with four rooms in it.
+   */
+  world: {
+    width: number;
+    height: number;
+    /** One tile, on screen. */
+    tile: number;
+    cols: number;
+    rows: number;
+    blocked: string;
+  };
+  /** This zone's pokeable props, so tests can steer instead of guessing. */
   interactables: Marker[];
-  /** This room's doorways, at the centre of each opening. */
+  /** This zone's doorways, at the centre of each opening. */
   doorways: DoorwayMarker[];
+  /**
+   * Named places worth standing in: the front of the house, the facade row, the
+   * cave mouth, the wood. They come out of the map data, so a test steers to
+   * "the woods" without knowing where the layout put it — and the screenshots
+   * that audit how the world looks are taken at exactly these points.
+   */
+  landmarks: Marker[];
   /** How close the character must get before an interaction will fire. */
   interactRadius: number;
+  /**
+   * What the renderer is actually managing. Headless Chromium runs this game an
+   * order of magnitude slower than a real machine, and the exterior is a
+   * culled tile layer plus a few hundred sprites, so it is worth being able to
+   * ask rather than guess.
+   */
+  fps: number;
   /** How many times the juicy interaction has fired. */
   sparkles: number;
   /** Particles currently alive. */
@@ -89,6 +130,16 @@ export interface TestHooks {
    * scenes still render, they just stop updating.
    */
   pause: () => void;
+  /**
+   * Stand her at a world-space point, camera and all.
+   *
+   * Strictly for the screenshot tour. The exterior is four thousand pixels
+   * across and the harness drives it by holding arrow keys one round trip at a
+   * time, so photographing five landmarks on foot costs minutes — and proves
+   * nothing the walking tests do not already prove. Anything that asserts a
+   * place is *reachable* still walks there.
+   */
+  teleport: (x: number, y: number) => void;
   voice: VoiceHooks;
 }
 
@@ -141,13 +192,18 @@ export const hooks: TestHooks = {
   transitioning: false,
   audio: 'none',
   player: { x: 0, y: 0, facing: 'down', anim: 'idle-down', flipped: false, artLoaded: false },
+  camera: { x: 0, y: 0, width: 0, height: 0 },
+  world: { width: 0, height: 0, tile: 0, cols: 0, rows: 0, blocked: '' },
   interactables: [],
   doorways: [],
+  landmarks: [],
   interactRadius: 0,
+  fps: 0,
   sparkles: 0,
   aliveParticles: 0,
   peakParticles: 0,
   pause: () => undefined,
+  teleport: () => undefined,
   voice: {
     loaded: false,
     ids: [],

@@ -51,6 +51,18 @@ export function playSparkleChime(): void {
 }
 
 /**
+ * Two soft low knocks: the sound of a door that is not going to open today.
+ * Deliberately friendly rather than a buzzer — a locked shed is a joke here,
+ * not a wrong answer.
+ */
+export function playThudChime(): void {
+  playNotes([
+    { freq: 174.6, at: 0, dur: 0.11, peak: 0.18 },
+    { freq: 146.8, at: 0.11, dur: 0.14, peak: 0.16 },
+  ]);
+}
+
+/**
  * The doorway's run of notes, played quickly — the sound of going somewhere.
  * The order is the caller's, so a flourish can rise on the way in and fall on
  * the way out; see world/transition.ts.

@@ -23,14 +23,14 @@ test('boots, renders a canvas, and walks on arrow keys', async ({ page }) => {
   expect(errors, 'no uncaught page errors').toEqual([]);
 });
 
-test('walking up to the star and pressing Z fires the sparkle burst', async ({ page }) => {
+test('walking up to the campfire and pressing Z fires the sparkle burst', async ({ page }) => {
   const { canvas, errors } = await bootGame(page);
 
   expect((await readHooks(page)).sparkles, 'nothing has sparkled yet').toBe(0);
 
-  await walkToProp(page, 'star');
+  await walkToProp(page, 'campfire');
 
-  // Close enough that the star asks to be pressed. The prompt is a green dot,
+  // Close enough that the fire asks to be pressed. The prompt is a green dot,
   // never a letter — this is the frame that proves it.
   await canvas.screenshot({ path: shot('05-prompt.png') });
 
@@ -46,7 +46,7 @@ test('walking up to the star and pressing Z fires the sparkle burst', async ({ p
   await canvas.screenshot({ path: shot('06-sparkle.png') });
 
   const after = await readHooks(page);
-  expect(after.sparkles, 'Z near the star should sparkle').toBe(1);
+  expect(after.sparkles, 'Z near the campfire should sparkle').toBe(1);
   expect(after.peakParticles, 'the burst should put particles on screen').toBeGreaterThan(0);
 
   expect(errors, 'no uncaught page errors').toEqual([]);

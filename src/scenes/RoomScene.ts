@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
-import { playSparkleChime } from '../audio/beep';
+import { playSparkleChime, playThudChime } from '../audio/beep';
 import { unlockAudio } from '../audio/context';
+import { DEPTH, GAME_HEIGHT, TILE_SIZE, WORLD_SCALE } from '../config';
 import { makeButtonDot } from '../ui/ButtonDot';
 import { makeStickHint, type StickHint } from '../ui/StickHint';
 import { SpeechBubble } from '../ui/SpeechBubble';
@@ -11,92 +12,85 @@ import {
   preloadCharacter,
   registerCharacterAnims,
 } from '../world/Character';
-import { SERAPHINA, type Direction } from '../world/characterSheets';
+import { SERAPHINA } from '../world/characterSheets';
 import { Doorway } from '../world/Doorway';
-import { DEPTH, makeProp, paintRoom } from '../world/scenery';
-import {
-  BOUNDS,
-  STARTING_ROOM,
-  getRoom,
-  spawnOf,
-  type Facing,
-  type FlourishId,
-  type PropDef,
-  type RoomDef,
-  type RoomId,
-} from '../world/rooms';
+import { loadMap, spawnOf, type FlourishId, type MapData } from '../world/mapData';
+import { makeProp, nudgeProp, type Prop } from '../world/scenery';
+import { TileWorld } from '../world/TileWorld';
+import { STARTING_ZONE, type ZoneId } from '../world/zones';
 import { playArrivalFlourish, playExitFlourish } from '../world/transition';
 import { hooks, syncAudioHook } from '../testHooks';
 
-/** Walk speed in pixels per second. Deliberately unhurried. */
-const WALK_SPEED = 260;
+/**
+ * Walk speed in pixels per second — a bit under five tiles a second. Faster
+ * than the single-screen rooms wanted, because the exterior is sixty tiles
+ * across and a walk to the wood should be an outing, not a commute.
+ */
+const WALK_SPEED = 300;
 
 /** Analog sticks rest slightly off-centre; ignore anything inside this. */
 const STICK_DEADZONE = 0.25;
 
-/** How close the character must be to a prop before it will sparkle. */
-const INTERACT_RADIUS = 120;
+/** How close she must be to a prop before it will sparkle. Two tiles-ish. */
+const INTERACT_RADIUS = 140;
 
-/** How long the first room takes to arrive out of the title screen's flash. */
+/** How long the first zone takes to arrive out of the title screen's flash. */
 const FADE_IN = 260;
 
 /** The colour the title screen flashes on its way out. */
 const TITLE_FLASH = [255, 246, 255] as const;
 
+/** How hard the camera chases her. Low enough to lag, high enough to keep up. */
+const CAMERA_LERP = 0.12;
+
+/** Longest distance a single collision step may cover. A quarter of a tile. */
+const MAX_STEP = TILE_SIZE / 4;
+
 /**
  * Whether she has been shown how to walk yet, for this page load. It lives
  * outside the scene because the scene is rebuilt on every doorway, and being
- * taught to walk once per room would be nagging.
+ * taught to walk once per zone would be nagging.
  */
 let walkHintDone = false;
 
-/** What the title screen — or the room she just left — hands over. */
+/** What the title screen — or the zone she just left — hands over. */
 export interface RoomSceneData {
   /** The bank the title screen already loaded, so nothing fetches twice. */
   voice?: VoiceBank;
-  /** Which room to build. Defaults to the starting room. */
-  room?: RoomId;
-  /** Which of that room's spawn points to stand on. */
+  /** Which zone to build. Defaults to the starting one. */
+  room?: ZoneId;
+  /**
+   * The zone's map, already fetched. The scene cannot queue its textures until
+   * it knows which ones the map wants, so whoever starts the scene fetches it
+   * first. Absent is survivable — the scene fetches and restarts itself.
+   */
+  map?: MapData;
+  /** Which of that zone's spawn points to stand on. */
   spawn?: string;
   /**
-   * The flourish the doorway she just walked through was playing, so the room
-   * she lands in finishes the gesture the room she left started. Absent means
+   * The flourish the doorway she just walked through was playing, so the zone
+   * she lands in finishes the gesture the zone she left started. Absent means
    * she arrived off the title screen, which has a flash of its own.
    */
   flourish?: FlourishId;
 }
 
-interface Prop {
-  def: PropDef;
-  obj: Phaser.GameObjects.Container;
-}
-
 /**
- * A spawn's `facing` predates the character having four of them: it says which
- * way she is turned along the wall, and 0 means "towards whoever is watching".
- * That is still exactly the three cases the room table needs, so it stays as it
- * is and gets translated here.
- */
-function directionOf(facing: Facing): Direction {
-  if (facing > 0) return 'right';
-  if (facing < 0) return 'left';
-  return 'down';
-}
-
-/**
- * Every room in the game, one at a time.
+ * Every zone in the game, one at a time.
  *
  * The scene knows how to walk, poke and leave; it knows nothing about which
- * rooms exist or what is in them. That lives in world/rooms.ts, and a new room
- * is an entry in that table — never a subclass, never a second scene. Walking
- * through a doorway restarts this scene with the room on the far side, which is
- * how the whole graph runs on one set of code.
+ * zones exist or what is in them. That lives in generated map data, and a new
+ * place is a layout in `content/world/` — never a subclass, never a second
+ * scene. Walking through a doorway restarts this scene with the zone on the far
+ * side, which is how the whole world runs on one set of code.
  */
 export class RoomScene extends Phaser.Scene {
-  private roomDef!: RoomDef;
+  private zoneId!: ZoneId;
+  private mapData?: MapData;
   private arrivedVia?: string;
   private arrivalFlourish?: FlourishId;
 
+  private world!: TileWorld;
   private player!: Character;
 
   private props: Prop[] = [];
@@ -115,7 +109,7 @@ export class RoomScene extends Phaser.Scene {
   /** Previous frame's A-button state, so a held button fires once. */
   private padInteractWasDown = false;
 
-  /** One-way latch: the room is left once. */
+  /** One-way latch: the zone is left once. */
   private leaving = false;
 
   /**
@@ -132,12 +126,13 @@ export class RoomScene extends Phaser.Scene {
 
   /**
    * The title screen loads the voice bank while the player is still looking at
-   * the green dot, and hands it over. Making one here instead keeps the room
+   * the green dot, and hands it over. Making one here instead keeps the zone
    * runnable on its own, which is worth more than the duplicated fetch costs.
    */
   init(data: RoomSceneData): void {
     this.voice = data.voice ?? new VoiceBank();
-    this.roomDef = getRoom(data.room ?? STARTING_ROOM);
+    this.zoneId = data.room ?? STARTING_ZONE;
+    this.mapData = data.map;
     this.arrivedVia = data.spawn;
     this.arrivalFlourish = data.flourish;
 
@@ -154,20 +149,42 @@ export class RoomScene extends Phaser.Scene {
   preload(): void {
     this.makeSparkTexture();
     preloadCharacter(this, SERAPHINA);
+    if (this.mapData) TileWorld.preload(this, this.mapData);
   }
 
   create(): void {
-    const spawn = spawnOf(this.roomDef, this.arrivedVia);
+    // Started without a map — by a bookmark, or a test loading the scene
+    // straight. Fetch it and come round again; preload runs on a restart.
+    if (!this.mapData) {
+      void loadMap(this.zoneId).then((map) => {
+        this.scene.restart({
+          voice: this.voice,
+          room: this.zoneId,
+          map,
+          spawn: this.arrivedVia,
+          flourish: this.arrivalFlourish,
+        } satisfies RoomSceneData);
+      });
+      return;
+    }
 
-    paintRoom(this, this.roomDef);
+    const map = this.mapData;
+    this.cameras.main.setBackgroundColor(map.backdrop);
+    this.world = new TileWorld(this, map);
 
-    for (const def of this.roomDef.doorways) this.doorways.push(new Doorway(this, def));
-    for (const def of this.roomDef.props) this.props.push({ def, obj: makeProp(this, def) });
+    for (const def of map.doorways) this.doorways.push(new Doorway(this, def));
+    for (const def of map.props) this.props.push(makeProp(this, this.world, def));
 
+    const spawn = spawnOf(map, this.arrivedVia);
+    const stand = this.world.nearestStanding(spawn.x * WORLD_SCALE, spawn.y * WORLD_SCALE);
     registerCharacterAnims(this, SERAPHINA);
-    this.player = new Character(this, spawn.x, spawn.y, SERAPHINA);
-    this.player.setDepth(DEPTH.player);
-    this.player.face(directionOf(spawn.facing));
+    this.player = new Character(this, stand.x, stand.y, SERAPHINA);
+    this.player.face(spawn.facing);
+    // She sorts against the world by where she is standing, same as everything
+    // else. update() keeps it there; this is so the first frame is right too.
+    this.player.setDepth(this.player.y);
+
+    this.setupCamera();
 
     this.sparkles = this.add.particles(0, 0, 'spark', {
       speed: { min: 90, max: 320 },
@@ -190,7 +207,7 @@ export class RoomScene extends Phaser.Scene {
     // Seraphina, so it anchors to the player.
     this.bubble = new SpeechBubble(this, this.player.x, this.player.y, this.voice);
     this.setupVoiceHooks();
-    // Fire and forget: the room is playable while the voice is still loading,
+    // Fire and forget: the zone is playable while the voice is still loading,
     // and stays playable if it never arrives.
     void this.voice.load().then(() => {
       hooks.voice.loaded = this.voice.loaded;
@@ -200,13 +217,27 @@ export class RoomScene extends Phaser.Scene {
     this.syncWorldHooks();
     hooks.interactRadius = INTERACT_RADIUS;
     hooks.pause = () => this.scene.pause();
+    hooks.teleport = (x, y) => {
+      const spot = this.world.nearestStanding(x, y);
+      this.player.setPosition(spot.x, spot.y);
+      this.cameras.main.centerOn(this.player.x, this.player.y);
+      // Landing inside a doorway would fire it; make her step clear first, the
+      // same as any arrival does.
+      this.doorwaysArmed = false;
+      this.syncPlayerHooks();
+      this.syncCameraHooks();
+    };
     hooks.scene = 'room';
     hooks.transitioning = false;
     hooks.ready = true;
   }
 
   override update(_time: number, delta: number): void {
-    const seconds = delta / 1000;
+    if (!this.world) return;
+
+    // A tab that was in the background can hand over a delta measured in
+    // seconds; anything past a quarter of one is a stall, not a walk.
+    const seconds = Math.min(delta, 250) / 1000;
     const pad = this.input.gamepad?.getPad(0);
 
     if (!this.leaving) {
@@ -214,16 +245,40 @@ export class RoomScene extends Phaser.Scene {
       this.checkDoorways();
       this.handleInteract(pad);
     }
+    this.player.setDepth(this.player.y);
+    this.world.revealBehind(this.player.x, this.player.y);
     this.bubble.tick();
 
     syncAudioHook();
     this.syncPlayerHooks();
+    this.syncCameraHooks();
+    hooks.fps = Math.round(this.game.loop.actualFps);
     hooks.aliveParticles = this.sparkles.getAliveParticleCount();
     hooks.peakParticles = Math.max(hooks.peakParticles, hooks.aliveParticles);
     hooks.voice.lineId = this.bubble.lineId;
     hooks.voice.words = this.bubble.spokenWords;
     hooks.voice.highlighted = this.bubble.highlightedIndex;
   }
+
+  // --- camera --------------------------------------------------------------
+
+  /**
+   * Follow her with a little lag, and never show the outside of the map. The
+   * lerp is what stops the world snapping about under a thumbstick that a
+   * four-year-old is holding in a slightly different direction every frame; the
+   * bounds are what stop the wood turning into a black bar.
+   */
+  private setupCamera(): void {
+    const camera = this.cameras.main;
+    camera.setBounds(0, 0, this.world.widthPx, this.world.heightPx);
+    camera.setRoundPixels(true);
+    camera.startFollow(this.player, true, CAMERA_LERP, CAMERA_LERP);
+    // Without this the first frame of a zone is drawn from wherever the camera
+    // happened to be, which on a doorway is the middle of the room she left.
+    camera.centerOn(this.player.x, this.player.y);
+  }
+
+  // --- test hooks ----------------------------------------------------------
 
   /**
    * The bubble is driven directly rather than through gameplay, because a word
@@ -250,10 +305,11 @@ export class RoomScene extends Phaser.Scene {
   }
 
   /**
-   * Where she is, which way she is turned and what she is playing. The sprite
-   * only has three directions drawn, so `facing: 'left'` always comes with the
-   * right-hand animation and `flipped` — asserting on that pair is how a test
-   * proves the mirror is doing the work.
+   * Where she is, which way she is turned and what she is playing. Her position
+   * is the point her feet are standing on, which is the same space the map data
+   * is written in. The sprite only has three directions drawn, so
+   * `facing: 'left'` always comes with the right-hand animation and `flipped` —
+   * asserting on that pair is how a test proves the mirror is doing the work.
    */
   private syncPlayerHooks(): void {
     hooks.player.x = this.player.x;
@@ -261,23 +317,43 @@ export class RoomScene extends Phaser.Scene {
     hooks.player.facing = this.player.facing;
     hooks.player.anim = this.player.animKey;
     hooks.player.flipped = this.player.flipped;
-    hooks.player.artLoaded = characterArtLoaded(this, SERAPHINA);
+    hooks.player.artLoaded =
+      characterArtLoaded(this, SERAPHINA) && TileWorld.artLoaded(this, this.world.map);
   }
 
-  /** What is in this room, for a test that wants to walk somewhere. */
+  private syncCameraHooks(): void {
+    const camera = this.cameras.main;
+    hooks.camera.x = camera.scrollX;
+    hooks.camera.y = camera.scrollY;
+    hooks.camera.width = camera.width;
+    hooks.camera.height = camera.height;
+  }
+
+  /** What is in this zone, for a test that wants to walk somewhere. */
   private syncWorldHooks(): void {
-    hooks.room = this.roomDef.id;
+    hooks.room = this.zoneId;
+    hooks.world = {
+      width: this.world.widthPx,
+      height: this.world.heightPx,
+      tile: TILE_SIZE,
+      cols: this.world.map.cols,
+      rows: this.world.map.rows,
+      blocked: this.world.map.blocked,
+    };
     this.syncPlayerHooks();
-    hooks.interactables = this.props.map(({ def, obj }) => ({
-      id: def.id,
-      x: obj.x,
-      y: obj.y,
-    }));
+    this.syncCameraHooks();
+
+    hooks.interactables = this.props.map(({ def, x, y }) => ({ id: def.id, x, y }));
     hooks.doorways = this.doorways.map((d) => ({
       id: d.def.id,
       x: d.x,
       y: d.y,
       to: d.def.to,
+    }));
+    hooks.landmarks = this.world.map.landmarks.map((mark) => ({
+      id: mark.id,
+      x: mark.x * WORLD_SCALE,
+      y: mark.y * WORLD_SCALE,
     }));
   }
 
@@ -332,16 +408,25 @@ export class RoomScene extends Phaser.Scene {
     this.player.setMoving(move.lengthSq() > 0);
     if (move.lengthSq() === 0) return;
 
-    this.player.x = Phaser.Math.Clamp(
-      this.player.x + move.x * WALK_SPEED * seconds,
-      BOUNDS.left,
-      BOUNDS.right,
-    );
-    this.player.y = Phaser.Math.Clamp(
-      this.player.y + move.y * WALK_SPEED * seconds,
-      BOUNDS.top,
-      BOUNDS.bottom,
-    );
+    // Walked in short steps rather than one jump per frame. A frame is 16 ms on
+    // a real machine and can be 250 in the headless browser the tests drive, and
+    // a quarter-second jump either tunnels her through a wall or — once the wall
+    // stops it — walks her at a fraction of her own speed on a slow machine.
+    // Both of those are the same bug, and substepping is the fix for both.
+    const distance = WALK_SPEED * seconds;
+    const steps = Math.max(1, Math.ceil(distance / MAX_STEP));
+    const step = distance / steps;
+
+    for (let i = 0; i < steps; i++) {
+      // One axis at a time, so a wall she is pressing into diagonally slides her
+      // along it instead of stopping her dead. Being unable to get past a fence
+      // is the nearest thing to failing this game has.
+      const wantX = this.world.clampX(this.player.x + move.x * step);
+      if (this.world.canStand(wantX, this.player.y)) this.player.x = wantX;
+
+      const wantY = this.world.clampY(this.player.y + move.y * step);
+      if (this.world.canStand(this.player.x, wantY)) this.player.y = wantY;
+    }
 
     // The bigger half of the push wins, so a diagonal picks one row of the
     // sheet and stays there rather than flickering between two.
@@ -373,9 +458,9 @@ export class RoomScene extends Phaser.Scene {
 
     const near = this.nearestProp();
     this.prompt.setVisible(near !== null);
-    if (near) this.prompt.setPosition(near.obj.x, near.obj.y - 74);
+    if (near) this.prompt.setPosition(near.x, near.y - 58);
 
-    if ((padPressed || keyPressed) && near) this.burst(near);
+    if ((padPressed || keyPressed) && near) this.poke(near);
   }
 
   /** The closest prop within arm's reach, or null. */
@@ -387,8 +472,8 @@ export class RoomScene extends Phaser.Scene {
       const distance = Phaser.Math.Distance.Between(
         this.player.x,
         this.player.y,
-        prop.obj.x,
-        prop.obj.y,
+        prop.x,
+        prop.y,
       );
       if (distance <= bestDistance) {
         bestDistance = distance;
@@ -420,16 +505,23 @@ export class RoomScene extends Phaser.Scene {
     this.prompt.setVisible(false);
     this.stickHint?.dismiss();
 
+    // Fetch the far side while the flourish plays. It is cached after the first
+    // trip, so this only ever costs the very first walk through a door.
+    const arriving = loadMap(door.def.to);
+
     playExitFlourish(
       this,
       { x: door.x, y: door.y, kind: door.def.flourish, sparkles: this.sparkles },
       () => {
-        this.scene.start('RoomScene', {
-          voice: this.voice,
-          room: door.def.to,
-          spawn: door.def.toSpawn,
-          flourish: door.def.flourish,
-        } satisfies RoomSceneData);
+        void arriving.then((map) => {
+          this.scene.start('RoomScene', {
+            voice: this.voice,
+            room: door.def.to as ZoneId,
+            map,
+            spawn: door.def.toSpawn,
+            flourish: door.def.flourish,
+          } satisfies RoomSceneData);
+        });
       },
     );
   }
@@ -454,19 +546,22 @@ export class RoomScene extends Phaser.Scene {
 
   // --- the juice ---------------------------------------------------------
 
-  private burst(prop: Prop): void {
-    this.sparkles.explode(48, prop.obj.x, prop.obj.y);
+  private poke(prop: Prop): void {
+    nudgeProp(this, prop);
+
+    // A facade door is the one thing in the game allowed to answer with no
+    // words. It gets a knock and a shove; everything else gets the full burst.
+    if (!prop.def.line) {
+      playThudChime();
+      this.sparkles.explode(10, prop.x, prop.y);
+      hooks.sparkles += 1;
+      return;
+    }
+
+    this.sparkles.explode(48, prop.x, prop.y);
     playSparkleChime();
     this.bubble.say(prop.def.line, this.player);
     this.cameras.main.shake(140, 0.004);
-
-    this.tweens.add({
-      targets: prop.obj,
-      scale: { from: 1.35, to: 1 },
-      duration: 340,
-      ease: 'Back.easeOut',
-    });
-
     hooks.sparkles += 1;
   }
 
@@ -485,17 +580,18 @@ export class RoomScene extends Phaser.Scene {
   }
 
   private drawHud(): void {
-    // The room used to caption itself "Walk: left stick or arrow keys". She
+    // The zone used to caption itself "Walk: left stick or arrow keys". She
     // cannot read it, so it is a picture now — and it leaves once she walks.
+    // Fixed to the screen, because the world moves underneath it.
     if (!walkHintDone) {
-      this.stickHint = makeStickHint(this, 108, 640);
-      this.stickHint.container.setDepth(DEPTH.hud);
+      this.stickHint = makeStickHint(this, 108, GAME_HEIGHT - 80);
+      this.stickHint.container.setDepth(DEPTH.hud).setScrollFactor(0);
     }
 
     // A green dot, never the letter "A" — see ButtonDot. The dot over a prop
     // and the dot on the title screen are the same promise: press green.
     this.prompt = makeButtonDot(this, 0, 0, { radius: 18, pulse: true })
-      .setDepth(DEPTH.hud)
+      .setDepth(DEPTH.prompt)
       .setVisible(false);
   }
 }
