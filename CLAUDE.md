@@ -84,7 +84,8 @@ These apply to every prompt in this repo unless a prompt explicitly overrides th
 
 Every non-trivial prompt ends with a report at
 `C:\Code\seraphinas-drive-sync\reports\<prompt-name>_report.md`, and nowhere else.
-Reports do not live in this repo — not at the root, not in a scratch folder.
+Reports and their appendices do not live in this repo — not at the root, not in
+`scratch/`. One copy, on the drive, so there is nothing to drift out of date.
 
 Length: ~60 lines is a **soft** target. Write it once, take at most one trim pass,
 then stop. Going over is fine. Never iterate to squeeze under the number.
@@ -115,8 +116,9 @@ Write the report and its appendices straight into
 `C:\Code\seraphinas-drive-sync\reports\`, creating the folder if it isn't there.
 That copy is the only copy — no second one in the repo to drift out of date.
 
-If the folder cannot be written, say so in the final message and paste the report
-into the conversation instead. Never fall back to writing it into the repo.
+If the folder cannot be created or written, fall back to `scratch/` in this repo
+and say so in the report itself, so the next reader knows the drive copy is
+missing. That is the only case in which a report is ever written into the repo.
 
 ### Runtime discipline
 
