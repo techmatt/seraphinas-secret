@@ -65,6 +65,39 @@ export interface TileRect {
   h: number;
 }
 
+/**
+ * A room: a floor, the wall face standing at the head of it, and the dark
+ * timber that frames the two.
+ *
+ * Written as the *open floor* rather than as the outside of the walls, because
+ * the floor is the thing a layout actually cares about — how much room she has
+ * to cross without steering. Everything else is derived: `face` rows of wall
+ * above it, one row of trim capping that, and one tile of trim down each side
+ * and along the foot. Rooms that share a wall simply name floors a trim's width
+ * apart and both paint the same column; the second paint changes nothing.
+ *
+ * Which is the whole reason this exists rather than a list of wall cells. The
+ * old house was written as walls, and a wall list cannot tell you where a room
+ * ends — so nothing could hang a window at the right height, and the floor
+ * patterns and the walls drifted apart every time either moved.
+ */
+export interface RoomLayout {
+  id: string;
+  /** The open floor, in tiles. Walls are drawn around and above it. */
+  floor: TileRect;
+  /** Key into FLOOR_PATTERNS. One material per room. */
+  pattern: string;
+  /**
+   * A second pattern inside the room, for a corner that is *for* something —
+   * the working end of a kitchen. Marks it out without adding a wall.
+   */
+  inset?: { pattern: string; cells: Iterable<Cell> };
+  /** Key into WALL_FACES. Defaults to cream plaster. */
+  wall?: string;
+  /** How many tiles of wall face stand above the floor. Defaults to two. */
+  face?: number;
+}
+
 export interface SpawnLayout {
   /** Where her feet stand, in tiles. */
   x: number;
@@ -129,10 +162,14 @@ export interface ZoneLayout {
   /** Grass variants, on a second layer above the terrain. Later paints win. */
   overlay?: OverlayPaint[];
   floors?: FloorPaint[];
-  /** One-tile interior walls. */
-  walls?: Iterable<Cell>;
-  /** Three-tile-tall wall bands, drawn top edge / face / skirting downwards. */
-  tallWalls?: TileRect[];
+  /** Rooms, drawn floor-and-walls together. Painted after `floors`. */
+  rooms?: RoomLayout[];
+  /**
+   * Wall cut back out again: doorways, and the gaps rooms are joined through.
+   * Whatever `floors` laid down shows through, so a doorway reads as a
+   * threshold strip rather than as a hole with nothing in it.
+   */
+  openings?: Iterable<Cell>;
   /** Sprites: buildings, trees, dressing. Collision comes from the catalog. */
   place: Placement[];
   /** Blocked outright, whatever is drawn there — the map's own edge, mostly. */
@@ -170,6 +207,8 @@ export interface BuiltImage {
   frames?: number;
   /** Frames per second, when there are frames. */
   fps?: number;
+  /** Lies on the floor: drawn under everything that stands on it. */
+  flat?: boolean;
 }
 
 /**

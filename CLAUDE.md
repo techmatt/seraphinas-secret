@@ -46,7 +46,9 @@ Reports live outside the repo entirely — see **Report delivery** below.
 `npm run voice:inspect` (check word timings and phonics against the actual
 waveform, without listening), `npm run world:build` (regenerate the maps in
 `public/world/` from `content/world/layout.ts`; needs the art pack side-loaded,
-and refuses to write a world you cannot walk across).
+and refuses to write a world you cannot walk across),
+`npm run world:measure -- <pack-relative.png>` (print the bounding box of
+everything drawn on a pack sheet, which is where catalog rectangles come from).
 
 ---
 

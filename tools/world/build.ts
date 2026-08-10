@@ -19,6 +19,7 @@ import path from 'node:path';
 
 import { PACK_DIR } from '../assets/config.js';
 import { blobOffset } from './blob.js';
+import { rect, union, type Cell } from './shapes.js';
 import {
   BLOBS,
   FILLS,
@@ -27,7 +28,9 @@ import {
   OVERLAYS,
   TILE,
   TILESETS,
-  WALL_TILES,
+  WALL_FACES,
+  WALL_ROWS,
+  WALL_TRIM,
   type ImageDef,
 } from './catalog.js';
 import { ZONES } from '../../content/world/layout.js';
@@ -115,27 +118,62 @@ function buildZone(zone: ZoneLayout, sheets: Map<string, Sheet>): BuiltMap {
   const inside = (x: number, y: number) => x >= 0 && y >= 0 && x < cols && y < rows;
 
   // Three grids, painted in precedence order: terrain under floor under wall.
+  // A wall cell names its own tileset, column and row, because a wall face and
+  // the timber that frames it come off different sheets.
   const terrain: (TerrainKind | null)[] = new Array(n).fill(null);
   const floor: (string | null)[] = new Array(n).fill(null);
-  const wall: (number | null)[] = new Array(n).fill(null);
+  const wall: ({ tileset: string; col: number; row: number } | null)[] = new Array(n).fill(null);
 
   for (const paint of zone.terrain ?? []) {
     for (const [x, y] of paint.cells) if (inside(x, y)) terrain[at(x, y)] = paint.kind;
   }
-  for (const paint of zone.floors ?? []) {
-    if (!FLOOR_PATTERNS[paint.pattern]) throw new Error(`world: no floor "${paint.pattern}"`);
-    for (const [x, y] of paint.cells) if (inside(x, y)) floor[at(x, y)] = paint.pattern;
-  }
-  for (const [x, y] of zone.walls ?? []) if (inside(x, y)) wall[at(x, y)] = WALL_TILES.middle;
-  for (const band of zone.tallWalls ?? []) {
-    const faces = [WALL_TILES.top, WALL_TILES.middle, WALL_TILES.bottom];
-    for (let j = 0; j < band.h; j++) {
-      const face = faces[Math.min(j, faces.length - 1)]!;
-      for (let i = 0; i < band.w; i++) {
-        if (inside(band.x + i, band.y + j)) wall[at(band.x + i, band.y + j)] = face;
+  const paintFloor = (pattern: string, cells: Iterable<Cell>) => {
+    if (!FLOOR_PATTERNS[pattern]) throw new Error(`world: no floor "${pattern}"`);
+    for (const [x, y] of cells) if (inside(x, y)) floor[at(x, y)] = pattern;
+  };
+  for (const paint of zone.floors ?? []) paintFloor(paint.pattern, paint.cells);
+
+  for (const room of zone.rooms ?? []) {
+    const { x, y, w, h } = room.floor;
+    const faceRows = room.face ?? 2;
+    const face = WALL_FACES[room.wall ?? 'plaster'];
+    if (!face) throw new Error(`world: ${zone.id} — room ${room.id} has no wall "${room.wall}"`);
+
+    paintFloor(room.pattern, rect(x, y, w, h));
+    if (room.inset) paintFloor(room.inset.pattern, room.inset.cells);
+
+    // The face, from the beam down to the skirting. One row is a skirting on
+    // its own; two is the reference's wall, lit at the top and finished at the
+    // foot; more repeats the plain middle.
+    const rows = Array.from({ length: faceRows }, (_, j) =>
+      j === faceRows - 1 ? WALL_ROWS.bottom : j === 0 ? WALL_ROWS.top : WALL_ROWS.middle,
+    );
+    for (let j = 0; j < faceRows; j++) {
+      for (let i = 0; i < w; i++) {
+        const cell = [x + i, y - faceRows + j] as const;
+        if (inside(cell[0], cell[1])) {
+          wall[at(cell[0], cell[1])] = { tileset: face.tileset, col: face.col, row: rows[j]! };
+        }
       }
     }
+
+    // Dark timber all the way round: capping the face, down both sides from the
+    // cap to the floor's foot, and along the foot itself.
+    const trim = { ...WALL_TRIM };
+    const top = y - faceRows - 1;
+    const foot = y + h;
+    for (const [tx, ty] of union(
+      rect(x - 1, top, w + 2, 1),
+      rect(x - 1, top, 1, foot - top + 1),
+      rect(x + w, top, 1, foot - top + 1),
+      rect(x - 1, foot, w + 2, 1),
+    )) {
+      if (inside(tx, ty)) wall[at(tx, ty)] = trim;
+    }
   }
+
+  // Doorways, cut back out of whatever the rooms just drew.
+  for (const [x, y] of zone.openings ?? []) if (inside(x, y)) wall[at(x, y)] = null;
 
   const ground: number[] = new Array(n).fill(-1);
   const tileAnims: BuiltTileAnim[] = [];
@@ -145,7 +183,7 @@ function buildZone(zone: ZoneLayout, sheets: Map<string, Sheet>): BuiltMap {
 
       const face = wall[i];
       if (face !== null) {
-        ground[i] = gidOf(sheets, WALL_TILES.tileset, WALL_TILES.col, face);
+        ground[i] = gidOf(sheets, face.tileset, face.col, face.row);
         continue;
       }
 
@@ -248,6 +286,7 @@ function buildZone(zone: ZoneLayout, sheets: Map<string, Sheet>): BuiltMap {
         w: def.w,
         h: def.h,
         ...(def.frames && def.frames > 1 ? { frames: def.frames, fps: def.fps ?? 8 } : {}),
+        ...(def.flat ? { flat: true } : {}),
       });
     }
     return def;

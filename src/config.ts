@@ -36,6 +36,8 @@ export const TILE_SIZE = TILE * WORLD_SCALE;
  */
 export const DEPTH = {
   ground: -100,
+  /** Rugs and anything else lying flat: above the tiles, under every sprite. */
+  floorPiece: -80,
   /** Light on the floor: under the things standing on it. */
   doorLight: -50,
   /** ...y-sorted world objects live here, at their own base y... */

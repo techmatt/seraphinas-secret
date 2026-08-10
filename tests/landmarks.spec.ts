@@ -61,6 +61,11 @@ test('the house, room by room', async ({ page }) => {
     await canvas.screenshot({ path: shot(file) });
   }
 
+  // The whole floor plan at once. Four close-ups cannot show whether the rooms
+  // hang together, and "one arrangement per room with real floor between them"
+  // is a claim about the plan rather than about any one room in it.
+  await fromAbove(page, () => canvas.screenshot({ path: shot('35-house.png') }));
+
   const seen = await readHooks(page);
   expect(seen.room, 'the whole house is one map — no transitions inside it').toBe('house');
   expect(seen.player.artLoaded).toBe(true);

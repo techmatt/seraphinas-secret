@@ -134,6 +134,11 @@ export const OVERLAYS: Record<string, OverlayDef> = {};
  * Interior floors come in 2x2 patterns, so a floor is addressed by which
  * pattern it is and the cell's parity picks the quarter. Block coordinates are
  * in units of 2 tiles, counting from the top-left of `Wood_Floor_Tiles.png`.
+ *
+ * One of these per room, which is the rule the reference interior is built to.
+ * A second one inside a room is allowed only where it says what a corner is
+ * *for* — the checkerboard under a kitchen's working end marks it out the way a
+ * wall would, without being a wall she has to walk round.
  */
 export const FLOOR_PATTERNS: Record<string, { bx: number; by: number }> = {
   planks: { bx: 1, by: 1 },
@@ -141,22 +146,48 @@ export const FLOOR_PATTERNS: Record<string, { bx: number; by: number }> = {
   herringbone: { bx: 2, by: 1 },
   parquet: { bx: 0, by: 3 },
   brick: { bx: 1, by: 0 },
+  /** Warm criss-crossed boards — the widest-grained of the woods. */
+  weave: { bx: 3, by: 1 },
   /** Cool blue tiles. Reads as "a different room" from across the house. */
   tile: { bx: 0, by: 2 },
+  /** Blue-grey brick, for a floor that should feel swept rather than scrubbed. */
+  slate: { bx: 2, by: 2 },
+  /** Black and cream diamonds: the working end of a kitchen. */
+  diamond: { bx: 3, by: 2 },
+  /** Black and cream squares — the same idea, laid straight. */
+  check: { bx: 3, by: 3 },
 };
 
 /**
- * The interior wall. Cream plaster, three tiles tall: a lit top edge, a plain
- * middle and a skirting board. A one-tile partition uses the middle row, which
- * from above reads as a wall without pretending to have a face.
+ * A wall face: which column of `Interior_Walls.png` it is cut from.
+ *
+ * The sheet's bottom three rows are the wall proper, three tiles tall — a lit
+ * top edge, a plain middle, a skirting board — and the columns are the
+ * materials. Cream plaster is three columns wide because its ends are rounded;
+ * the middle one is what tiles, and it is the only one this game uses so far.
  */
-export const WALL_TILES = {
-  tileset: 'wall',
-  col: 1,
-  top: 3,
-  middle: 4,
-  bottom: 5,
-} as const;
+export const WALL_FACES: Record<string, { tileset: string; col: number }> = {
+  plaster: { tileset: 'wall', col: 1 },
+  wood: { tileset: 'wall', col: 3 },
+  stone: { tileset: 'wall', col: 4 },
+  brick: { tileset: 'wall', col: 5 },
+};
+
+/** Which rows of the sheet a face is cut from, top of the wall downwards. */
+export const WALL_ROWS = { top: 3, middle: 4, bottom: 5 } as const;
+
+/**
+ * The dark wood every room is framed with — the cap above a wall face, and the
+ * one-tile beam that runs down its sides and along its foot.
+ *
+ * This is what the flat cream bands were missing. A room drawn as face alone
+ * has no edge: it is a peach rectangle that stops. The reference frames every
+ * room in dark timber and hangs the detail on the lighter face inside it, and
+ * that frame is most of why its walls read as walls from across the room.
+ * `Wood_Wall_Fillers.png` is a seamless tile, so a run of it is a beam however
+ * long and whichever way it goes.
+ */
+export const WALL_TRIM = { tileset: 'trim', col: 0, row: 0 } as const;
 
 export interface ImageDef {
   file: string;
@@ -180,6 +211,16 @@ export interface ImageDef {
   frames?: number;
   /** Frames per second. Absent with `frames` means the pack's usual eight. */
   fps?: number;
+  /**
+   * Drawn lying on the floor rather than standing on it.
+   *
+   * Everything in the world sorts by the bottom of its own picture, which is
+   * right for anything with a silhouette and wrong for a rug: she would walk
+   * onto one and disappear underneath it, because her feet are above its
+   * bottom edge. Flat things go below every standing thing and above the tiles,
+   * and are never faded as occluders.
+   */
+  flat?: boolean;
 }
 
 /**
@@ -436,7 +477,95 @@ export const IMAGES: Record<string, ImageDef> = {
   cropBushy: crop(12),
   cropRoot: crop(16),
 
-  // --- interior furniture ------------------------------------------------
+  // --- interior: what hangs on a wall -------------------------------------
+  // Everything in this group is drawn on a wall face and blocks nothing: the
+  // face tile underneath is already solid, and a window she could walk into
+  // would be a wall with a hole in it.
+  //
+  // `windows.png` is four light conditions 32 px apart, and within each: three
+  // single-pane windows a tile wide, then a two-tile one. The art sits six
+  // pixels down its slot, which is what lands it in the middle of a two-tile
+  // wall face rather than jammed under the beam.
+  window: window_(2),
+  windowWide: { ...window_(2), x: 48, w: 32 },
+  windowDusk: window_(0),
+  /** A framed landscape, one tile. The only picture in the pack. */
+  picture: {
+    file: `${A}/Buildings/House_Decor/Indoor_Decor.png`, x: 48, y: 32, w: 16, h: 16,
+  },
+  /** Ten wall clocks across two rows of `Clocks.png`; this is the red one. */
+  clock: { file: `${A}/Buildings/House_Decor/Clocks.png`, x: 32, y: 0, w: 16, h: 16 },
+  /** A rail of pans over a counter, and a pair of hung utensils beside it. */
+  potRack: {
+    file: `${A}/Buildings/House_Decor/Kitchen_Furniture.png`, x: 64, y: 72, w: 32, h: 20,
+  },
+  utensils: {
+    file: `${A}/Buildings/House_Decor/Kitchen_Furniture.png`, x: 96, y: 72, w: 16, h: 16,
+  },
+  /** The extractor hood. Hangs above the stove and stands on nothing. */
+  hood: {
+    file: `${A}/Buildings/House_Decor/Kitchen_Furniture.png`, x: 96, y: 0, w: 16, h: 32,
+  },
+  /** A shelf with nothing on it, for a wall that wants a line rather than a thing. */
+  shelf: {
+    file: `${A}/Buildings/House_Decor/BookShelves.png`, x: 144, y: 0, w: 16, h: 32,
+    blocks: { x: 0, y: 1, w: 1, h: 1 },
+  },
+
+  // --- interior: the kitchen ----------------------------------------------
+  // `Kitchen.png` is a construction kit 65 tiles wide: a run of counters is
+  // meant to be assembled a unit at a time. Only its one-tile base units are
+  // catalogued — worktop over a drawer front, 16 by 20, on a 32-pixel pitch,
+  // four to each of eight wood finishes. The rest of that sheet is corner and
+  // wall-cupboard pieces this house has no use for yet.
+  counter: counter_(5),
+  counterDrawers: counter_(6),
+  stove: {
+    file: `${A}/Buildings/House_Decor/Kitchen_Furniture.png`, x: 0, y: 0, w: 16, h: 32,
+    blocks: { x: 0, y: 1, w: 1, h: 1 },
+  },
+  sink: {
+    file: `${A}/Buildings/House_Decor/Kitchen_Furniture.png`, x: 0, y: 32, w: 16, h: 32,
+    blocks: { x: 0, y: 1, w: 1, h: 1 },
+  },
+  // One tile wide, not two: the old rectangle took in the fridge beside it as
+  // well, which is why the kitchen had a double-doored monolith in it.
+  fridge: {
+    file: `${A}/Buildings/House_Decor/Kitchen_Furniture.png`, x: 16, y: 64, w: 16, h: 32,
+    blocks: { x: 0, y: 1, w: 1, h: 1 },
+  },
+
+  // --- interior: tables and seating ---------------------------------------
+  // `Tables.png` is fourteen finishes 64 px apart, six tables across each: a
+  // four-tile one, a three-tile one and a square, then the same three again.
+  // The cloths start at band three, and a laid table is the centre of a room in
+  // a way a bare one is not.
+  tableWide: table_(0),
+  tableCloth: table_(3),
+  tableSmall: { ...table_(0), x: 64, w: 48, blocks: { x: 0, y: 1, w: 3, h: 2 } },
+  tableSquare: {
+    file: `${A}/Buildings/House_Decor/Tables.png`, x: 112, y: 0, w: 48, h: 64,
+    blocks: { x: 0, y: 2, w: 3, h: 2 },
+  },
+  // Chairs: four bands of dining chairs, three finishes across each band, four
+  // facings to a finish. A table with a chair on each side is the arrangement;
+  // one chair pulled up to it is a table nobody sits at.
+  chairLeft: chair_(0),
+  chairUp: chair_(1),
+  chairDown: chair_(2),
+  chairRight: chair_(3),
+  // Below the dining chairs the same sheet runs ten bands of soft furniture,
+  // 32 px apart: armchair in four facings, two sofas, then stools. Green is
+  // band four of those, counting from `SOFT`.
+  armchairLeft: soft_(0),
+  armchairUp: soft_(1),
+  armchairDown: soft_(2),
+  armchairRight: soft_(3),
+  sofa: { ...soft_(5), w: 32, blocks: { x: 0, y: 1, w: 2, h: 1 } },
+  sofaBack: { ...soft_(7), w: 32, blocks: { x: 0, y: 1, w: 2, h: 1 } },
+  stool: { ...soft_(10) },
+
+  // --- interior: the big pieces -------------------------------------------
   // Beds come six colours deep at 32 pixel intervals; pink is Seraphina's.
   bed: {
     file: `${A}/Buildings/House_Decor/Beds.png`, x: 0, y: 96, w: 32, h: 32,
@@ -446,8 +575,27 @@ export const IMAGES: Record<string, ImageDef> = {
     file: `${A}/Buildings/House_Decor/Beds.png`, x: 0, y: 32, w: 32, h: 32,
     blocks: { x: 0, y: 0, w: 2, h: 2 },
   },
+  /** The single beside it, a tile wide, out of the same band. */
+  bedSingle: {
+    file: `${A}/Buildings/House_Decor/Beds.png`, x: 32, y: 32, w: 16, h: 32,
+    blocks: { x: 0, y: 0, w: 1, h: 2 },
+  },
   wardrobe: {
     file: `${A}/Buildings/House_Decor/Furniture_Other.png`, x: 0, y: 80, w: 32, h: 32,
+    blocks: { x: 0, y: 1, w: 2, h: 1 },
+  },
+  /** A sideboard with a stone top: the run along the top of `Furniture_Other`. */
+  dresser: {
+    file: `${A}/Buildings/House_Decor/Furniture_Other.png`, x: 0, y: 16, w: 32, h: 32,
+    blocks: { x: 0, y: 1, w: 2, h: 1 },
+  },
+  /** A bedside cabinet, one tile. The whole top row of that sheet is these. */
+  nightstand: {
+    file: `${A}/Buildings/House_Decor/Furniture_Other.png`, x: 0, y: 0, w: 16, h: 16,
+    blocks: { x: 0, y: 0, w: 1, h: 1 },
+  },
+  piano: {
+    file: `${A}/Buildings/House_Decor/Furniture_Other.png`, x: 0, y: 318, w: 32, h: 34,
     blocks: { x: 0, y: 1, w: 2, h: 1 },
   },
   bookshelf: {
@@ -458,33 +606,128 @@ export const IMAGES: Record<string, ImageDef> = {
     file: `${A}/Buildings/House_Decor/Fireplaces.png`, x: 0, y: 0, w: 32, h: 48,
     blocks: { x: 0, y: 2, w: 2, h: 1 },
   },
-  stove: {
-    file: `${A}/Buildings/House_Decor/Kitchen_Furniture.png`, x: 0, y: 0, w: 16, h: 32,
-    blocks: { x: 0, y: 1, w: 1, h: 1 },
+  /** The brick one. Warmer than the grey, which matters in a room with a rug. */
+  fireplaceBrick: {
+    file: `${A}/Buildings/House_Decor/Fireplaces.png`, x: 32, y: 0, w: 32, h: 48,
+    blocks: { x: 0, y: 2, w: 2, h: 1 },
   },
-  sink: {
-    file: `${A}/Buildings/House_Decor/Kitchen_Furniture.png`, x: 0, y: 32, w: 16, h: 32,
-    blocks: { x: 0, y: 1, w: 1, h: 1 },
+  /** A little iron stove with its flue running up the wall. */
+  stovePipe: {
+    file: `${A}/Buildings/House_Decor/Fireplaces.png`, x: 64, y: 0, w: 16, h: 48,
+    blocks: { x: 0, y: 2, w: 1, h: 1 },
   },
-  fridge: {
-    file: `${A}/Buildings/House_Decor/Kitchen_Furniture.png`, x: 0, y: 64, w: 32, h: 32,
-    blocks: { x: 0, y: 1, w: 2, h: 1 },
+
+  // --- interior: lamps, plants and small things ---------------------------
+  // Ten shade colours across `Standing_Lamps.png`, nine base styles down it.
+  lamp: { file: `${A}/Buildings/House_Decor/Standing_Lamps.png`, x: 0, y: 0, w: 16, h: 32 },
+  lampBlue: { file: `${A}/Buildings/House_Decor/Standing_Lamps.png`, x: 32, y: 0, w: 16, h: 32 },
+  lampGreen: { file: `${A}/Buildings/House_Decor/Standing_Lamps.png`, x: 64, y: 0, w: 16, h: 32 },
+  // House plants: twenty pot styles 32 px apart, and across each row four
+  // leafy plants, four flowering ones and a two-tile monstera.
+  plantLeafy: plant_(2, 0),
+  plantTall: plant_(1, 0),
+  plantFlowers: plant_(4, 0),
+  plantBlue: plant_(7, 0),
+  plantBig: { ...plant_(8, 0), w: 32 },
+  plantBigWhite: { ...plant_(8, 4), w: 32 },
+  // Small things left on the floor, one tile each, off `Placeable_Decoration`.
+  // Only ever on the floor: everything in the world sorts by the bottom of its
+  // own picture, so a jar put on a table would be drawn behind the table.
+  book: decorIn(5, 3),
+  cushion: decorIn(5, 4),
+  /** A mushroom stool. The one piece of furniture in the house that is a joke. */
+  toadstoolSeat: {
+    file: `${A}/Buildings/House_Decor/Indoor_Decor.png`, x: 80, y: 48, w: 16, h: 16,
   },
-  tableWide: {
-    file: `${A}/Buildings/House_Decor/Tables.png`, x: 0, y: 16, w: 64, h: 48,
-    blocks: { x: 0, y: 1, w: 4, h: 2 },
-  },
-  tableRound: {
-    file: `${A}/Buildings/House_Decor/Tables.png`, x: 112, y: 0, w: 48, h: 64,
-    blocks: { x: 0, y: 2, w: 3, h: 2 },
-  },
-  // Carpets come in eight colour bands 80 px apart: four squares along the top
-  // of a band, rounds and runners along the bottom.
-  rug: { file: `${A}/Buildings/House_Decor/Carpets.png`, x: 0, y: 240, w: 48, h: 48 },
-  rugBlue: { file: `${A}/Buildings/House_Decor/Carpets.png`, x: 96, y: 80, w: 48, h: 48 },
-  rugRound: { file: `${A}/Buildings/House_Decor/Carpets.png`, x: 0, y: 368, w: 32, h: 32 },
+
+  // --- interior: rugs ------------------------------------------------------
+  // Carpets come in eight colour bands 80 px apart: four three-tile squares
+  // along the top of a band, rounds and runners along the bottom. All flat —
+  // she walks over a rug, not behind it.
+  rug: carpet_(3),
+  rugBlue: { ...carpet_(1), x: 96 },
+  rugGreen: carpet_(2),
+  rugRed: carpet_(5),
+  rugYellow: carpet_(4),
+  rugRound: { ...carpet_(0), y: 48, w: 32, h: 32 },
   door: { file: `${A}/Buildings/House_Decor/Doors.png`, x: 0, y: 0, w: 16, h: 32 },
 };
+
+/** One of the four light conditions in `windows.png`, 32 pixels apart. */
+function window_(band: number): ImageDef {
+  return {
+    file: `${A}/Buildings/House_Decor/windows.png`,
+    x: 0, y: band * 32, w: TILE, h: 32,
+  };
+}
+
+/** One base unit of the counter kit: unit `n` along, on a 32-pixel pitch. */
+function counter_(n: number): ImageDef {
+  return {
+    file: `${A}/Buildings/House_Decor/Kitchen.png`,
+    x: 16 + n * 32, y: 156, w: TILE, h: 20,
+    blocks: { x: 0, y: 1, w: 1, h: 1 },
+  };
+}
+
+/** The four-tile table of finish `band`, out of the fourteen on the sheet. */
+function table_(band: number): ImageDef {
+  return {
+    file: `${A}/Buildings/House_Decor/Tables.png`,
+    x: 0, y: band * 64 + 16, w: 64, h: 48,
+    blocks: { x: 0, y: 1, w: 4, h: 2 },
+  };
+}
+
+/** Facing `n` of the first dining-chair finish: left, back, front, right. */
+function chair_(n: number): ImageDef {
+  return {
+    file: `${A}/Buildings/House_Decor/Chairs.png`,
+    x: n * TILE, y: 0, w: TILE, h: 32,
+    blocks: { x: 0, y: 1, w: 1, h: 1 },
+  };
+}
+
+/**
+ * Slot `n` of one soft-furniture band: armchair in four facings, then sofas at
+ * five and seven, then stools from ten. Green, because the reference's sitting
+ * room is green furniture on a red rug and that pairing is most of its warmth.
+ */
+function soft_(n: number): ImageDef {
+  return {
+    file: `${A}/Buildings/House_Decor/Chairs.png`,
+    // Four bands of dining chairs first, then two bands per soft colour: cream,
+    // blue, green. Row 256 is the first of the two green ones.
+    x: n * TILE, y: 256, w: TILE, h: 32,
+    blocks: { x: 0, y: 1, w: 1, h: 1 },
+  };
+}
+
+/** Column `col` of pot-style `row` on the house-plant sheet. */
+function plant_(col: number, row: number): ImageDef {
+  return {
+    file: `${A}/Buildings/House_Decor/House_Plants.png`,
+    x: col * TILE, y: row * 32, w: TILE, h: 32,
+    blocks: { x: 0, y: 1, w: 1, h: 1 },
+  };
+}
+
+/** One 16x16 cell of `Placeable_Decoration.png`. */
+function decorIn(col: number, row: number): ImageDef {
+  return {
+    file: `${A}/Buildings/House_Decor/Placeable_Decoration.png`,
+    x: col * TILE, y: row * TILE, w: TILE, h: TILE,
+  };
+}
+
+/** The first three-tile square rug of colour band `band`. */
+function carpet_(band: number): ImageDef {
+  return {
+    file: `${A}/Buildings/House_Decor/Carpets.png`,
+    x: 0, y: band * 80, w: 48, h: 48,
+    flat: true,
+  };
+}
 
 /** One of the four market stalls, 48 pixels apart across their sheet. */
 function stall(index: number): ImageDef {

@@ -3,7 +3,7 @@
  *
  * The props come out in room order — bed, wardrobe, bookshelf, toybox — which
  * is the order the suite asserts on, and the order she meets them walking in
- * from the front door and turning left.
+ * from the front door and going round.
  */
 
 import type { ZoneLayout } from '../../../tools/world/types.js';
@@ -12,7 +12,7 @@ import * as bedroom from './bedroom.js';
 import * as kitchen from './kitchen.js';
 import * as living from './living-room.js';
 import * as playroom from './playroom.js';
-import { COLS, FLOORS, ROWS, SPAWNS, TALL_WALLS, WALLS } from './shell.js';
+import { COLS, FLOORS, OPENINGS, ROWS, SPAWNS } from './shell.js';
 
 export const HOUSE: ZoneLayout = {
   id: 'house',
@@ -20,8 +20,8 @@ export const HOUSE: ZoneLayout = {
   rows: ROWS,
   backdrop: 0x211722,
   floors: FLOORS,
-  walls: WALLS,
-  tallWalls: TALL_WALLS,
+  rooms: [kitchen.ROOM, living.ROOM, bedroom.ROOM, playroom.ROOM],
+  openings: OPENINGS,
   place: [
     ...kitchen.FURNITURE,
     ...living.FURNITURE,
@@ -32,8 +32,8 @@ export const HOUSE: ZoneLayout = {
   doorways: [
     {
       id: 'house_to_outside',
-      x: 19,
-      y: 24.2,
+      x: 28,
+      y: 27.2,
       w: 2,
       h: 1.8,
       to: 'outside',

@@ -362,9 +362,15 @@ export class TileWorld {
     }
     this.placed++;
 
-    sprite.setOrigin(0, 0).setScale(WORLD_SCALE).setDepth(y + height);
+    // A rug is drawn lying on the floor, so it sorts below everything that
+    // stands on one — including her. Sorted against nothing: two rugs are never
+    // laid overlapping, and if they were, the layout said so.
+    sprite
+      .setOrigin(0, 0)
+      .setScale(WORLD_SCALE)
+      .setDepth(image.flat ? DEPTH.floorPiece : y + height);
 
-    if (image.h >= OCCLUDER_TILES * this.map.tile) {
+    if (!image.flat && image.h >= OCCLUDER_TILES * this.map.tile) {
       this.occluders.push({
         image: sprite,
         left: x,

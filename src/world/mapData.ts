@@ -43,6 +43,8 @@ export interface MapImage {
   /** Frames following it across the sheet at `w` intervals. Absent means still. */
   frames?: number;
   fps?: number;
+  /** Lies on the floor: drawn under everything that stands on it. */
+  flat?: boolean;
 }
 
 /** A ground tile that cycles: one global tile id per frame. */

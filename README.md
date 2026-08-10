@@ -54,18 +54,28 @@ bench beside a path — so rearranging an area moves calls, not hundreds of
 entries. Each region seeds its own scatter, so editing the farm cannot churn the
 woods.
 
+Inside `house/`, a room is written as the **floor** she can walk on, and the
+generator derives the walls from it: three tiles of wall face at the head of the
+room, a dark timber beam capping that, and the same timber down both sides and
+along the foot. Wall-hung things — windows, a clock, a pot rack, a picture —
+are ordinary placements on the face rows. Rooms that share a wall name floors a
+trim's width apart and both paint the same column.
+
 `tools/world/catalog.ts` is the only place that knows which rectangle of which
 pack PNG a tree or a wardrobe is, and how many frames follow it across the sheet
 if it animates. The layout names those keys and never a tile index, so moving a
-building is an edit there and a rebuild — never a hand-placed tile.
+building is an edit there and a rebuild — never a hand-placed tile. The pack's
+interior sheets are not on one grid and its readmes are license text, so those
+rectangles were measured: `npm run world:measure -- <pack-relative.png>` prints
+the bounding box of everything actually drawn on a sheet.
 
 Ground is two tile layers. The lower one is terrain — grass, dirt roads, water,
-ploughed earth; the upper one is grass *variants*, because the pack blends its
-four grass colours into transparency and leaves the middle of every edge sheet
-blank on purpose, so a variant can only blend by being drawn over what it is
-blending into. Anything the pack ships as an animation strip — water, fire,
-chests, grass tufts, lilypads, the fountain — is resolved to frames at build
-time and played at runtime.
+ploughed earth, interior floors and walls. The upper one is for ground variants
+and is **empty today**: a tile may only sit beside the base outdoor grass if its
+own background is that same green, and none of the pack's other three greens is.
+See `OVERLAYS` in the catalog. Anything the pack ships as an animation strip —
+water, fire, chests, grass tufts, lilypads, the fountain — is resolved to frames
+at build time and played at runtime.
 
 The generated JSON **is** committed; the pack pixels it was measured from are
 not. Re-run `npm run world:build` after editing the layout or the catalog. The
