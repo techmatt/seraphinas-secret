@@ -14,6 +14,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.tools.json",
     "voice:build": "tsx tools/voice/build.ts",
     "voice:inspect": "tsx tools/voice/inspect.ts",
+    "world:build": "tsx tools/world/build.ts",
     "test": "playwright test"
   },
   "devDependencies": {

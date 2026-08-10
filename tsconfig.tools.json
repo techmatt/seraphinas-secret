@@ -8,5 +8,8 @@
     "module": "NodeNext",
     "moduleResolution": "nodenext"
   },
-  "include": ["tools"]
+  // content/world is authored map layout, written in TypeScript because the
+  // world is composed rather than transcribed. It is only ever read by
+  // tools/world/build.ts, never by the game.
+  "include": ["tools", "content"]
 }
