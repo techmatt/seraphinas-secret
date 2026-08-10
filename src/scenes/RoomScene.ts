@@ -53,6 +53,24 @@ const MAX_STEP = TILE_SIZE / 4;
  */
 let walkHintDone = false;
 
+/**
+ * Something the green dot can appear over.
+ *
+ * A prop and a press-to-enter door are the same thing from where she is
+ * standing: get near it, a green dot appears, press green, something happens.
+ * They are different objects in the map data and the same object here, which is
+ * what lets a front door pick up every affordance a chest already had — the
+ * proximity radius, the dot, the nearest-wins rule — without any of it being
+ * written twice.
+ */
+interface Interactable {
+  id: string;
+  /** Where she walks up to, in world pixels. */
+  x: number;
+  y: number;
+  press: () => void;
+}
+
 /** What the title screen — or the zone she just left — hands over. */
 export interface RoomSceneData {
   /** The bank the title screen already loaded, so nothing fetches twice. */
@@ -95,6 +113,7 @@ export class RoomScene extends Phaser.Scene {
 
   private props: Prop[] = [];
   private doorways: Doorway[] = [];
+  private interactables: Interactable[] = [];
 
   private sparkles!: Phaser.GameObjects.Particles.ParticleEmitter;
   private prompt!: Phaser.GameObjects.Container;
@@ -140,6 +159,7 @@ export class RoomScene extends Phaser.Scene {
     // create() has to be put back by hand.
     this.props = [];
     this.doorways = [];
+    this.interactables = [];
     this.leaving = false;
     this.doorwaysArmed = false;
     this.padInteractWasDown = false;
@@ -174,6 +194,25 @@ export class RoomScene extends Phaser.Scene {
 
     for (const def of map.doorways) this.doorways.push(new Doorway(this, def));
     for (const def of map.props) this.props.push(makeProp(this, this.world, def));
+
+    // Everything the green dot can appear over, in one list: the props, and the
+    // doors you press rather than walk through.
+    this.interactables = [
+      ...this.props.map((prop) => ({
+        id: prop.def.id,
+        x: prop.x,
+        y: prop.y,
+        press: () => this.poke(prop),
+      })),
+      ...this.doorways
+        .filter((door) => door.def.enter === 'press')
+        .map((door) => ({
+          id: door.def.id,
+          x: door.x,
+          y: door.y,
+          press: () => this.leaveThrough(door),
+        })),
+    ];
 
     const spawn = spawnOf(map, this.arrivedVia);
     const stand = this.world.nearestStanding(spawn.x * WORLD_SCALE, spawn.y * WORLD_SCALE);
@@ -225,6 +264,23 @@ export class RoomScene extends Phaser.Scene {
       // same as any arrival does.
       this.doorwaysArmed = false;
       this.syncPlayerHooks();
+      this.syncCameraHooks();
+    };
+    hooks.overview = (fit) => {
+      const camera = this.cameras.main;
+      if (!fit) {
+        camera.setZoom(1);
+        this.setupCamera();
+        return;
+      }
+      // Bounds are what stop the view showing the outside of the map, and a
+      // view bigger than the map is exactly what this is for — so they go.
+      camera.stopFollow();
+      camera.removeBounds();
+      camera.setZoom(
+        Math.min(camera.width / this.world.widthPx, camera.height / this.world.heightPx),
+      );
+      camera.centerOn(this.world.widthPx / 2, this.world.heightPx / 2);
       this.syncCameraHooks();
     };
     hooks.scene = 'room';
@@ -343,12 +399,13 @@ export class RoomScene extends Phaser.Scene {
     this.syncPlayerHooks();
     this.syncCameraHooks();
 
-    hooks.interactables = this.props.map(({ def, x, y }) => ({ id: def.id, x, y }));
+    hooks.interactables = this.interactables.map(({ id, x, y }) => ({ id, x, y }));
     hooks.doorways = this.doorways.map((d) => ({
       id: d.def.id,
       x: d.x,
       y: d.y,
       to: d.def.to,
+      enter: d.def.enter,
     }));
     hooks.landmarks = this.world.map.landmarks.map((mark) => ({
       id: mark.id,
@@ -456,28 +513,28 @@ export class RoomScene extends Phaser.Scene {
       ? Phaser.Input.Keyboard.JustDown(this.interactKey)
       : false;
 
-    const near = this.nearestProp();
+    const near = this.nearestInteractable();
     this.prompt.setVisible(near !== null);
     if (near) this.prompt.setPosition(near.x, near.y - 58);
 
-    if ((padPressed || keyPressed) && near) this.poke(near);
+    if ((padPressed || keyPressed) && near) near.press();
   }
 
-  /** The closest prop within arm's reach, or null. */
-  private nearestProp(): Prop | null {
-    let best: Prop | null = null;
+  /** The closest thing within arm's reach, or null. */
+  private nearestInteractable(): Interactable | null {
+    let best: Interactable | null = null;
     let bestDistance = INTERACT_RADIUS;
 
-    for (const prop of this.props) {
+    for (const thing of this.interactables) {
       const distance = Phaser.Math.Distance.Between(
         this.player.x,
         this.player.y,
-        prop.x,
-        prop.y,
+        thing.x,
+        thing.y,
       );
       if (distance <= bestDistance) {
         bestDistance = distance;
-        best = prop;
+        best = thing;
       }
     }
 
@@ -486,8 +543,15 @@ export class RoomScene extends Phaser.Scene {
 
   // --- doorways ------------------------------------------------------------
 
+  /**
+   * Walk-through doorways only. A press door she is standing in front of is
+   * left alone here — `handleInteract` gives it a green dot instead, and a door
+   * that opened just because she wandered past it is what this convention
+   * exists to stop.
+   */
   private checkDoorways(): void {
-    const inside = this.doorways.find((d) => d.contains(this.player.x, this.player.y));
+    const walkThrough = this.doorways.filter((d) => d.def.enter !== 'press');
+    const inside = walkThrough.find((d) => d.contains(this.player.x, this.player.y));
 
     if (!this.doorwaysArmed) {
       if (!inside) this.doorwaysArmed = true;
@@ -498,6 +562,7 @@ export class RoomScene extends Phaser.Scene {
   }
 
   private leaveThrough(door: Doorway): void {
+    if (this.leaving) return;
     this.leaving = true;
     hooks.transitioning = true;
 

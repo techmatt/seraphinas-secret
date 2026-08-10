@@ -10,8 +10,23 @@
 import { rng, type Placement } from '../../../tools/world/shapes.js';
 import { POND } from './plan.js';
 import { POND_CELLS } from './roads.js';
+import { benchBesidePath, flowerBed } from './prefabs.js';
 
 const SEED = 606;
+
+/**
+ * The far bank. The path stops at the near shore, so without something on the
+ * other side the east half of the pond is a thing you only ever see across
+ * water — and the strip between it and the farm is the one place in the village
+ * nobody had decided about.
+ */
+export const POND_SIDE: Placement[] = [
+  ...benchBesidePath(48, 37.4, true),
+  ...flowerBed(47, 41, 3, 3, 61),
+  { image: 'oakMed', x: 49, y: 43 },
+  { image: 'fruitBig', x: 47.4, y: 33.6 },
+  { image: 'picnicBasket', x: 49.4, y: 39.2 },
+];
 
 /** Floating things go on the water; reeds and rocks go round its rim. */
 export const POND_DRESSING: Placement[] = (() => {

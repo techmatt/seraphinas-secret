@@ -32,25 +32,51 @@ letting the game 404 its way to a blank screen.
 The map is generated, not hand-placed. It goes:
 
 ```
-content/world/layout.ts     what the world is: regions, roads, "the shed goes there"
+content/world/                what the world is: regions, roads, "the shed goes there"
+   layout.ts                  the composition — one line per zone, nothing else
+   outside/                   plan, roads, prefabs, perimeter, woods-edge,
+                              village, farm-garden, pond
+   house/                     shell, kitchen, living-room, bedroom, playroom
         │  npm run world:build
         ▼
 public/world/*.json         tile indices, collision, sprites, doorways, props
         │  fetched at runtime
         ▼
-src/world/TileWorld.ts      a culled tile layer, y-sorted sprites, a collision bitmap
+src/world/TileWorld.ts      culled tile layers, y-sorted sprites, a collision bitmap
 ```
 
+Inside `outside/`, only `plan.ts` is imported by its siblings — it holds the map
+size, the region rectangles, the road polylines and where each building stands,
+and that is what keeps eight modules from importing each other. Roads are
+polylines with a width; the perimeter is a band spec with a gap in it; and
+`prefabs.ts` holds the named clusters — pots at a door, a hedge along a wall, a
+bench beside a path — so rearranging an area moves calls, not hundreds of
+entries. Each region seeds its own scatter, so editing the farm cannot churn the
+woods.
+
 `tools/world/catalog.ts` is the only place that knows which rectangle of which
-pack PNG a tree or a wardrobe is. `content/world/layout.ts` names those keys and
-never a tile index, so moving a building is an edit there and a rebuild — never
-a hand-placed tile.
+pack PNG a tree or a wardrobe is, and how many frames follow it across the sheet
+if it animates. The layout names those keys and never a tile index, so moving a
+building is an edit there and a rebuild — never a hand-placed tile.
+
+Ground is two tile layers. The lower one is terrain — grass, dirt roads, water,
+ploughed earth; the upper one is grass *variants*, because the pack blends its
+four grass colours into transparency and leaves the middle of every edge sheet
+blank on purpose, so a variant can only blend by being drawn over what it is
+blending into. Anything the pack ships as an animation strip — water, fire,
+chests, grass tufts, lilypads, the fountain — is resolved to frames at build
+time and played at runtime.
 
 The generated JSON **is** committed; the pack pixels it was measured from are
 not. Re-run `npm run world:build` after editing the layout or the catalog. The
 build refuses to write a map whose spawns, doorways, props or landmarks cannot
-be walked to, so a wall across the only path to the wood fails the build rather
-than the play.
+be walked to, or one with something solid standing in a road — so a wall across
+the only path to the wood, or a lamp post in the middle of the high street,
+fails the build rather than the play.
+
+Doors follow Stardew's convention: you **walk out** of a building and **press
+green to walk in**. A `press` doorway becomes an interactable like any prop —
+same proximity radius, same green dot — so nothing about it is written twice.
 
 Coordinates in the map files are in **pack pixels** (16 to a tile). `WORLD_SCALE`
 in `src/config.ts` is the one number that turns those into screen pixels, and it

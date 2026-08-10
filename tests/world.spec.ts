@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, type Page } from '@playwright/test';
 import {
   bootGame,
   isBlocked,
@@ -31,9 +31,14 @@ test('the game opens outside her house, in a world bigger than the screen', asyn
   expect(world.landmarks.map((m) => m.id).sort()).toEqual([
     'cave',
     'facades',
+    'farm',
+    'green',
     'house_front',
     'pond',
+    'shed',
+    'square',
     'woods',
+    'woods_gap',
   ]);
 
   expect(errors, 'no uncaught page errors').toEqual([]);
@@ -124,12 +129,33 @@ test('walking into her house stops her at the wall', async ({ page }) => {
   expect(errors, 'no uncaught page errors').toEqual([]);
 });
 
-test('she can walk into the house and back out again', async ({ page }) => {
+test('she presses to go in, and walks to come out', async ({ page }) => {
   const { errors } = await bootGame(page);
 
-  expect((await readHooks(page)).room).toBe('outside');
+  const outside = await readHooks(page);
+  expect(outside.room).toBe('outside');
 
-  // No button press anywhere in here: walking in is the whole interaction.
+  // Stardew's convention: the front door is a thing you press, and it is
+  // offered to her the same way every prop is — by being in the list the green
+  // dot is drawn from.
+  const front = outside.doorways.find((d) => d.id === 'outside_to_house')!;
+  expect(front.enter, 'her front door is entered with a press').toBe('press');
+  expect(
+    outside.interactables.map((i) => i.id),
+    'and it takes its turn among the pokeable things',
+  ).toContain('outside_to_house');
+
+  // Standing in the opening is not enough, and that is the point: a door she
+  // could fall through on the way past is the nearest thing to a fail state.
+  await page.evaluate(
+    ([x, y]) => (window as unknown as { __seraphina: Hooks }).__seraphina.teleport(x!, y!),
+    [front.x, front.y],
+  );
+  await page.waitForTimeout(600);
+  const loitering = await readHooks(page);
+  expect(loitering.room, 'standing in the doorway does not open it').toBe('outside');
+  expect(loitering.transitioning).toBe(false);
+
   const inside = await walkThroughDoorway(page, 'outside_to_house');
   expect(inside, 'her front door leads into the house').toBe('house');
 
@@ -152,7 +178,9 @@ test('she can walk into the house and back out again', async ({ page }) => {
     house.world.tile,
   );
 
-  // And it is a graph, not a one-way trip.
+  // And it is a graph, not a one-way trip — walked, with no press: coming out
+  // of a building has never needed one and still does not.
+  expect(house.doorways.find((d) => d.id === 'house_to_outside')!.enter).toBe('walk');
   const back = await walkThroughDoorway(page, 'house_to_outside');
   expect(back, 'the front door leads back outside').toBe('outside');
   expect((await readHooks(page)).landmarks.map((m) => m.id)).toContain('woods');
@@ -200,11 +228,11 @@ test('a neighbour’s door knocks, and does not open', async ({ page }) => {
 
   // A facade is the one thing in the game allowed to answer with no words: the
   // design law is that text must speak, and a knock has no text.
-  await walkToProp(page, 'shed_door');
+  await walkToProp(page, 'joey_door');
   await page.keyboard.press('KeyZ');
 
   const knocked = await readHooks(page);
-  expect(knocked.sparkles, 'the shed door reacts').toBe(1);
+  expect(knocked.sparkles, 'Joey’s door reacts').toBe(1);
   expect(knocked.voice.lineId, 'but says nothing — there is no text to speak').toBeNull();
   expect(knocked.room, 'and it is not a way in').toBe('outside');
 
@@ -232,17 +260,13 @@ test('the house props sparkle and speak', async ({ page }) => {
   expect(errors, 'no uncaught page errors').toEqual([]);
 });
 
-test('the doorway transition is a flourish, not a cut', async ({ page }) => {
-  const { canvas, errors } = await bootGame(page);
-
-  // From where the title screen puts her, straight up is her front door — so
-  // this is one held key and no steering.
-  await page.keyboard.down('ArrowUp');
-
-  // The flourish is under half a second end to end, which a round trip per
-  // frame cannot reliably land inside. So the watching happens in the page: it
-  // freezes the scene a beat after the doorway fires and reports what it saw.
-  const mid = await page.evaluate(
+/**
+ * The flourish is under half a second end to end, which a round trip per frame
+ * cannot reliably land inside. So the watching happens in the page: it freezes
+ * the scene a beat after the doorway fires and reports what it saw.
+ */
+async function watchTransition(page: Page) {
+  return page.evaluate(
     (holdMs) =>
       new Promise<{ room: string | null; transitioning: boolean }>((resolve) => {
         const hooks = (window as unknown as { __seraphina: Hooks }).__seraphina;
@@ -261,16 +285,52 @@ test('the doorway transition is a flourish, not a cut', async ({ page }) => {
       }),
     120,
   );
+}
 
-  await page.keyboard.up('ArrowUp');
+test('going in is a press, and it is a flourish rather than a cut', async ({ page }) => {
+  const { canvas, errors } = await bootGame(page);
 
-  expect(mid.transitioning, 'the doorway fired on the walk alone, with no press').toBe(true);
+  // The title screen puts her on her own doorstep, so the green dot is already
+  // showing over the door and the press needs no steering at all — which is
+  // also how a four-year-old is taught what the green button is for.
+  const start = await readHooks(page);
+  const front = start.doorways.find((d) => d.id === 'outside_to_house')!;
+  expect(
+    Math.hypot(front.x - start.player.x, front.y - start.player.y),
+    'she starts within reach of her own front door',
+  ).toBeLessThanOrEqual(start.interactRadius);
+
+  const watching = watchTransition(page);
+  await page.keyboard.press('KeyZ');
+  const mid = await watching;
+
+  expect(mid.transitioning, 'the press opened the door').toBe(true);
   expect(mid.room, 'the zone does not swap until the wash covers the seam').toBe('outside');
 
   const frozen = await readHooks(page);
-  expect(frozen.peakParticles, 'the threshold bursts on the way out').toBeGreaterThan(0);
+  expect(frozen.peakParticles, 'the threshold bursts on the way in').toBeGreaterThan(0);
 
   await canvas.screenshot({ path: shot('09-transition.png') });
+
+  expect(errors, 'no uncaught page errors').toEqual([]);
+});
+
+test('coming out is still a walk, with no press anywhere in it', async ({ page }) => {
+  const { errors } = await bootGame(page);
+  expect(await walkThroughDoorway(page, 'outside_to_house')).toBe('house');
+
+  // Walked at, not pressed: the doorway has to fire on her feet alone.
+  const house = await readHooks(page);
+  const out = house.doorways.find((d) => d.id === 'house_to_outside')!;
+  expect(out.enter).toBe('walk');
+
+  const watching = watchTransition(page);
+  await page.keyboard.down('ArrowDown');
+  const mid = await watching;
+  await page.keyboard.up('ArrowDown');
+
+  expect(mid.transitioning, 'the doorway fired on the walk alone').toBe(true);
+  expect(mid.room, 'the zone does not swap until the wash covers the seam').toBe('house');
 
   expect(errors, 'no uncaught page errors').toEqual([]);
 });

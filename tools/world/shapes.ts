@@ -158,6 +158,57 @@ export function grow(cells: Iterable<Cell>, by = 1): Cell[] {
   return [...out];
 }
 
+/**
+ * Bite off anything the autotile cannot draw.
+ *
+ * A blob is a 3x3 ring and four inner corners, so it can say "the edge is to my
+ * left" and "a corner pokes in from below-left" — but a cell with water on one
+ * side only is a one-tile peninsula, and there is no tile for that. It comes
+ * out as a flat square of pond sticking out of its own shoreline, which is
+ * exactly the sort of thing no test catches and every screenshot shows.
+ *
+ * So: drop any cell with fewer than two orthogonal neighbours, twice, which
+ * removes peninsulas and the spits left behind when the first ones go.
+ */
+export function smooth(cells: Iterable<Cell>, passes = 2): Cell[] {
+  let set = new Cells(cells);
+  for (let pass = 0; pass < passes; pass++) {
+    const next = new Cells(set);
+    for (const [x, y] of set) {
+      const neighbours =
+        Number(set.has(x + 1, y)) + Number(set.has(x - 1, y)) +
+        Number(set.has(x, y + 1)) + Number(set.has(x, y - 1));
+      if (neighbours < 2) next.remove([[x, y]]);
+    }
+    set = next;
+  }
+  return [...set];
+}
+
+/**
+ * Chew a region's outline so it stops looking like a rectangle.
+ *
+ * A patch of different grass laid over a `rect` draws a straight line across
+ * the map, and a straight line is the one thing nothing in a wood or a field
+ * ever does. Each pass drops boundary cells at random, so two passes turn a
+ * ruled edge into something that could have grown — deterministically, from the
+ * seed, so a region nobody edited comes out identical.
+ */
+export function ragged(cells: Iterable<Cell>, seed: number, passes = 2, chance = 0.45): Cell[] {
+  let set = new Cells(cells);
+  for (let pass = 0; pass < passes; pass++) {
+    const random = rng(seed + pass * 977);
+    const next = new Cells(set);
+    for (const [x, y] of set) {
+      const edge =
+        !set.has(x + 1, y) || !set.has(x - 1, y) || !set.has(x, y + 1) || !set.has(x, y - 1);
+      if (edge && random() < chance) next.remove([[x, y]]);
+    }
+    set = next;
+  }
+  return [...set];
+}
+
 export function union(...groups: Iterable<Cell>[]): Cell[] {
   const set = new Cells();
   for (const g of groups) set.add(g);

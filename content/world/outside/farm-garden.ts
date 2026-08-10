@@ -9,8 +9,8 @@
  * something she can see happen.
  */
 
-import { scatter, type Placement } from '../../../tools/world/shapes.js';
-import { BUILDINGS, FARM } from './plan.js';
+import { ragged, scatter, type Placement } from '../../../tools/world/shapes.js';
+import { BUILDINGS, FARM, FARM_FLOOR } from './plan.js';
 import { blocksOf, clearOfRoads, KEEP_CLEAR, overlayable } from './roads.js';
 import {
   cropRows,
@@ -24,7 +24,7 @@ import {
 const SEED = 31_337;
 
 /** Sun-bleached grass over the whole quarter, so the farm reads warmer. */
-export const FARM_GRASS = overlayable(FARM);
+export const FARM_GRASS = ragged(overlayable(FARM_FLOOR), SEED + 5);
 
 export const PATCH_DRESSING: Placement[] = [
   ...fencedPatch(61, 17, 6, 7),
@@ -56,11 +56,11 @@ export const YARD: Placement[] = [
  */
 export const ORCHARD: Placement[] = [
   ...clearOfRoads(
-    Array.from({ length: 3 }, (_, row) =>
-      Array.from({ length: 4 }, (_, col) => ({
+    Array.from({ length: 4 }, (_, row) =>
+      Array.from({ length: 5 }, (_, col) => ({
         image: col % 2 ? 'fruitBig' : 'oakMed',
-        x: 52 + col * 4 + (row % 2) * 1.5,
-        y: 36 + row * 3,
+        x: 52 + col * 3.5 + (row % 2) * 1.5,
+        y: 35 + row * 3,
       })),
     ).flat(),
   ),

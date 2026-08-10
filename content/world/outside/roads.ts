@@ -15,6 +15,7 @@ import {
   grow,
   rect,
   roadCells,
+  smooth,
   without,
   type Cell,
   type Placement,
@@ -46,7 +47,7 @@ export const ROAD_SPECS = Object.values(ROADS);
 
 export const ROAD_CELLS = roadCells(ROAD_SPECS);
 
-export const POND_CELLS = disc(POND.x, POND.y, POND.r);
+export const POND_CELLS = smooth(disc(POND.x, POND.y, POND.r));
 
 /** Every building's footprint, with a tile of breathing room round it. */
 const FOOTPRINTS = coverage(

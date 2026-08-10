@@ -11,15 +11,15 @@
  * different place from twenty tiles away.
  */
 
-import { scatter } from '../../../tools/world/shapes.js';
-import { BUILDINGS, WOODS } from './plan.js';
+import { ragged, scatter } from '../../../tools/world/shapes.js';
+import { BUILDINGS, WOODS, WOODS_FLOOR } from './plan.js';
 import { blocksOf, KEEP_CLEAR, overlayable } from './roads.js';
 import { campsite } from './prefabs.js';
 
 const SEED = 20_260_809;
 
-/** Cold grass under the canopy, kept a tile clear of every path. */
-export const WOOD_FLOOR = overlayable(WOODS);
+/** Cold grass under the canopy: ragged at the village end, clear of every path. */
+export const WOOD_FLOOR = ragged(overlayable(WOODS_FLOOR), SEED + 5);
 
 export const WOOD_TREES = scatter({
   region: WOODS,

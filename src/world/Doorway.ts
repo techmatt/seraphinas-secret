@@ -1,13 +1,15 @@
 /**
  * A way out of a zone, and the sign that says so.
  *
- * There is no button press here: walking into the opening is the whole
- * interaction. That puts the entire burden on the picture, because the player
- * cannot read "door". The door itself is now drawn on the building — the pack
- * paints a proper arched one — so this stopped being a fake archway and became
- * only the light: a bright mouth, a wide pool spilling the way you would walk
- * in, and motes drifting out of it. Three signals that all say "over here" at a
- * glance, from across the map, in no language.
+ * The door itself is drawn on the building — the pack paints a proper arched
+ * one — so this is only the light: a bright mouth, a wide pool spilling the way
+ * you would walk in, and motes drifting out of it. Three signals that all say
+ * "over here" at a glance, from across the map, in no language.
+ *
+ * Whether the light means "walk in" or "stand here and press green" is the
+ * doorway's `enter`, and RoomScene is what acts on it. A press door is also
+ * given a green dot when she is near, the same as any prop, so the light says
+ * *where* and the dot says *what to do* — she cannot read either word.
  */
 
 import Phaser from 'phaser';

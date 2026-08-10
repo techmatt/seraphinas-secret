@@ -23,7 +23,7 @@ import {
 } from './plan.js';
 import { EDGE, EDGE_TREES, GAP_UNDERGROWTH } from './perimeter.js';
 import { POND_CELLS, ROAD_CELLS } from './roads.js';
-import { POND_DRESSING } from './pond.js';
+import { POND_DRESSING, POND_SIDE } from './pond.js';
 import {
   CAVE_CLEARING,
   UNDERGROWTH,
@@ -74,6 +74,7 @@ export const OUTSIDE: ZoneLayout = {
     ...VILLAGE_GROUND,
     ...FARM_GROUND,
     ...POND_DRESSING,
+    ...POND_SIDE,
     ...PATCH_DRESSING,
     ...ORCHARD,
     ...YARD,

@@ -45,7 +45,9 @@ export const SQUARE: Placement[] = [
   { image: 'stallGreen', x: 39, y: 17 },
   ...bunting([[30, 15.4], [37, 15.4], [43, 15.4]]),
   ...benchBesidePath(31.6, 20.4),
+  ...benchBesidePath(36.4, 20.4, true),
   ...flowerBed(42, 20, 3, 2, 22),
+  ...flowerBed(31, 18, 3, 1, 27),
 ];
 
 /**
@@ -97,7 +99,7 @@ export const GREEN_DRESSING: Placement[] = [
   { image: 'fountain', x: 31, y: 37 },
   ...benchBesidePath(28, 36.4),
   ...benchBesidePath(33.4, 40.2, true),
-  ...lamps([[27, 35], [36, 35]], true),
+  ...lamps([[27, 39], [36, 36]], true),
   ...flowerBed(27, 34, 10, 1, 31),
   ...flowerBed(27, 42, 10, 1, 32),
   { image: 'picnicBasket', x: 29.4, y: 41.6 },
@@ -115,10 +117,14 @@ export const STREET_FURNITURE: Placement[] = [
   ...benchBesidePath(48.4, 16.6, true),
 ];
 
-/** The apple tree and the well: the two things in the village she can poke. */
+/**
+ * The apple tree and the well: the two things in the village she can poke.
+ * The well stands on her own street rather than in the square, because the
+ * first thing she ever walks up to should be one hop from where she starts.
+ */
 export const VILLAGE_PROPS = [
   { id: 'apple_tree', image: 'fruitBig', x: 22, y: 26, line: 'dad_apple' },
-  { id: 'well', image: 'well', x: 34, y: 18, line: 'dad_sparkle' },
+  { id: 'well', image: 'well', x: 28, y: 28, line: 'dad_sparkle' },
 ];
 
 /** A handful of proper trees, to break the skyline between the buildings. */

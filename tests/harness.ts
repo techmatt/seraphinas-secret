@@ -36,7 +36,7 @@ export type Hooks = {
     blocked: string;
   };
   interactables: { id: string; x: number; y: number }[];
-  doorways: { id: string; x: number; y: number; to: string }[];
+  doorways: { id: string; x: number; y: number; to: string; enter: 'walk' | 'press' }[];
   landmarks: { id: string; x: number; y: number }[];
   interactRadius: number;
   fps: number;
@@ -45,6 +45,7 @@ export type Hooks = {
   peakParticles: number;
   pause: () => void;
   teleport: (x: number, y: number) => void;
+  overview: (fit: boolean) => void;
   voice: {
     loaded: boolean;
     ids: string[];
@@ -61,7 +62,7 @@ export const readHooks = (page: Page) =>
   page.evaluate(() => {
     const h = (window as unknown as { __seraphina: Hooks }).__seraphina;
     // Functions do not survive the serialisation back to node; drop them.
-    const { pause, teleport, voice, ...rest } = h;
+    const { pause, teleport, overview, voice, ...rest } = h;
     const { say, scrub, timings, ...voiceRest } = voice;
     return { ...rest, voice: voiceRest };
   });
@@ -441,22 +442,39 @@ export async function walkToLandmark(page: Page, id: string, within = 90) {
 }
 
 /**
- * Walk into a doorway and come out the other side. Returns the zone she landed
- * in. Doorways are walk-through, so there is no press here by design.
+ * Get through a doorway and come out the other side, whichever way that door
+ * works. Returns the zone she landed in.
+ *
+ * Walking out of a building is automatic; walking into one is a press, the way
+ * Stardew does it. The map data says which, so a test asks for "the front door"
+ * and does not have to know — and the two specs that care about the difference
+ * assert on it directly rather than through here.
  */
 export async function walkThroughDoorway(page: Page, id?: string) {
   const from = (await readHooks(page)).room;
+  const pick = (hooks: Snapshot) => {
+    const door = id ? hooks.doorways.find((d) => d.id === id) : hooks.doorways[0];
+    if (!door) throw new Error(`no doorway ${id ?? '[first]'} in ${hooks.room}`);
+    return door;
+  };
+
+  const press = pick(await readHooks(page)).enter === 'press';
 
   await travel(
     page,
-    (hooks) => {
-      const door = id ? hooks.doorways.find((d) => d.id === id) : hooks.doorways[0];
-      if (!door) throw new Error(`no doorway ${id ?? '[first]'} in ${hooks.room}`);
-      return door;
-    },
-    (hooks) => hooks.transitioning || hooks.room !== from,
+    pick,
+    (hooks) =>
+      hooks.transitioning ||
+      hooks.room !== from ||
+      // A press door is "arrived at" as soon as the dot would be showing; the
+      // last stride into the opening is not something she ever has to make.
+      (press &&
+        Math.hypot(pick(hooks).x - hooks.player.x, pick(hooks).y - hooks.player.y) <=
+          hooks.interactRadius * 0.9),
     `doorway ${id ?? '[first]'}`,
   );
+
+  if (press && !(await readHooks(page)).transitioning) await page.keyboard.press('KeyZ');
 
   await page.waitForFunction(
     (before) => {
@@ -487,6 +505,24 @@ export async function standAt(page: Page, id: string) {
   );
   // One frame for the camera, one for the occlusion fade to finish.
   await page.waitForTimeout(400);
+}
+
+/**
+ * Pull the camera back to the whole zone, run `take`, and put it back. For the
+ * one screenshot that has to answer "does this composition read from a
+ * distance" — every other one is somebody standing in the middle of it.
+ */
+export async function fromAbove(page: Page, take: () => Promise<unknown>) {
+  const zoom = (fit: boolean) =>
+    page.evaluate(
+      (on) => (window as unknown as { __seraphina: Hooks }).__seraphina.overview(on),
+      fit,
+    );
+  await zoom(true);
+  await page.waitForTimeout(400);
+  await take();
+  await zoom(false);
+  await page.waitForTimeout(300);
 }
 
 /** The voice manifest loads after boot; nothing voice-shaped works before it. */

@@ -19,6 +19,11 @@ export interface Marker {
 export interface DoorwayMarker extends Marker {
   /** Room id on the far side. */
   to: string;
+  /**
+   * Walk into it, or stand at it and press green. A test driving the world has
+   * to know which, because the two are different journeys.
+   */
+  enter: 'walk' | 'press';
 }
 
 export interface TestHooks {
@@ -95,7 +100,10 @@ export interface TestHooks {
     rows: number;
     blocked: string;
   };
-  /** This zone's pokeable props, so tests can steer instead of guessing. */
+  /**
+   * Everything the green dot appears over: this zone's pokeable props, and any
+   * door that is entered with a press rather than walked through.
+   */
   interactables: Marker[];
   /** This zone's doorways, at the centre of each opening. */
   doorways: DoorwayMarker[];
@@ -140,6 +148,15 @@ export interface TestHooks {
    * place is *reachable* still walks there.
    */
   teleport: (x: number, y: number) => void;
+  /**
+   * Pull the camera back until the whole zone is on screen, and put it back.
+   *
+   * The exterior is seventy tiles across and every other screenshot is a
+   * close-up, so nothing in the audit trail could answer "does the composition
+   * read from a distance" — which is the question the whole rebuild was about.
+   * Strictly for that: the game itself never zooms.
+   */
+  overview: (fit: boolean) => void;
   voice: VoiceHooks;
 }
 
@@ -204,6 +221,7 @@ export const hooks: TestHooks = {
   peakParticles: 0,
   pause: () => undefined,
   teleport: () => undefined,
+  overview: () => undefined,
   voice: {
     loaded: false,
     ids: [],

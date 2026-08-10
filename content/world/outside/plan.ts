@@ -48,14 +48,32 @@ export const VILLAGE = rect(21, 3, 30, 44);
 /** The farm and garden quarter: a fifth of the map's tiles, all of it east. */
 export const FARM = rect(51, 3, 18, 44);
 
+/**
+ * The same two regions, run out to the edges of the map.
+ *
+ * Only for the grass underfoot. A colour change that stops three tiles short of
+ * the map edge draws a straight line down the world where the tree line happens
+ * to be thin; run to the edge, the only boundary left to see is the one that
+ * means something — where the wood becomes the village, and the village the
+ * farm.
+ */
+export const WOODS_FLOOR = rect(0, 0, 21, ROWS);
+export const FARM_FLOOR = rect(51, 0, COLS - 51, ROWS);
+
 /** The open lawn in the south of the village. Kept clear on purpose. */
 export const GREEN = rect(27, 35, 10, 8);
 
 /** The allotment strip between the woods and the west lane. */
 export const ALLOTMENT = rect(21, 16, 4, 15);
 
-/** Where the woods thin out and a future path leads on. Not walkable today. */
-export const WOODS_GAP = rect(0, 26, 6, 8);
+/**
+ * Where the woods thin out and a future path leads on. Not walkable today.
+ *
+ * The window starts two columns in, not at the map edge: the outermost trees
+ * stay, so what she sees down the trail is more forest with its undergrowth
+ * grown over — rather than open ground with an invisible wall across it.
+ */
+export const WOODS_GAP = rect(2, 27, 4, 6);
 
 // --- streets ----------------------------------------------------------------
 
@@ -137,19 +155,34 @@ export const FACADES: { id: string; plan: BuildingPlan }[] = [
  */
 export const LANDMARKS: { id: string; x: number; y: number }[] = [
   { id: 'house_front', x: 33, y: 32 },
-  { id: 'facades', x: 35, y: 16 },
+  // Right up against the neighbours' doorsteps: the camera centres on her, so a
+  // landmark out on the road photographs the road and the eaves above it.
+  { id: 'facades', x: 35, y: 12 },
   { id: 'square', x: 35, y: 21 },
   { id: 'green', x: 31, y: 41 },
+  { id: 'shed', x: 56, y: 12 },
   { id: 'farm', x: 58, y: 22 },
   { id: 'pond', x: 36, y: 43 },
   { id: 'cave', x: 9, y: 42 },
   { id: 'woods', x: 14, y: 22 },
+  // Where the trail runs out of map. The tree line stops, the undergrowth
+  // thickens, and one day there will be somewhere through it.
+  { id: 'woods_gap', x: 7, y: 29 },
 ];
 
-/** Her front step, and where the house puts her back down. */
+/**
+ * Her front step, and where the house puts her back down.
+ *
+ * A little way into the road rather than exactly on its top line: her collision
+ * box is a fifth of a tile tall and sits at her feet, so standing precisely on
+ * a tile boundary puts her *body* in the row above — and that row is the one
+ * with the lamp posts in it. Near enough the door that the green dot is already
+ * showing when the title screen lets go of her, which is how a four-year-old
+ * finds out what the green button is for.
+ */
 export const SPAWNS = {
-  start: { x: 33, y: 31, facing: 'down' },
-  from_house: { x: 33, y: 31, facing: 'down' },
+  start: { x: 32.8, y: 31.6, facing: 'down' },
+  from_house: { x: 32.8, y: 31.6, facing: 'down' },
 } as const;
 
 /** Standing room she must have, whatever else a module wants to plant. */
@@ -158,15 +191,18 @@ export const APRONS: Cell[] = [
   ...rect(30, 29, 7, 3),
   // And outside the hall's, which is the same street.
   ...rect(36, 29, 10, 3),
-  // The market square between the top road and the two fronts, kept open so
-  // the neighbours' doors read from the far side of it.
-  ...rect(31, 16, 8, 2),
+  // The market square between the top road and the two fronts. Nothing may be
+  // scattered into it: the stalls, the benches and the bunting were arranged,
+  // and a self-sown oak growing through an awning undoes the arrangement.
+  ...rect(28, 16, 16, 5),
+  // The allotment strip, for the same reason.
+  ...ALLOTMENT,
   // The step at each neighbour's door.
   ...rect(30, 11, 8, 2),
   ...rect(39, 11, 7, 2),
   ...rect(52, 11, 7, 2),
   // The clearing outside the cave, which is dressed by hand and must stay open.
-  ...rect(4, 37, 11, 7),
+  ...rect(5, 38, 9, 5),
   // Room round the toadstool in the wood, so a spruce cannot land on top of it.
   ...rect(14, 20, 3, 3),
 ];

@@ -29,10 +29,14 @@ export function flowerPotsAtDoor(x: number, y: number, seed = 1): Placement[] {
   ];
 }
 
-/** A bench looking at something, with a lamp standing over it. */
+/**
+ * A bench looking at something, with a lamp standing over it. `warm` picks the
+ * wooden bench and the copper lamp over the iron pair, so two benches in one
+ * view are never the same bench twice.
+ */
 export function benchBesidePath(x: number, y: number, warm = false): Placement[] {
   return [
-    { image: 'bench', x, y },
+    { image: warm ? 'benchWood' : 'bench', x, y },
     { image: warm ? 'lampPostWarm' : 'lampPost', x: x + 2.2, y: y - 1.6 },
   ];
 }

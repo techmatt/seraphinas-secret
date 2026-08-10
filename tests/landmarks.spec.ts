@@ -10,7 +10,7 @@
  */
 
 import { test, expect } from '@playwright/test';
-import { bootGame, readHooks, shot, standAt, walkThroughDoorway } from './harness';
+import { bootGame, fromAbove, readHooks, shot, standAt, walkThroughDoorway } from './harness';
 
 test('the exterior, landmark by landmark', async ({ page }) => {
   const { canvas, errors } = await bootGame(page);
@@ -20,13 +20,23 @@ test('the exterior, landmark by landmark', async ({ page }) => {
     ['facades', '21-facades.png'],
     ['cave', '22-cave.png'],
     ['woods', '23-woods.png'],
+    ['woods_gap', '33-woods-gap.png'],
     ['pond', '24-pond.png'],
+    ['square', '29-square.png'],
+    ['green', '30-green.png'],
+    ['shed', '31-shed.png'],
+    ['farm', '34-farm.png'],
   ];
 
   for (const [id, file] of places) {
     await standAt(page, id);
     await canvas.screenshot({ path: shot(file) });
   }
+
+  // The whole map at once. Everything above is a close-up, and "the world
+  // should look composed, like someone arranged it" is not a claim a close-up
+  // can settle either way.
+  await fromAbove(page, () => canvas.screenshot({ path: shot('32-overview.png') }));
 
   const seen = await readHooks(page);
   expect(seen.room, 'still outside after the tour').toBe('outside');

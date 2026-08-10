@@ -47,10 +47,13 @@ export const EDGE_TREES = scatter({
  * to touch it.
  */
 export const GAP_UNDERGROWTH = scatter({
-  region: union(WOODS_GAP, rect(4, 27, 4, 6)),
+  region: union(WOODS_GAP, rect(4, 26, 5, 8)),
   images: [
-    'bush', 'bushDark', 'bushBright', 'tallGrass', 'swayGrass', 'swayGrass2',
-    'swayGrass3', 'mossyStump', 'log', 'sprig', 'sprig2',
+    // Weighted by repetition: mostly leaves, so it reads as growth closing in
+    // rather than as a clearing somebody felled.
+    'bush', 'bushDark', 'bushBright', 'bush', 'bushDark', 'bushBright',
+    'tallGrass', 'swayGrass', 'swayGrass2', 'swayGrass3', 'tallGrass',
+    'sprig', 'sprig2', 'mossyStump',
   ],
   chance: 0.72,
   spacing: 0,
