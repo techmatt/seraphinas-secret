@@ -5,6 +5,9 @@
   "description": "A cozy, no-fail 2D exploration game.",
   "type": "module",
   "scripts": {
+    "assets:sync": "tsx tools/assets/sync.ts",
+    "predev": "npm run assets:sync",
+    "prebuild": "npm run assets:sync",
     "dev": "vite",
     "build": "npm run typecheck && vite build",
     "preview": "vite preview",

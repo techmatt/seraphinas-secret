@@ -6,6 +6,11 @@ dist/
 dist-ssr/
 *.local
 
+# Licensed art, mirrored out of the side-load by `npm run assets:sync`. The pack
+# may not be redistributed, so none of it may ever be committed. Disposable —
+# delete the folder and the next `npm run dev` rebuilds it.
+/public/assets/
+
 # Playwright
 /test-results/
 /playwright-report/
