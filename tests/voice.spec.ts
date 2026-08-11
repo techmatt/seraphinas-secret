@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 
-import { bootGame, readHooks, snap, waitForVoice, walkToProp, type Hooks } from './harness';
+import { bootGame, readHooks, snap, standByProp, waitForVoice, type Hooks } from './harness';
 
 interface ManifestLine {
   id: string;
@@ -67,7 +67,10 @@ test('a poked prop speaks, and the right word is lit halfway through', async ({ 
 
   expect((await readHooks(page)).voice.lineId, 'nothing is being said yet').toBeNull();
 
-  await walkToProp(page, POKED_PROP);
+  // Stood by rather than walked to: this test is about which word is lit
+  // halfway through a line, and `smoke.spec` already walks up to this same well
+  // on foot and presses it.
+  await standByProp(page, POKED_PROP);
   await page.keyboard.press('KeyZ');
 
   const speaking = await readHooks(page);

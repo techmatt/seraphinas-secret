@@ -5,6 +5,7 @@ import {
   readHooks,
   snap,
   standAt,
+  standByProp,
   walk,
   walkThroughDoorway,
   walkToLandmark,
@@ -192,7 +193,11 @@ test('she presses to go in, and walks to come out', async ({ page }) => {
   expect(errors, 'no uncaught page errors').toEqual([]);
 });
 
-test('the Mystic Woods can be reached on foot', async ({ page }) => {
+// @slow, and the only one of these tagged for its own sake rather than for the
+// pictures it takes: it walks the whole way across the exterior at her real
+// speed, which is twenty seconds nothing can shorten without giving up the
+// claim. Nothing in the fast suite proves the world is connected on foot.
+test('the Mystic Woods can be reached on foot', { tag: '@slow' }, async ({ page }) => {
   const { errors } = await bootGame(page);
 
   const start = await readHooks(page);
@@ -247,7 +252,10 @@ test('the house props sparkle and speak', async ({ page }) => {
   const { errors } = await bootGame(page);
   await walkThroughDoorway(page, 'outside_to_house');
 
-  await walkToProp(page, 'bed');
+  // Stood by rather than walked to, twice below as well: the claim here is that
+  // a poked prop sparkles and speaks. Getting to it is the front door's test and
+  // the wood's, both of which walk.
+  await standByProp(page, 'bed');
   await page.keyboard.press('KeyZ');
   const bed = await readHooks(page);
   expect(bed.sparkles, 'the bed takes a press').toBe(1);
@@ -255,7 +263,7 @@ test('the house props sparkle and speak', async ({ page }) => {
   expect(bed.voice.lineId, 'and says something').toBe('dad_bedtime');
   expect(bed.voice.words.length, 'with words to highlight').toBeGreaterThan(0);
 
-  await walkToProp(page, 'wardrobe');
+  await standByProp(page, 'wardrobe');
   await page.keyboard.press('KeyZ');
   const wardrobe = await readHooks(page);
   expect(wardrobe.sparkles, 'so does the wardrobe').toBe(2);

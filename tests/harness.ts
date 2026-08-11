@@ -35,6 +35,41 @@ export const freeze = (page: Page) =>
     (window as unknown as { __seraphina: Hooks }).__seraphina.pause();
   });
 
+/**
+ * Wait for `count` rendered frames, or `capMs`, whichever lands first.
+ *
+ * Most of what the audit trail settles for is counted in frames, not
+ * milliseconds: the camera is centred by hand in one, the hitbox overlay is
+ * drawn on the next update, and a tree she is standing behind fades by a fixed
+ * *fraction per frame*. A wall-clock wait for those is really a guess at the
+ * frame rate, and headless Chromium runs this game anywhere between fifteen and
+ * thirty-odd frames a second.
+ *
+ * The cap is there because frames alone made it slower, measured: the landmark
+ * tour draws seventy sprites a stop and runs at the bottom of that range, so
+ * ten honest frames cost more than the 400 ms guess they replaced. Each cap is
+ * the number that used to be hard-coded at that call, so this is never worse
+ * than what it replaced and is quicker every time the page is keeping up.
+ *
+ * Timed effects are the other kind and still wait in plain milliseconds: a
+ * camera fade or a zoom tween takes as long as it says whatever the frame rate.
+ */
+const framesPass = (page: Page, count: number, capMs: number) => {
+  const frames = page
+    .evaluate((n) => {
+      return new Promise<void>((resolve) => {
+        let seen = 0;
+        const tick = () => (++seen >= n ? resolve() : requestAnimationFrame(tick));
+        requestAnimationFrame(tick);
+      });
+    }, count)
+    // When the cap wins this is left pending, and a page that then goes away
+    // would reject it with nobody listening.
+    .catch(() => undefined);
+
+  return Promise.race([frames, page.waitForTimeout(capMs)]);
+};
+
 /** The greeting the title screen speaks; see GREETING in TitleScene. */
 export const GREETING_LINE = 'seraphina_hello';
 
@@ -466,6 +501,35 @@ export async function walkToProp(page: Page, id?: string) {
   );
 }
 
+/**
+ * Stand her within reach of a prop, without walking there.
+ *
+ * The end state is the one `walkToProp` leaves her in — inside the interact
+ * radius and the nearest interactable, so the green dot is over this prop and a
+ * press fires this prop — reached by teleport instead of on foot. For the tests
+ * whose claim is about what a prop does when it is poked rather than about
+ * getting to it. `smoke.spec` still walks up to the well and `world.spec` still
+ * walks to the wood; those two are what prove the walking works, and everything
+ * else was paying for the same journey again.
+ *
+ * It finishes by handing over to `walkToProp`, which returns immediately when
+ * she is already close enough and closes the gap with a hop or two when the
+ * only tile she can stand on is round the far side of the thing.
+ */
+export async function standByProp(page: Page, id: string) {
+  const prop = (await readHooks(page)).interactables.find((p) => p.id === id);
+  if (!prop) throw new Error(`no prop ${id} to stand by`);
+
+  // Aimed at the prop itself: `teleport` puts her on the nearest tile she can
+  // actually stand on, which for anything solid is the one beside it.
+  await page.evaluate(
+    ([x, y]) => (window as unknown as { __seraphina: Hooks }).__seraphina.teleport(x!, y!),
+    [prop.x, prop.y],
+  );
+  await framesPass(page, 4, 200);
+  await walkToProp(page, id);
+}
+
 /** Walk to a named place in the map data — "the woods", "the facade row". */
 export async function walkToLandmark(page: Page, id: string, within = 90) {
   const pick = (hooks: Snapshot) => {
@@ -481,8 +545,10 @@ export async function walkToLandmark(page: Page, id: string, within = 90) {
     `landmark ${id}`,
   );
 
-  // Let the camera's lerp catch up before anyone photographs the place.
-  await page.waitForTimeout(500);
+  // Let the camera's lerp catch up before anyone photographs the place. It
+  // closes 12% of the remaining gap per frame, so this is a count of frames and
+  // not a length of time: a dozen puts it within a fifth of where it is going.
+  await framesPass(page, 12, 500);
 }
 
 /**
@@ -547,8 +613,12 @@ export async function standAt(page: Page, id: string) {
     ([x, y]) => (window as unknown as { __seraphina: Hooks }).__seraphina.teleport(x!, y!),
     [mark.x, mark.y],
   );
-  // One frame for the camera, one for the occlusion fade to finish.
-  await page.waitForTimeout(400);
+  // One frame for the camera, and the rest for the occlusion fade: anything she
+  // lands behind gives up 22% of its remaining opacity per frame, so ten frames
+  // leaves it within a twentieth of where it settles — which is nothing a
+  // screenshot of a wood can show. Frames rather than milliseconds because that
+  // is the unit the fade is actually written in.
+  await framesPass(page, 10, 400);
 }
 
 /**
@@ -562,11 +632,13 @@ export async function fromAbove(page: Page, take: () => Promise<unknown>) {
       (on) => (window as unknown as { __seraphina: Hooks }).__seraphina.overview(on),
       fit,
     );
+  // Both ends of this set the camera outright rather than tweening it, so what
+  // is being waited for is the redraw, not a duration.
   await zoom(true);
-  await page.waitForTimeout(400);
+  await framesPass(page, 3, 400);
   await take();
   await zoom(false);
-  await page.waitForTimeout(300);
+  await framesPass(page, 2, 300);
 }
 
 /**
@@ -585,7 +657,9 @@ export async function withHitboxes(page: Page, take: () => Promise<unknown>) {
       on,
     );
   await pin(true);
-  await page.waitForTimeout(200);
+  // The overlay is drawn by the next update, so that is all there is to wait
+  // for — one frame to draw it, one in hand.
+  await framesPass(page, 2, 200);
   await take();
   await pin(false);
 }

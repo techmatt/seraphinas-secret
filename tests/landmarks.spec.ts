@@ -7,12 +7,16 @@
  * walking her there: the exterior is four thousand pixels across and walking it
  * costs minutes per test, and `world.spec.ts` already proves on foot that the
  * places connect. Nothing here asserts anything a screenshot cannot show.
+ *
+ * Both are `@slow`, and this file is the reason that tag exists: eighteen
+ * framings between them, two assertions, and an output nothing reads until
+ * somebody writes a report. `npm run test:slow` is what regenerates them.
  */
 
 import { test, expect } from '@playwright/test';
 import { bootGame, fromAbove, readHooks, snap, standAt, walkThroughDoorway } from './harness';
 
-test('the exterior, landmark by landmark', async ({ page }) => {
+test('the exterior, landmark by landmark', { tag: '@slow' }, async ({ page }) => {
   const { errors } = await bootGame(page);
 
   const places: [string, string][] = [
@@ -49,7 +53,7 @@ test('the exterior, landmark by landmark', async ({ page }) => {
   expect(errors, 'no uncaught page errors').toEqual([]);
 });
 
-test('the house, room by room', async ({ page }) => {
+test('the house, room by room', { tag: '@slow' }, async ({ page }) => {
   const { errors } = await bootGame(page);
   await walkThroughDoorway(page, 'outside_to_house');
 

@@ -39,7 +39,9 @@ test('holding B shows the collision grid, and changes nothing else', async ({ pa
   expect(errors, 'no uncaught page errors').toEqual([]);
 });
 
-test('the wood, with its hitboxes showing', async ({ page }) => {
+// @slow: seven framings, and its output is pictures rather than assertions. The
+// test above it is the one that fails when the overlay breaks.
+test('the wood, with its hitboxes showing', { tag: '@slow' }, async ({ page }) => {
   const { errors } = await bootGame(page);
 
   // The densest stands of trees in the world, and one framing per edge of it.

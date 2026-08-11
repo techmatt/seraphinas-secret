@@ -17,7 +17,9 @@
     "world:build": "tsx tools/world/build.ts",
     "world:measure": "tsx tools/world/measure.ts",
     "world:footings": "tsx tools/world/footings.ts",
-    "test": "playwright test"
+    "test": "playwright test --grep-invert @slow",
+    "test:slow": "playwright test --grep @slow",
+    "test:all": "playwright test"
   },
   "devDependencies": {
     "@playwright/test": "^1.62.1",
