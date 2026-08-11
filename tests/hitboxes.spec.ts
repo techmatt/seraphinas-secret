@@ -9,7 +9,7 @@
  */
 
 import { test, expect } from '@playwright/test';
-import { bootGame, readHooks, shot, standAt, withHitboxes, type Hooks } from './harness';
+import { bootGame, readHooks, snap, standAt, withHitboxes, type Hooks } from './harness';
 
 test('holding B shows the collision grid, and changes nothing else', async ({ page }) => {
   const { errors } = await bootGame(page);
@@ -40,7 +40,7 @@ test('holding B shows the collision grid, and changes nothing else', async ({ pa
 });
 
 test('the wood, with its hitboxes showing', async ({ page }) => {
-  const { canvas, errors } = await bootGame(page);
+  const { errors } = await bootGame(page);
 
   // The densest stands of trees in the world, and one framing per edge of it.
   // Whatever a tree's collision does wrong it does seventy times over in the
@@ -58,7 +58,7 @@ test('the wood, with its hitboxes showing', async ({ page }) => {
 
   for (const [id, file] of places) {
     await standAt(page, id);
-    await withHitboxes(page, () => canvas.screenshot({ path: shot(file) }));
+    await withHitboxes(page, () => snap(page, file));
   }
 
   const seen = await readHooks(page);

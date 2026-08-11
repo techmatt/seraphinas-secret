@@ -265,7 +265,13 @@ export class RoomScene extends Phaser.Scene {
 
     this.syncWorldHooks();
     hooks.interactRadius = INTERACT_RADIUS;
-    hooks.pause = () => this.scene.pause();
+    // Braces, not a bare expression: `scene.pause()` hands back the whole
+    // ScenePlugin, and a test that calls this through `page.evaluate` would then
+    // be asking Playwright to serialise the entire engine back to node — which
+    // it will do, for thirteen seconds. The declared type has always been void.
+    hooks.pause = () => {
+      this.scene.pause();
+    };
     hooks.teleport = (x, y) => {
       const spot = this.world.nearestStanding(x, y);
       this.player.setPosition(spot.x, spot.y);

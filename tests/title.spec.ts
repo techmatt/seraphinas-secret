@@ -1,22 +1,15 @@
 import { test, expect } from '@playwright/test';
-import {
-  GREETING_LINE,
-  openTitle,
-  pressStart,
-  readHooks,
-  shot,
-  type Hooks,
-} from './harness';
+import { GREETING_LINE, freeze, openTitle, pressStart, readHooks, snap, type Hooks } from './harness';
 
 test('the game opens on the title screen, not in the room', async ({ page }) => {
-  const { canvas, errors } = await openTitle(page);
+  const { errors } = await openTitle(page);
 
   const idle = await readHooks(page);
   expect(idle.scene, 'the title screen is the entry point').toBe('title');
   expect(idle.ready, 'the room is not playable yet').toBe(false);
   expect(idle.voice.lineId, 'nobody is talking yet').toBeNull();
 
-  await canvas.screenshot({ path: shot('01-title.png') });
+  await snap(page, '01-title.png');
 
   // A click focuses the page; it must not be mistaken for the press. If this
   // ever starts the game, a stray mouse click skips the front door.
@@ -27,7 +20,7 @@ test('the game opens on the title screen, not in the room', async ({ page }) => 
 });
 
 test('the press unlocks audio, speaks a greeting, then opens the room', async ({ page }) => {
-  const { canvas, errors } = await openTitle(page);
+  const { errors } = await openTitle(page);
 
   await page.keyboard.press('Enter');
 
@@ -47,8 +40,8 @@ test('the press unlocks audio, speaks a greeting, then opens the room', async ({
   // Let the burst spread, then freeze it — particles outlive neither the
   // screenshot round trip nor the transition.
   await page.waitForTimeout(140);
-  await page.evaluate(() => (window as unknown as { __seraphina: Hooks }).__seraphina.pause());
-  await canvas.screenshot({ path: shot('02-title-greeting.png') });
+  await freeze(page);
+  await snap(page, '02-title-greeting.png');
 
   expect(errors, 'no uncaught page errors').toEqual([]);
 });

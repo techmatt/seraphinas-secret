@@ -128,7 +128,10 @@ export class TitleScene extends Phaser.Scene {
 
     hooks.scene = 'title';
     hooks.ready = false;
-    hooks.pause = () => this.scene.pause();
+    // Returns nothing on purpose — see the same hook in RoomScene.
+    hooks.pause = () => {
+      this.scene.pause();
+    };
     syncAudioHook();
   }
 

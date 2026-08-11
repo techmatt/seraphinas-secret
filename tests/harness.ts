@@ -8,6 +8,33 @@ import path from 'node:path';
 const SHOTS = path.join('tests', 'screenshots');
 export const shot = (name: string) => path.join(SHOTS, name);
 
+/**
+ * A frame of the game, into `tests/screenshots/`.
+ *
+ * Deliberately the page rather than the canvas element. The canvas is laid out
+ * at exactly 0,0,1280,720 — `#game` is the whole viewport and Phaser's FIT
+ * scale lands the design resolution on it one-to-one — so the two produce
+ * byte-identical PNGs, and the element version costs three times as much
+ * because Playwright puts every element screenshot through its actionability
+ * and stability checks first. Roughly a second a picture, thirty-odd pictures
+ * a run. If the viewport ever stops matching GAME_WIDTH x GAME_HEIGHT this has
+ * to go back to photographing the element, because the frame would then have
+ * letterboxing in it.
+ */
+export const snap = (page: Page, file: string) => page.screenshot({ path: shot(file) });
+
+/**
+ * Freeze the live scene, so a screenshot can catch the juice mid-flight.
+ *
+ * The braces matter: `hooks.pause()` used to be called as the body of an arrow
+ * function, and whatever it returned came back across the wire. See the hook
+ * itself in RoomScene.
+ */
+export const freeze = (page: Page) =>
+  page.evaluate(() => {
+    (window as unknown as { __seraphina: Hooks }).__seraphina.pause();
+  });
+
 /** The greeting the title screen speaks; see GREETING in TitleScene. */
 export const GREETING_LINE = 'seraphina_hello';
 
@@ -113,7 +140,14 @@ export async function openTitle(page: Page, { fast = false }: OpenOptions = {}) 
 
   // Focuses the page for keyboard input. Deliberately not a start press: the
   // title screen only opens for the pad's A or one of its named keys.
-  await canvas.click({ position: { x: 20, y: 20 } });
+  //
+  // Driven from the mouse rather than the locator, which is the same click in
+  // the same place — the canvas box starts at the origin — without the
+  // actionability and stability checks Playwright runs before an element click.
+  // Those cost the best part of a second each on a page rendering this slowly,
+  // once per test, and there is nothing here they could catch: the assertions
+  // above have already established the canvas is visible and laid out.
+  await page.mouse.click(20, 20);
 
   return { canvas, errors };
 }
@@ -379,17 +413,21 @@ async function travel(
     // The route ends on the last tile she can stand on. Whatever she was
     // actually sent to — a prop standing on solid tiles, a doorway — is closed
     // by walking straight at it from there.
+    //
+    // One read per hop here too: the reading taken after a hop is the same
+    // reading the next hop wants to aim from, so taking it twice was paying a
+    // round trip to a slow page for a number already in hand.
+    hooks = await readHooks(page);
     for (let hop = 0; hop < 8; hop++) {
-      hooks = await readHooks(page);
       if (arrived(hooks)) return;
 
       const here = { x: hooks.player.x, y: hooks.player.y };
       const to = target(hooks);
       await hopToward(to.x - here.x, to.y - here.y);
 
-      const now = await readHooks(page);
-      if (arrived(now)) return;
-      if (Math.hypot(now.player.x - here.x, now.player.y - here.y) < 6) break;
+      hooks = await readHooks(page);
+      if (arrived(hooks)) return;
+      if (Math.hypot(hooks.player.x - here.x, hooks.player.y - here.y) < 6) break;
     }
   }
 

@@ -2,16 +2,16 @@ import { test, expect } from '@playwright/test';
 import {
   bootGame,
   closeUpOfHer,
+  freeze,
   readHooks,
-  shot,
+  snap,
   standAt,
   walk,
   walkAndRead,
-  type Hooks,
 } from './harness';
 
 test('she is a drawn character, out of the side-loaded pack', async ({ page }) => {
-  const { canvas, errors } = await bootGame(page);
+  const { errors } = await bootGame(page);
 
   const boot = await readHooks(page);
 
@@ -25,7 +25,7 @@ test('she is a drawn character, out of the side-loaded pack', async ({ page }) =
   expect(boot.player.anim, 'she idles the way the map spawns her').toBe('idle-down');
   expect(boot.player.facing).toBe('down');
 
-  await canvas.screenshot({ path: shot('11-player.png') });
+  await snap(page, '11-player.png');
 
   // Close up, on the open green of the village lawn, which is the ground her
   // gold hair has to stay legible against. The blessed outfit's hair is the one
@@ -38,7 +38,7 @@ test('she is a drawn character, out of the side-loaded pack', async ({ page }) =
 });
 
 test('walking turns her to face the way she is going', async ({ page }) => {
-  const { canvas, errors } = await bootGame(page);
+  const { errors } = await bootGame(page);
 
   const down = await walkAndRead(page, 'ArrowDown', 250);
   expect(down.player.facing, 'down turns her towards the room').toBe('down');
@@ -55,8 +55,8 @@ test('walking turns her to face the way she is going', async ({ page }) => {
   // Mid-stride, frozen: the audit frame for the walk cycle.
   await page.keyboard.down('ArrowRight');
   await page.waitForTimeout(250);
-  await page.evaluate(() => (window as unknown as { __seraphina: Hooks }).__seraphina.pause());
-  await canvas.screenshot({ path: shot('12-player-walk.png') });
+  await freeze(page);
+  await snap(page, '12-player-walk.png');
   await page.keyboard.up('ArrowRight');
 
   expect(errors, 'no uncaught page errors').toEqual([]);

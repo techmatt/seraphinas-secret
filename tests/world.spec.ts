@@ -3,7 +3,7 @@ import {
   bootGame,
   isBlocked,
   readHooks,
-  shot,
+  snap,
   standAt,
   walk,
   walkThroughDoorway,
@@ -292,7 +292,7 @@ async function watchTransition(page: Page) {
 }
 
 test('going in is a press, and it is a flourish rather than a cut', async ({ page }) => {
-  const { canvas, errors } = await bootGame(page);
+  const { errors } = await bootGame(page);
 
   // The title screen puts her on her own doorstep, so the green dot is already
   // showing over the door and the press needs no steering at all — which is
@@ -314,7 +314,7 @@ test('going in is a press, and it is a flourish rather than a cut', async ({ pag
   const frozen = await readHooks(page);
   expect(frozen.peakParticles, 'the threshold bursts on the way in').toBeGreaterThan(0);
 
-  await canvas.screenshot({ path: shot('09-transition.png') });
+  await snap(page, '09-transition.png');
 
   expect(errors, 'no uncaught page errors').toEqual([]);
 });

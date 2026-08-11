@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 
-import { bootGame, readHooks, shot, waitForVoice, walkToProp, type Hooks } from './harness';
+import { bootGame, readHooks, snap, waitForVoice, walkToProp, type Hooks } from './harness';
 
 interface ManifestLine {
   id: string;
@@ -62,7 +62,7 @@ const POKED_PROP = 'well';
 const POKED_LINE = 'dad_sparkle';
 
 test('a poked prop speaks, and the right word is lit halfway through', async ({ page }) => {
-  const { canvas, errors } = await bootGame(page);
+  const { errors } = await bootGame(page);
   await waitForVoice(page);
 
   expect((await readHooks(page)).voice.lineId, 'nothing is being said yet').toBeNull();
@@ -96,7 +96,7 @@ test('a poked prop speaks, and the right word is lit halfway through', async ({ 
   );
   expect(lit.voice.words[lit.voice.highlighted]).toBe(word.word);
 
-  await canvas.screenshot({ path: shot('07-speech-bubble.png') });
+  await snap(page, '07-speech-bubble.png');
 
   expect(errors, 'no uncaught page errors').toEqual([]);
 });
