@@ -30,6 +30,7 @@ import {
   TILE,
   TILESETS,
   WALL_FACES,
+  WALL_BEAM,
   WALL_ROWS,
   WALL_TRIM,
   type ImageDef,
@@ -123,7 +124,23 @@ function buildZone(zone: ZoneLayout, sheets: Map<string, Sheet>): BuiltMap {
   // the timber that frames it come off different sheets.
   const terrain: (TerrainKind | null)[] = new Array(n).fill(null);
   const floor: (string | null)[] = new Array(n).fill(null);
-  const wall: ({ tileset: string; col: number; row: number } | null)[] = new Array(n).fill(null);
+  /**
+   * A wall cell names its own tileset, column and row, because a wall face and
+   * the timber that frames it come off different sheets. A face also remembers
+   * *which material* it is, so the run-position pass below can tell one room's
+   * wall from the next one's and put a seam between them.
+   */
+  const wall: ({ tileset: string; col: number; row: number; face?: string } | null)[] =
+    new Array(n).fill(null);
+  /**
+   * The beam that caps a wall face, on the layer above the wall.
+   *
+   * It has to be a second layer because the bar is six pixels of a sixteen-pixel
+   * tile and the rest of that tile is transparent: on the ground layer it would
+   * be a hole in the house, and the filler it is drawn over is what stops the
+   * backdrop showing through. See WALL_BEAM in the catalog.
+   */
+  const beam: ({ col: number; row: number } | null)[] = new Array(n).fill(null);
 
   for (const paint of zone.terrain ?? []) {
     for (const [x, y] of paint.cells) if (inside(x, y)) terrain[at(x, y)] = paint.kind;
@@ -137,7 +154,8 @@ function buildZone(zone: ZoneLayout, sheets: Map<string, Sheet>): BuiltMap {
   for (const room of zone.rooms ?? []) {
     const { x, y, w, h } = room.floor;
     const faceRows = room.face ?? 2;
-    const face = WALL_FACES[room.wall ?? 'plaster'];
+    const material = room.wall ?? 'plaster';
+    const face = WALL_FACES[material];
     if (!face) throw new Error(`world: ${zone.id} — room ${room.id} has no wall "${room.wall}"`);
 
     paintFloor(room.pattern, rect(x, y, w, h));
@@ -153,7 +171,12 @@ function buildZone(zone: ZoneLayout, sheets: Map<string, Sheet>): BuiltMap {
       for (let i = 0; i < w; i++) {
         const cell = [x + i, y - faceRows + j] as const;
         if (inside(cell[0], cell[1])) {
-          wall[at(cell[0], cell[1])] = { tileset: face.tileset, col: face.col, row: rows[j]! };
+          wall[at(cell[0], cell[1])] = {
+            tileset: face.tileset,
+            col: face.col,
+            row: rows[j]!,
+            face: material,
+          };
         }
       }
     }
@@ -171,10 +194,64 @@ function buildZone(zone: ZoneLayout, sheets: Map<string, Sheet>): BuiltMap {
     )) {
       if (inside(tx, ty)) wall[at(tx, ty)] = trim;
     }
+
+    // And the beam laid along the cap, hugging the top of the face. Ends are
+    // picked by the run pass below, the same way the face's own ends are.
+    for (let i = -1; i <= w; i++) {
+      if (inside(x + i, top)) beam[at(x + i, top)] = WALL_BEAM.top;
+    }
   }
 
   // Doorways, cut back out of whatever the rooms just drew.
-  for (const [x, y] of zone.openings ?? []) if (inside(x, y)) wall[at(x, y)] = null;
+  for (const [x, y] of zone.openings ?? []) {
+    if (!inside(x, y)) continue;
+    wall[at(x, y)] = null;
+    beam[at(x, y)] = null;
+  }
+
+  // Where every wall face run starts and stops.
+  //
+  // This runs *after* the openings, on purpose: a doorway cut through a wall
+  // splits one run into two, and both new ends want a jamb. Which is the whole
+  // reason it is a pass over the finished grid rather than something the room
+  // loop could have worked out — a room knows how wide it is and does not know
+  // what was later cut out of it.
+  //
+  // Everything it decides is 1D: a face cell whose left neighbour is not the
+  // same material starts a run, one whose right neighbour is not ends it. That
+  // covers all three of the places a seam belongs — the end of a wall, the jamb
+  // of an opening, and the join where two rooms' materials abut — because all
+  // three are the same fact from the tile's point of view. A run one tile wide
+  // is both, and takes the left column: the sheet has no both-ends tile.
+  for (let y = 0; y < rows; y++) {
+    for (let x = 0; x < cols; x++) {
+      const cell = wall[at(x, y)];
+      if (!cell?.face) continue;
+      const def = WALL_FACES[cell.face]!;
+      const runs = (px: number) => px >= 0 && px < cols && wall[at(px, y)]?.face === cell.face;
+      if (!runs(x - 1)) cell.col = def.left;
+      else if (!runs(x + 1)) cell.col = def.right;
+    }
+  }
+
+  // The same 1D question asked of the beam, whose ends are mitred corners. Two
+  // rooms side by side share a cap cell, so this is what turns four rooms' four
+  // caps into the two unbroken beams they read as — and what puts a mitre either
+  // side of a passage rather than a bar sailing over the hole.
+  for (let y = 0; y < rows; y++) {
+    for (let x = 0; x < cols; x++) {
+      if (!beam[at(x, y)]) continue;
+      const runs = (px: number) => px >= 0 && px < cols && beam[at(px, y)] !== null;
+      const ends = !runs(x + 1);
+      beam[at(x, y)] = !runs(x - 1)
+        ? ends
+          ? WALL_BEAM.top
+          : WALL_BEAM.topLeft
+        : ends
+          ? WALL_BEAM.topRight
+          : WALL_BEAM.top;
+    }
+  }
 
   const ground: number[] = new Array(n).fill(-1);
   const tileAnims: BuiltTileAnim[] = [];
@@ -254,6 +331,16 @@ function buildZone(zone: ZoneLayout, sheets: Map<string, Sheet>): BuiltMap {
           : gidOf(sheets, def.edge.tileset, def.edge.col + offset.col, def.edge.row + offset.row);
       overlaid++;
     }
+  }
+
+  // The cap beams ride the same layer. Nothing else is ever painted where they
+  // are — grass variants are an outdoor thing and a beam is an indoor one — so
+  // this is a write rather than a merge, and it goes last on purpose.
+  for (let i = 0; i < n; i++) {
+    const part = beam[i];
+    if (!part) continue;
+    overlay[i] = gidOf(sheets, WALL_BEAM.tileset, part.col, part.row);
+    overlaid++;
   }
 
   // --- collision ---------------------------------------------------------

@@ -159,22 +159,83 @@ export const FLOOR_PATTERNS: Record<string, { bx: number; by: number }> = {
 };
 
 /**
- * A wall face: which column of `Interior_Walls.png` it is cut from.
+ * A wall face: which columns of `Interior_Walls.png` a material is cut from.
  *
- * The sheet's bottom three rows are the wall proper, three tiles tall — a lit
- * top edge, a plain middle, a skirting board — and the columns are the
- * materials. Cream plaster is three columns wide because its ends are rounded;
- * the middle one is what tiles, and it is the only one this game uses so far.
+ * `Interior_Walls.png` is a **run kit**, not a fill texture (Matt, 2026-08-10),
+ * and reading it as one is what left every wall in the house ending in a bare
+ * material change. Its bottom three rows are the wall proper — a lit top edge,
+ * a plain middle, a skirting board — and its fourteen columns are two halves:
+ *
+ *  - **0..5, the plain faces.** One per material, and what tiles across the
+ *    middle of a run. Cream plaster is three of them because its ends carry a
+ *    soft shading; column 1 is the one that repeats.
+ *  - **6..13, the same materials again in left/right pairs.** Each carries the
+ *    five-pixel dark seam that finishes a run, on the side it is named for. So
+ *    a wall that stops — at a room's corner, at a doorway jamb, where two
+ *    materials meet — stops on a post rather than simply running out.
+ *
+ * There is no both-ends column, so a run one tile wide takes the left one; see
+ * the run-position pass in `build.ts`.
  */
-export const WALL_FACES: Record<string, { tileset: string; col: number }> = {
-  plaster: { tileset: 'wall', col: 1 },
-  wood: { tileset: 'wall', col: 3 },
-  stone: { tileset: 'wall', col: 4 },
-  brick: { tileset: 'wall', col: 5 },
+export interface WallFaceDef {
+  tileset: string;
+  /** The column that repeats along the middle of a run. */
+  col: number;
+  /** The seamed columns, for the start and the end of a run. */
+  left: number;
+  right: number;
+}
+
+export const WALL_FACES: Record<string, WallFaceDef> = {
+  plaster: { tileset: 'wall', col: 1, left: 6, right: 7 },
+  wood: { tileset: 'wall', col: 3, left: 8, right: 9 },
+  stone: { tileset: 'wall', col: 4, left: 10, right: 11 },
+  brick: { tileset: 'wall', col: 5, left: 12, right: 13 },
 };
 
 /** Which rows of the sheet a face is cut from, top of the wall downwards. */
 export const WALL_ROWS = { top: 3, middle: 4, bottom: 5 } as const;
+
+/**
+ * The beam bars.
+ *
+ * The top-left of `Interior_Walls.png` holds two assembled frames rather than
+ * loose parts, and assembling them is the point: the larger one is exactly a
+ * 3x3 nine-slice on the pack's own grid — a bar along the top of tile row 0,
+ * posts down the inside edges of columns 0 and 2 in row 1, a bar along the
+ * bottom in row 2, and the four corners between them. Every piece is one colour
+ * per pixel row all the way across its tile, so a run of any length is
+ * seamless, and each hugs the *inside* edge of its own tile, which is what lets
+ * the frame close around a room rather than sit a tile out from it.
+ *
+ * Each bar is five to seven pixels of a sixteen-pixel tile and the rest is
+ * transparent, which is why the cap rides the overlay layer above the filler
+ * rather than replacing it: on the ground layer, that transparency is a hole in
+ * the house. It has to be, because this house shares walls on purpose —
+ * upstairs' foot *is* downstairs' cap (row 14) and the west rooms' right side
+ * *is* the east rooms' left (column 19), and one tile cannot carry two bars
+ * anchored to opposite edges. Drawn over an opaque filler, the losing side of a
+ * shared tile is simply a plain wall instead of a hole.
+ *
+ * `top`, `topLeft` and `topRight` are what `build.ts` draws. The sides and the
+ * foot stay filler for the same sharing reason: a party wall between two rooms
+ * is a wall, not the edge of either one. They are measured here anyway, for the
+ * first interior that stands on its own — a shed, the greenhouse.
+ */
+export const WALL_BEAM = {
+  tileset: 'wall',
+  /** Along the top of a run; the beam sits in the tile's bottom 6 px. */
+  top: { col: 1, row: 0 },
+  /** Along the foot; the beam sits in the tile's top 7 px. */
+  bottom: { col: 1, row: 2 },
+  /** The 5 px posts, each hugging the room: on the inside edge of its tile. */
+  left: { col: 0, row: 1 },
+  right: { col: 2, row: 1 },
+  topLeft: { col: 0, row: 0 },
+  topRight: { col: 2, row: 0 },
+  bottomLeft: { col: 0, row: 2 },
+  bottomRight: { col: 2, row: 2 },
+} as const;
 
 /**
  * The dark wood every room is framed with — the cap above a wall face, and the
