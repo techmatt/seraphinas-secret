@@ -30,13 +30,15 @@ export const FURNITURE: Placement[] = [
   { image: 'plantBig', x: 36, y: STANDS },
 
   // The rug, and a ring of small things to sit on round it. Yellow rather than
-  // the white one: on a floor this dark, white reads as a hole in it.
+  // the white one: on a floor this dark, white reads as a hole in it. The book
+  // on the near edge was catalogued as a cushion and is not one — it stays,
+  // because a book left face-down on the play rug is what that floor is like.
   { image: 'rugYellow', x: 25, y: 21 },
   { image: 'toadstoolSeat', x: 24, y: 20 },
   { image: 'toadstoolSeat', x: 28, y: 23 },
   { image: 'stool', x: 24, y: 22 },
   { image: 'stool', x: 28, y: 20 },
-  { image: 'cushion', x: 26, y: 24 },
+  { image: 'bookShut', x: 26, y: 24 },
 
   // A low table off to one side, and green in the far corners.
   { image: 'tableSmall', x: 21, y: 24 },

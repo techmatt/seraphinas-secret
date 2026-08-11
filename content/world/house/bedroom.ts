@@ -38,6 +38,21 @@ export const FURNITURE: Placement[] = [
   { image: 'stool', x: 7, y: 21 },
   { image: 'toadstoolSeat', x: 3, y: 23 },
 
+  // The reading nook, which is what the east half is about.
+  //
+  // The half of this room past the wardrobe was open rather than composed — the
+  // emptiest floor in the house. One cluster fixes that and a second would undo
+  // it, so: a chair with its back to the wall between the two windows, a lamp at
+  // its shoulder, a table for whatever she is halfway through, and a rug under
+  // the lot to say they belong together. It spends three tiles of the row under
+  // the wall and nothing else, so the crossing from the passage to the playroom
+  // door is exactly as wide as it was.
+  { image: 'rugRoundGreen', x: 15, y: 19 },
+  { image: 'lamp', x: 14, y: 17 },
+  { image: 'armchairUp', x: 15, y: 17 },
+  { image: 'nightstand', x: 16, y: 18 },
+  { image: 'bookShut', x: 16, y: 20 },
+
   // The other three walls, so the room has edges rather than simply stopping.
   { image: 'bookshelf', x: 1, y: 21 },
   { image: 'dresser', x: 13, y: 26 },

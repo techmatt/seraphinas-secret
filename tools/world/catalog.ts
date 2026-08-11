@@ -765,8 +765,10 @@ export const IMAGES: Record<string, ImageDef> = {
   // Small things left on the floor, one tile each, off `Placeable_Decoration`.
   // Only ever on the floor: everything in the world sorts by the bottom of its
   // own picture, so a jar put on a table would be drawn behind the table.
+  /** Lying open, pages up. */
   book: decorIn(5, 3),
-  cushion: decorIn(5, 4),
+  /** The same book shut. Catalogued as `cushion` until the pixels were looked at. */
+  bookShut: decorIn(5, 4),
   /** A mushroom stool. The one piece of furniture in the house that is a joke. */
   toadstoolSeat: {
     file: `${A}/Buildings/House_Decor/Indoor_Decor.png`, x: 80, y: 48, w: 16, h: 16,
@@ -781,7 +783,9 @@ export const IMAGES: Record<string, ImageDef> = {
   rugGreen: carpet_(2),
   rugRed: carpet_(5),
   rugYellow: carpet_(4),
-  rugRound: { ...carpet_(0), y: 48, w: 32, h: 32 },
+  rugRound: carpetRound(0),
+  /** Two tiles across, and the right size for a chair and a lamp to stand on. */
+  rugRoundGreen: carpetRound(2),
   door: { file: `${A}/Buildings/House_Decor/Doors.png`, x: 0, y: 0, w: 16, h: 32 },
 };
 
@@ -859,6 +863,11 @@ function carpet_(band: number): ImageDef {
     x: 0, y: band * 80, w: 48, h: 48,
     flat: true,
   };
+}
+
+/** The round rug of colour band `band` — first of the rounds under its squares. */
+function carpetRound(band: number): ImageDef {
+  return { ...carpet_(band), y: band * 80 + 48, w: 32, h: 32 };
 }
 
 /** One of the four market stalls, 48 pixels apart across their sheet. */
