@@ -410,15 +410,19 @@ export async function walkToProp(page: Page, id?: string) {
     pick,
     (hooks) => {
       const prop = pick(hooks);
+      const away = (m: { x: number; y: number }) =>
+        Math.hypot(m.x - hooks.player.x, m.y - hooks.player.y);
       // Inside the radius with room to spare, but not so tight that a hop she
       // cannot make smaller keeps knocking her back out of it. A prop's marker
       // is the middle of the prop, and a well is solid, so the nearest she can
       // physically stand to one is most of the radius away already — a tighter
       // margin than this asks her to reach a tile that does not exist.
-      return (
-        Math.hypot(prop.x - hooks.player.x, prop.y - hooks.player.y) <=
-        hooks.interactRadius * 0.9
-      );
+      if (away(prop) > hooks.interactRadius * 0.9) return false;
+      // And it has to be the *nearest* one, because that is what the green dot
+      // is drawn over and therefore what a press will fire. The well stands two
+      // tiles from her own front door: stopping a stride short of it puts the
+      // door nearer, and the press she was walked here to make opens the house.
+      return hooks.interactables.every((other) => other.id === prop.id || away(other) >= away(prop));
     },
     `prop ${id ?? '[first]'}`,
   );
