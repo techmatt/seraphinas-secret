@@ -149,11 +149,32 @@ export const ROADS: Record<string, RoadSpec> = {
   clearingSpur: { name: 'the spur down to the clearing', points: [[10, 33], [10, 41]], width: 3 },
   clearingStub: { name: 'the last few steps into the clearing', points: [[6, 41], [10, 41]], width: 3 },
   /**
-   * Up through the wood to the cave. Stardew's mine is somewhere you climb to
-   * out of town rather than something you find behind a house, and a road she
-   * can see the whole length of is how a four-year-old finds anything.
+   * Up to the cave. Stardew's mine is somewhere you climb to out of town rather
+   * than something you find behind a house.
+   *
+   * It used to run dead straight from the woods trail at (10, 29) to the cliff —
+   * and a road she can see the whole length of is how a four-year-old finds
+   * anything, so that was the right instinct and the wrong line. Twenty-five
+   * tiles up the middle of an eighteen-tile-wide wood is not a path through a
+   * wood, it is two woods with a road between them.
+   *
+   * It leaves the *top* road's west end now, clips the wood's northern corner
+   * and runs west along the foot of the cliff to the cave mouth: sixteen tiles
+   * instead of twenty-five, none of them below row 14, so the wood is one
+   * unbroken mass from the cliff all the way down to the trail. It also joins
+   * something. The old line stopped one tile short of this road without meeting
+   * it, which is a thing that reads as a mistake from any distance.
+   *
+   * What she loses is seeing the cave from the bottom of the wood. What she
+   * keeps is the half that does the work: the road she already walks to knock on
+   * her neighbours' doors carries on west and has no branches on it, so every
+   * turn left on it is the only way it goes.
    */
-  mountainPath: { name: 'the mountain path, up to the cave', points: [[10, 29], [10, CLIFF_FOOT]], width: 3 },
+  mountainPath: {
+    name: 'the mountain path, up to the cave',
+    points: [[22, 14], [18, 14], [18, 6], [10, 6], [10, CLIFF_FOOT]],
+    width: 3,
+  },
 };
 
 // --- water and ploughed ground ----------------------------------------------
