@@ -11,6 +11,12 @@ dist-ssr/
 # delete the folder and the next `npm run dev` rebuilds it.
 /public/assets/
 
+# The screenshot tour's output. Regenerated every `npm test`, so committing it
+# is committing the same megabytes again per run. Evidence screenshots are
+# report appendices on the drive — see CLAUDE.md, "Screenshots". An image may be
+# committed only where a test actually reads it back.
+/tests/screenshots/
+
 # Playwright
 /test-results/
 /playwright-report/
