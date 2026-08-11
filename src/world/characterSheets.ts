@@ -93,10 +93,16 @@ const PLAYER_ROWS: AnimRow[] = [
 ];
 
 /**
- * Seraphina: long brown hair, a pink shirt and blue trousers. The colours are
+ * Seraphina: long golden hair, a pink shirt and blue trousers. The colours are
  * chosen to hold up against both floors she walks on — a dusk-purple yard and
  * a brown floorboard house — because she has to be the easiest thing on screen
  * to find.
+ *
+ * The hair is the blessed outfit's, and it is the same style she always had:
+ * the pack draws every hair style in five colours on one grid, so gold is a
+ * different file and nothing else. Brown lost her against the wood and the
+ * floorboards; gold is the one colour in the palette that nothing else outdoors
+ * is wearing.
  */
 export const SERAPHINA: CharacterSheet = {
   id: 'seraphina',
@@ -106,7 +112,7 @@ export const SERAPHINA: CharacterSheet = {
     { key: 'seraphina-shoes', file: `${PLAYER}/Feet/Shoes_1_Brown.png` },
     { key: 'seraphina-legs', file: `${PLAYER}/Legs/OG_Pants/Pants_1_Blue.png` },
     { key: 'seraphina-chest', file: `${PLAYER}/Chest/OG_Shirt/Shirt_1_Pink.png` },
-    { key: 'seraphina-hair', file: `${PLAYER}/Head/Hair_4/Hair_4_Brown.png` },
+    { key: 'seraphina-hair', file: `${PLAYER}/Head/Hair_4/Hair_4_Blonde.png` },
   ],
   anims: PLAYER_ROWS,
 };
