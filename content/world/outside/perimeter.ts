@@ -35,7 +35,6 @@ import {
   rng,
   scatter,
   union,
-  without,
   type Placement,
 } from '../../../tools/world/shapes.js';
 import {
@@ -65,8 +64,12 @@ const SEED = 90_210;
  */
 export const EDGE = frame(COLS, ROWS, EDGE_DEPTH);
 
-/** The window the tree wall leaves open, as a lookup. */
+/** The window the tree wall leaves open, as a lookup and as a row range. */
 const GAP = new Cells(WOODS_GAP);
+const GAP_ROWS = {
+  from: Math.min(...WOODS_GAP.map(([, y]) => y)),
+  to: Math.max(...WOODS_GAP.map(([, y]) => y)),
+};
 
 // --- north: the cliff -------------------------------------------------------
 
@@ -175,15 +178,31 @@ export const BEHIND_FENCE: Placement[] = [
   }),
 ];
 
-/** More wood, west of the wall. Never seen whole — only ever through the wall. */
-export const BEHIND_WOOD_WALL: Placement[] = scatter({
-  region: without(rect(0, CLIFF_FOOT, WOOD_WALL, FENCE_SOUTH - CLIFF_FOOT), GAP),
-  images: ['spruceBig', 'spruceBig2', 'oakBig', 'birchBig', 'spruceMed'],
-  chance: 0.7,
-  spacing: 1,
-  seed: SEED + 6,
-  cellsOf,
-});
+/**
+ * More wood, behind and either side of the wall. Never seen whole.
+ *
+ * Anchored in the three columns the map's own edge already blocks, but a big
+ * tree's trunk is a tile and a half right of where it is anchored, so what this
+ * actually thickens is the two columns around the wall — which is the point.
+ * The band it skips is wider than the gap for the same reason: a tree anchored
+ * two rows above the window drops its trunk *into* it, and the one thing that
+ * window may never have in it is something solid.
+ */
+export const BEHIND_WOOD_WALL: Placement[] = [
+  ...treesWestOf(CLIFF_FOOT, GAP_ROWS.from - 4),
+  ...treesWestOf(GAP_ROWS.to + 1, FENCE_SOUTH),
+];
+
+function treesWestOf(from: number, to: number): Placement[] {
+  return scatter({
+    region: rect(0, from, WOOD_WALL, to - from),
+    images: ['spruceBig', 'spruceBig2', 'oakBig', 'birchBig', 'spruceMed'],
+    chance: 0.7,
+    spacing: 1,
+    seed: SEED + 6 + from,
+    cellsOf,
+  });
+}
 
 /** A thin stand at the cliff's foot, wherever the village has left room for it. */
 export const CLIFF_FOOT_TREES: Placement[] = scatter({
