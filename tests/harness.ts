@@ -548,6 +548,40 @@ export async function withHitboxes(page: Page, take: () => Promise<unknown>) {
   await pin(false);
 }
 
+/**
+ * A tight crop of the canvas around her, for the one screenshot that is about
+ * what *she* looks like rather than what she is standing in.
+ *
+ * Everything else in the audit trail is the whole 1280x720 frame, in which she
+ * is seventy pixels tall — which is the right framing for judging a village and
+ * the wrong one for judging a hair colour. The clip is worked out from the
+ * hooks rather than assumed to be the middle of the screen: the camera lags her
+ * on purpose, so "where she is on the canvas" is a thing only the game knows.
+ */
+export async function closeUpOfHer(page: Page, file: string, size = 240) {
+  const canvas = page.locator('#game canvas');
+  const box = (await canvas.boundingBox())!;
+  const hooks = await readHooks(page);
+
+  // Design pixels to CSS pixels: the canvas scales to whatever window it landed
+  // in, and `clip` is in the page's own coordinates.
+  const scale = box.width / 1280;
+  const at = (world: number, camera: number, origin: number) =>
+    origin + (world - camera) * scale;
+
+  await page.screenshot({
+    path: shot(file),
+    clip: {
+      x: at(hooks.player.x, hooks.camera.x, box.x) - size / 2,
+      // Her hooked position is her feet, so the crop is lifted to take in the
+      // whole of her rather than her boots and the grass under them.
+      y: at(hooks.player.y, hooks.camera.y, box.y) - size * 0.62,
+      width: size,
+      height: size,
+    },
+  });
+}
+
 /** The voice manifest loads after boot; nothing voice-shaped works before it. */
 export async function waitForVoice(page: Page) {
   await page.waitForFunction(

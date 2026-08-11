@@ -1,5 +1,14 @@
 import { test, expect } from '@playwright/test';
-import { bootGame, readHooks, shot, walk, walkAndRead, type Hooks } from './harness';
+import {
+  bootGame,
+  closeUpOfHer,
+  readHooks,
+  shot,
+  standAt,
+  walk,
+  walkAndRead,
+  type Hooks,
+} from './harness';
 
 test('she is a drawn character, out of the side-loaded pack', async ({ page }) => {
   const { canvas, errors } = await bootGame(page);
@@ -17,6 +26,13 @@ test('she is a drawn character, out of the side-loaded pack', async ({ page }) =
   expect(boot.player.facing).toBe('down');
 
   await canvas.screenshot({ path: shot('11-player.png') });
+
+  // Close up, on the open green of the village lawn, which is the ground her
+  // gold hair has to stay legible against. The blessed outfit's hair is the one
+  // thing about her that changed and the one thing a 1280-wide frame cannot
+  // show — she is seventy pixels tall in every other picture in this folder.
+  await standAt(page, 'green');
+  await closeUpOfHer(page, '13-player-hair.png');
 
   expect(errors, 'no uncaught page errors').toEqual([]);
 });
