@@ -274,6 +274,36 @@ export const IMAGES: Record<string, ImageDef> = {
     x: 0, y: 0, w: 48, h: 48,
     blocks: { x: 0, y: 0, w: 3, h: 2 },
   },
+
+  // --- the cliff along the top of the world -------------------------------
+  // `Stone_Cliff_1_Tile.png` draws a plateau as one 3-wide block: three rows of
+  // grass on top with a rock rim round them, two courses of boulder under that,
+  // and a soft shadow at its foot. Only the block's **middle column** is
+  // catalogued, because the cliff this world needs runs off both sides of the
+  // map and therefore has no ends — and a middle column is the one slice of an
+  // autotile block that is guaranteed to repeat sideways for ever.
+  //
+  // Measured, not guessed: the plateau's own grass is `#3e8948`, which is the
+  // one outdoor green she walks on everywhere else, so the top of the cliff and
+  // the ground below it are the same colour and only the rock reads as a
+  // change of height. See OVERLAYS for why that mattered.
+  /** Where the grass on top gives out and the rock starts. Solid. */
+  cliffLip: {
+    file: `${A}/Tiles/Cliff/Stone_Cliff_1_Tile.png`, x: 32, y: 32, w: 16, h: 16,
+    blocks: { x: 0, y: 0, w: 1, h: 1 },
+  },
+  /** The two courses of boulder, taken together so they cannot seam. Solid. */
+  cliffFace: {
+    file: `${A}/Tiles/Cliff/Stone_Cliff_1_Tile.png`, x: 32, y: 48, w: 16, h: 32,
+    blocks: { x: 0, y: 0, w: 1, h: 2 },
+  },
+  /**
+   * Grass tufts at the cliff's foot and the shadow it throws on the ground.
+   * Blocks nothing: this is the row she walks along, right up against the rock.
+   */
+  cliffShadow: {
+    file: `${A}/Tiles/Cliff/Stone_Cliff_1_Tile.png`, x: 32, y: 80, w: 16, h: 16,
+  },
   // Four awnings across one sheet, 48 apart. The counter blocks; the awning
   // does not, so she can stand behind a stall and be drawn behind its roof.
   stallRed: stall(0),
@@ -432,6 +462,20 @@ export const IMAGES: Record<string, ImageDef> = {
   fencePost: {
     file: `${A}/Outdoor decoration/Fences.png`, x: 0, y: 0, w: 16, h: 48,
     blocks: { x: 0, y: 2, w: 1, h: 1 },
+  },
+  // The heavy ranch fence, for the two edges of the world that are fenced off
+  // rather than grown over. `Fence_Big.png` is a 4x4 sheet: its first column is
+  // the run going away from the camera, and the three beside it are a run going
+  // across — of which only the **middle** one carries both its rail stubs, so
+  // that is the one that tiles. A post every tile is the pack's own spacing and
+  // the reason this reads as a fence rather than as a line.
+  fenceRunning: {
+    file: `${A}/Outdoor decoration/Fence_Big.png`, x: 32, y: 16, w: 16, h: 16,
+    blocks: { x: 0, y: 0, w: 1, h: 1 },
+  },
+  fenceUpright: {
+    file: `${A}/Outdoor decoration/Fence_Big.png`, x: 0, y: 16, w: 16, h: 16,
+    blocks: { x: 0, y: 0, w: 1, h: 1 },
   },
 
   // --- street furniture ---------------------------------------------------

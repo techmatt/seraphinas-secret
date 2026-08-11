@@ -174,6 +174,20 @@ export interface ZoneLayout {
   place: Placement[];
   /** Blocked outright, whatever is drawn there — the map's own edge, mostly. */
   block?: Iterable<Cell>;
+  /**
+   * This zone's border is out of bounds, and it is scenery that keeps her off it.
+   *
+   * Set on a zone whose edge is meant to be an obstacle-filled boundary — the
+   * Outside's cliff, fences and wood. The build then flood-fills from the spawn
+   * twice: once with the real collision, and once with `block` taken away, so a
+   * boundary that has quietly gone back to being an invisible wall fails the
+   * build rather than the play. `soft` names the cells where the invisible edge
+   * *is* the intended answer, and is the only way to spend that exemption.
+   *
+   * Absent means the zone is not a walled world: the house's front door is a
+   * hole in its bottom row on purpose, and that is what a front door is.
+   */
+  sealed?: { soft?: Iterable<Cell> };
   spawns: Record<string, SpawnLayout>;
   doorways: DoorwayLayout[];
   props: PropLayout[];

@@ -20,11 +20,21 @@ import {
   ROWS,
   SPAWNS,
   T,
+  WOODS_GAP,
 } from './plan.js';
-import { EDGE, EDGE_TREES, GAP_UNDERGROWTH } from './perimeter.js';
+import {
+  BEHIND_FENCE,
+  BEHIND_WOOD_WALL,
+  CLIFF,
+  CLIFF_FOOT_TREES,
+  EDGE,
+  FENCE,
+  GAP_UNDERGROWTH,
+  WOOD_WALL_TREES,
+} from './perimeter.js';
 import { POND_CELLS, ROAD_CELLS } from './roads.js';
 import { POND_DRESSING, POND_SIDE } from './pond.js';
-import { CAVE_CLEARING, UNDERGROWTH, WOOD_TREES, WOODS_PROPS } from './woods-edge.js';
+import { CLEARING_DRESSING, UNDERGROWTH, WOOD_TREES, WOODS_PROPS } from './woods-edge.js';
 import {
   ALLOTMENT_DRESSING,
   BUILDING_SPRITES,
@@ -55,11 +65,17 @@ export const OUTSIDE: ZoneLayout = {
   // the measurements and the rule. The wood, the farm and the green now read
   // through what grows on them.
   place: [
-    ...EDGE_TREES,
+    // The boundary first: everything else was laid out to keep off it.
+    ...BEHIND_WOOD_WALL,
+    ...BEHIND_FENCE,
+    ...CLIFF,
+    ...FENCE,
+    ...WOOD_WALL_TREES,
+    ...CLIFF_FOOT_TREES,
     ...GAP_UNDERGROWTH,
     ...WOOD_TREES,
     ...UNDERGROWTH,
-    ...CAVE_CLEARING,
+    ...CLEARING_DRESSING,
     ...VILLAGE_TREES,
     ...VILLAGE_GROUND,
     ...FARM_GROUND,
@@ -76,6 +92,16 @@ export const OUTSIDE: ZoneLayout = {
     ...STREET_FURNITURE,
   ],
   block: EDGE,
+  /**
+   * The world is fenced off by things she can see, and the build says so.
+   *
+   * `soft` is the one exception, declared out loud: the woods gap is closed with
+   * undergrowth she walks straight into and the map's own edge is what stops
+   * her, because an obvious wall there would read as "this is the end of the
+   * game". Everywhere else the cliff, the fence and the wood have to hold on
+   * their own — see `assertWalledIn`.
+   */
+  sealed: { soft: WOODS_GAP },
   spawns: SPAWNS,
   doorways: [
     {

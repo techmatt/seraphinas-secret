@@ -30,8 +30,12 @@ test('the game opens outside her house, in a world bigger than the screen', asyn
   // Everything Matt named is somewhere in it.
   expect(world.landmarks.map((m) => m.id).sort()).toEqual([
     'cave',
+    'clearing',
+    'cliff',
     'facades',
     'farm',
+    'fence_east',
+    'fence_south',
     'green',
     'house_front',
     'pond',

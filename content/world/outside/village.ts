@@ -14,7 +14,7 @@
 
 import { alongRoad, rect, scatter, union, type Placement } from '../../../tools/world/shapes.js';
 import { BUILDINGS, ROADS, VILLAGE } from './plan.js';
-import { cellsOf, KEEP_CLEAR } from './roads.js';
+import { cellsOf, KEEP_CLEAR_INLAND } from './roads.js';
 import {
   benchBesidePath,
   flowerBed,
@@ -132,7 +132,7 @@ export const VILLAGE_TREES = scatter({
   spacing: 5,
   jitter: 0.5,
   seed: SEED,
-  avoid: KEEP_CLEAR,
+  avoid: KEEP_CLEAR_INLAND,
   cellsOf,
 });
 
@@ -151,6 +151,6 @@ export const VILLAGE_GROUND = scatter({
   spacing: 2,
   jitter: 0.4,
   seed: SEED + 1,
-  avoid: KEEP_CLEAR,
+  avoid: KEEP_CLEAR_INLAND,
   cellsOf,
 });

@@ -1,5 +1,5 @@
 /**
- * The Mystic Woods, and the cave mouth in them.
+ * The Mystic Woods, and the campsite in them.
  *
  * Thick but never solid: every tree in the pack blocks one tile of trunk and
  * nothing else, so a wood at this density is somewhere you wander rather than a
@@ -13,8 +13,8 @@
  */
 
 import { scatter } from '../../../tools/world/shapes.js';
-import { BUILDINGS, WOODS } from './plan.js';
-import { cellsOf, KEEP_CLEAR } from './roads.js';
+import { CLEARING, WOODS } from './plan.js';
+import { cellsOf, KEEP_CLEAR_INLAND } from './roads.js';
 import { campsite } from './prefabs.js';
 
 const SEED = 20_260_809;
@@ -28,7 +28,7 @@ export const WOOD_TREES = scatter({
   spacing: 2,
   jitter: 0.6,
   seed: SEED,
-  avoid: KEEP_CLEAR,
+  avoid: KEEP_CLEAR_INLAND,
   cellsOf,
 });
 
@@ -43,17 +43,21 @@ export const UNDERGROWTH = scatter({
   spacing: 1,
   jitter: 0.4,
   seed: SEED + 1,
-  avoid: KEEP_CLEAR,
+  avoid: KEEP_CLEAR_INLAND,
   cellsOf,
 });
 
 /**
- * The clearing outside the cave: somebody has been camping here. It is the one
- * arranged thing in the whole wood, which is what makes it read as somewhere
- * rather than as more trees.
+ * The campsite: somebody has been camping here. It is the one arranged thing in
+ * the whole wood, which is what makes it read as somewhere rather than as more
+ * trees.
+ *
+ * The cave used to be the far end of it. The cave is in the north cliff now and
+ * the clearing is still a clearing — the fire, the log and the chest have not
+ * moved a tile, because what she walks down here for was never the rock.
  */
-export const CAVE_CLEARING = [
-  ...campsite(BUILDINGS.cave.x + 6, BUILDINGS.cave.y + 4),
+export const CLEARING_DRESSING = [
+  ...campsite(CLEARING.x + 6, CLEARING.y + 4),
   { image: 'lampPostWarm', x: 12.6, y: 37.4 },
 ];
 

@@ -259,16 +259,26 @@ function buildZone(zone: ZoneLayout, sheets: Map<string, Sheet>): BuiltMap {
   // --- collision ---------------------------------------------------------
 
   const blocked = new Uint8Array(n);
+  /**
+   * The half of the collision she can *see*: walls, water, and the tiles under
+   * things that were drawn. `zone.block` is deliberately not in here — that is
+   * the invisible edge, and telling the two apart is the whole basis of the
+   * boundary gate below.
+   */
+  const scenery = new Uint8Array(n);
   const blockRect = (x: number, y: number, w: number, h: number) => {
     for (let j = 0; j < h; j++) {
       for (let i = 0; i < w; i++) {
-        if (inside(x + i, y + j)) blocked[at(x + i, y + j)] = 1;
+        if (inside(x + i, y + j)) {
+          blocked[at(x + i, y + j)] = 1;
+          scenery[at(x + i, y + j)] = 1;
+        }
       }
     }
   };
 
   for (let i = 0; i < n; i++) {
-    if (wall[i] !== null || terrain[i] === 'water') blocked[i] = 1;
+    if (wall[i] !== null || terrain[i] === 'water') blocked[i] = scenery[i] = 1;
   }
   for (const [x, y] of zone.block ?? []) if (inside(x, y)) blocked[at(x, y)] = 1;
 
@@ -353,6 +363,7 @@ function buildZone(zone: ZoneLayout, sheets: Map<string, Sheet>): BuiltMap {
 
   assertRoadsClear(zone, terrain, blocked, cols);
   assertReachable(zone, blocked, cols, rows);
+  assertWalledIn(zone, blocked, scenery, cols, rows);
 
   const drawn = (sheet: Sheet) => {
     const owns = (gid: number) => gid >= sheet.firstgid && gid < sheet.firstgid + sheet.total;
@@ -415,18 +426,13 @@ function assertRoadsClear(
   }
 }
 
-/**
- * A world you cannot walk across is the one bug this generator can actually
- * cause, and no screenshot would show it. So flood-fill from the spawn and
- * insist that every spawn, doorway, prop and landmark is standing in the same
- * open space. A layout that walls the woods off fails the build, not the play.
- */
-function assertReachable(
+/** Everywhere she can walk to from the spawn, over the collision she is given. */
+function flood(
   zone: ZoneLayout,
   blocked: Uint8Array,
   cols: number,
   rows: number,
-): void {
+): Uint8Array {
   const at = (x: number, y: number) => y * cols + x;
   const start = zone.spawns.start ?? Object.values(zone.spawns)[0];
   if (!start) throw new Error(`world: ${zone.id} has no spawns`);
@@ -451,6 +457,23 @@ function assertReachable(
       stack.push(j);
     }
   }
+  return seen;
+}
+
+/**
+ * A world you cannot walk across is the one bug this generator can actually
+ * cause, and no screenshot would show it. So flood-fill from the spawn and
+ * insist that every spawn, doorway, prop and landmark is standing in the same
+ * open space. A layout that walls the woods off fails the build, not the play.
+ */
+function assertReachable(
+  zone: ZoneLayout,
+  blocked: Uint8Array,
+  cols: number,
+  rows: number,
+): void {
+  const at = (x: number, y: number) => y * cols + x;
+  const seen = flood(zone, blocked, cols, rows);
 
   const complain = (what: string, x: number, y: number) => {
     const i = at(Math.floor(x), Math.floor(y));
@@ -473,6 +496,69 @@ function assertReachable(
     });
     if (!ok) throw new Error(`world: ${zone.id} — prop ${prop.id} cannot be walked up to`);
   }
+}
+
+/**
+ * The boundary is obstacle-filled, and stays that way.
+ *
+ * Matt's principle for the edge of the world (2026-08-10): it must read as a
+ * wall of stuff, and there must be no walkable route to any cell on the map's
+ * own border. The first half is a screenshot's job. The second half is this,
+ * run twice:
+ *
+ *  - **With everything.** No border cell is reachable at all. This is the flat
+ *    statement of the rule, and it is what fails if a fence loses a tile and the
+ *    invisible edge has been trimmed back too.
+ *  - **Without `zone.block`.** No border cell is reachable using only the
+ *    collision she can *see* — the cliff, the fence, the trunks. Without this
+ *    second pass the first is nearly free: a frame of invisible blocked tiles
+ *    satisfies it whatever the world looks like, which is exactly the boundary
+ *    this rule was written to replace.
+ *
+ * `sealed.soft` is the one exemption and it is spent by name, not inferred: the
+ * woods gap is closed with undergrowth she can walk into, on purpose, and the
+ * map's own edge is what stops her there. Those cells count as solid in the
+ * second pass, so declaring one is a visible line in the layout rather than a
+ * hole that opens quietly.
+ */
+function assertWalledIn(
+  zone: ZoneLayout,
+  blocked: Uint8Array,
+  scenery: Uint8Array,
+  cols: number,
+  rows: number,
+): void {
+  if (!zone.sealed) return;
+
+  const border = (i: number) => {
+    const x = i % cols;
+    const y = Math.floor(i / cols);
+    return x === 0 || y === 0 || x === cols - 1 || y === rows - 1;
+  };
+
+  const leaks = (seen: Uint8Array) => {
+    const out: string[] = [];
+    for (let i = 0; i < seen.length; i++) {
+      if (seen[i] && border(i)) out.push(`${i % cols},${Math.floor(i / cols)}`);
+    }
+    return out;
+  };
+
+  const complain = (how: string, out: string[]) => {
+    if (!out.length) return;
+    throw new Error(
+      `world: ${zone.id} — the boundary leaks (${how}): ${out.length} border cells can be ` +
+        `walked to, from ${out.slice(0, 12).join(' ')}${out.length > 12 ? ' …' : ''}`,
+    );
+  };
+
+  complain('everything solid', leaks(flood(zone, blocked, cols, rows)));
+
+  const withSoft = Uint8Array.from(scenery);
+  for (const [x, y] of zone.sealed.soft ?? []) {
+    if (x >= 0 && y >= 0 && x < cols && y < rows) withSoft[y * cols + x] = 1;
+  }
+  complain('only what is drawn', leaks(flood(zone, withSoft, cols, rows)));
 }
 
 // --- main -------------------------------------------------------------------

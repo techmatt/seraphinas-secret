@@ -20,7 +20,7 @@ import {
   type Cell,
   type Placement,
 } from '../../../tools/world/shapes.js';
-import { APRONS, BUILDINGS, GREEN, POND, ROADS, T } from './plan.js';
+import { APRONS, BOUNDARY, BUILDINGS, GREEN, POND, ROADS, T } from './plan.js';
 
 /**
  * Which tiles a catalog image would make solid, put down here — the same
@@ -31,6 +31,23 @@ export const cellsOf = (image: string, x: number, y: number) => {
   const def = IMAGES[image];
   if (!def) throw new Error(`layout: no catalog image "${image}"`);
   return footing(def, x, y).cells;
+};
+
+/**
+ * `cellsOf` backwards: where to put an image so that the tile it makes solid is
+ * this one.
+ *
+ * A scatter says "somewhere around here" and lets the footing land where it
+ * lands. A wall says "a trunk in *that* cell", and the pack draws a big tree
+ * with its trunk centred on a four-tile picture — so the sprite goes down a tile
+ * and a half to the left of the cell it stops her in, and getting that offset by
+ * hand at every call site is how a wall grows the holes it was built to close.
+ */
+export const plantAt = (image: string, x: number, y: number): Placement => {
+  const def = IMAGES[image];
+  if (!def) throw new Error(`layout: no catalog image "${image}"`);
+  if (!def.blocks) throw new Error(`layout: "${image}" is walk-through — nothing to plant`);
+  return { image, x: x - def.blocks.x, y: y - def.blocks.y };
 };
 
 /** Every tile a sprite's picture covers, so nothing gets planted through a roof. */
@@ -78,6 +95,18 @@ export const KEEP_CLEAR = new Cells([
 ]);
 
 /**
+ * The same, plus the boundary band.
+ *
+ * Two sets rather than one because the boundary is on both sides of the rule:
+ * it has to keep off the roads and the doorsteps like everything else, and
+ * everything else has to keep out of it. A tuft of grass scattered onto a cliff
+ * face is drawn *over the rock*, and an oak that seeds itself in front of the
+ * fence turns a boundary back into a suggestion — so the wood, the village and
+ * the farm all plant against this one, and only `perimeter.ts` uses the other.
+ */
+export const KEEP_CLEAR_INLAND = new Cells([...KEEP_CLEAR, ...BOUNDARY]);
+
+/**
  * Drop anything whose solid part would land on a road or a building.
  *
  * For sets laid out by rule rather than by hand — an orchard planted on a grid,
@@ -90,6 +119,8 @@ export function clearOfRoads(placements: Placement[]): Placement[] {
   return placements.filter(({ image, x, y }) => {
     const solid = cellsOf(image, x, y);
     if (!solid) return true;
-    return !rect(solid.x, solid.y, solid.w, solid.h).some(([cx, cy]) => KEEP_CLEAR.has(cx, cy));
+    return !rect(solid.x, solid.y, solid.w, solid.h).some(([cx, cy]) =>
+      KEEP_CLEAR_INLAND.has(cx, cy),
+    );
   });
 }

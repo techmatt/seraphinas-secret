@@ -12,15 +12,15 @@
  * Moving Joey's house two tiles left is still a two-character edit — it is just
  * this file rather than a thousand-line one.
  *
- *      0    3        21              51        69   72
- *    0 +------------- tree line all the way round ---+
- *    5 |      |  joey   scar   |     shed            |
- *   14 |  M   | ===== the top road ================= |
- *   22 |  y   |  Seraphina's   |     the vegetable   |
- *   29 |  s   |  house (in)    |     patches         |
- *   32 |  t = the main road, west into the woods === |
- *   38 | cave |  green   pond  |     orchard         |
- *   47 +--------------------------------------------+
+ *      0  3          21              51        68   72
+ *    1 +===== the mountain cliff, cave cut into it ==+
+ *    5 | T W  |  joey   scar   |     shed          F |
+ *   14 | R O  | ===== the top road ================ E |
+ *   22 | E O  |  Seraphina's   |     the vegetable N |
+ *   29 | E D  |  house (in)    |     patches       C |
+ *   32 | | S = the main road, west into the woods = E |
+ *   38 | gap  |  green   pond  |     orchard         |
+ *   46 +---------------- the south fence ------------+
  */
 
 import { rect, union, type Cell, type RoadSpec } from '../../../tools/world/shapes.js';
@@ -31,13 +31,55 @@ export const ROWS = 50;
 /** Pixels per tile, for turning a measured sprite offset into a door position. */
 export const T = 16;
 
-// --- the bands the map is cut into ------------------------------------------
+// --- the boundary -----------------------------------------------------------
 
-/** Tiles of blocked edge all the way round. The world stops here. */
+/**
+ * Matt's principle (2026-08-10), and Stardew's: **the map boundary must be
+ * obstacle-filled.** It has to read as a wall of stuff, and there must be no
+ * walkable route to any cell on the map's own border. A single row of trees
+ * with air between the trunks fails both halves — she walks up to it, sees a
+ * way through, and is stopped by nothing at all.
+ *
+ * So each edge is a thing rather than a band: a mountain cliff along the top
+ * with the cave mouth cut into it, a fence down the east and along the south,
+ * and the wood's own trunks down the west. `tools/world/build.ts` flood-fills
+ * from the spawn and fails the build if any of it leaks — twice, once with the
+ * invisible `EDGE` and once without it, so "a wall of stuff" is checkable and
+ * not just a thing this comment claims.
+ */
+
+/** Tiles of blocked edge all the way round. The backstop behind everything else. */
 export const EDGE_DEPTH = 3;
 
-/** How deep the tree line is planted. Deeper than the block, so it reads as wood. */
-export const TREE_BAND = 5;
+/**
+ * The north cliff, row by row: the grass gives out at `CLIFF_LIP`, two courses
+ * of boulder stand under it, and `CLIFF_FOOT` is the shadowed row at its base —
+ * the first row she can walk on, and the row the cave mouth's own step is in.
+ */
+export const CLIFF_LIP = 1;
+export const CLIFF_FOOT = 4;
+
+/** The fenced edges: the column the east fence stands in, and the south's row. */
+export const FENCE_EAST = 68;
+export const FENCE_SOUTH = 46;
+
+/** The column of trunks that is the west wall. Everything west of it is backing. */
+export const WOOD_WALL = 3;
+
+/**
+ * Every cell the boundary owns.
+ *
+ * Nothing inland may be planted in here: a self-sown oak standing in front of
+ * the fence is the thing that turns a boundary back into a suggestion, and a
+ * tuft of grass drawn over a cliff face is worse. The boundary's own modules
+ * place into it by hand and are not filtered.
+ */
+export const BOUNDARY: Cell[] = union(
+  rect(0, 0, COLS, CLIFF_FOOT + 1),
+  rect(FENCE_EAST, 0, COLS - FENCE_EAST, ROWS),
+  rect(0, FENCE_SOUTH, COLS, ROWS - FENCE_SOUTH),
+  rect(0, 0, WOOD_WALL + 1, ROWS),
+);
 
 /** The Mystic Woods: everything west of the village. */
 export const WOODS = rect(3, 3, 18, 44);
@@ -72,6 +114,11 @@ export const ALLOTMENT = rect(21, 16, 4, 15);
  * The window starts two columns in, not at the map edge: the outermost trees
  * stay, so what she sees down the trail is more forest with its undergrowth
  * grown over — rather than open ground with an invisible wall across it.
+ *
+ * This is the one place in the world where `EDGE` is the only thing stopping
+ * her, and it is deliberate: an obvious wall here would say "this is the end of
+ * the game", and undergrowth says "not yet". The build gate is told about it by
+ * name — see `sealed.soft` in `index.ts` — rather than being quietly weakened.
  */
 export const WOODS_GAP = rect(2, 27, 4, 6);
 
@@ -96,8 +143,17 @@ export const ROADS: Record<string, RoadSpec> = {
   farmLane: { name: 'the farm lane', points: [[58, 14], [58, 44]], width: 3 },
   greenPath: { name: 'the path down to the green', points: [[24, 32], [24, 43]], width: 3 },
   pondPath: { name: 'the path along to the pond', points: [[24, 43], [38, 43]], width: 3 },
-  caveSpur: { name: 'the spur down to the cave', points: [[10, 33], [10, 41]], width: 3 },
-  caveStub: { name: 'the last few steps to the cave mouth', points: [[6, 41], [10, 41]], width: 3 },
+  // The cave used to be at the end of these two. It is in the north cliff now,
+  // and what they lead to is the clearing somebody camps in — which is still
+  // worth walking to, and still where the campfire is.
+  clearingSpur: { name: 'the spur down to the clearing', points: [[10, 33], [10, 41]], width: 3 },
+  clearingStub: { name: 'the last few steps into the clearing', points: [[6, 41], [10, 41]], width: 3 },
+  /**
+   * Up through the wood to the cave. Stardew's mine is somewhere you climb to
+   * out of town rather than something you find behind a house, and a road she
+   * can see the whole length of is how a four-year-old finds anything.
+   */
+  mountainPath: { name: 'the mountain path, up to the cave', points: [[10, 29], [10, CLIFF_FOOT]], width: 3 },
 };
 
 // --- water and ploughed ground ----------------------------------------------
@@ -135,8 +191,30 @@ export const BUILDINGS = {
   joey: { image: 'joeyHouse', x: 30, y: 6, door: { x: 30 + 40 / T, y: 11 } },
   scar: { image: 'scarHouse', x: 39, y: 5, door: { x: 39 + 36 / T, y: 11 } },
   shed: { image: 'shed', x: 52, y: 5, door: { x: 52 + 39 / T, y: 11 } },
-  cave: { image: 'caveMouth', x: 6, y: 38, door: { x: 7.5, y: 40 } },
+  /**
+   * The Secret Cave, cut into the north cliff where the mountain path comes out
+   * of the wood. Three tiles wide and two tall, standing on exactly the two
+   * courses of boulder the cliff face is made of — so the mine replaces the
+   * rock rather than being propped in front of it, and the lip above it carries
+   * straight on over the top.
+   */
+  cave: {
+    image: 'caveMouth',
+    x: 9,
+    y: CLIFF_LIP + 1,
+    door: { x: 10.5, y: CLIFF_FOOT + 0.6 },
+  },
 } satisfies Record<string, BuildingPlan>;
+
+/**
+ * The clearing the cave used to be at the end of.
+ *
+ * It stays a clearing: somebody has been camping in the wood, and the fire, the
+ * log and the chest are the one arranged thing in the whole of it. Written down
+ * separately from `BUILDINGS.cave` now, because the two used to be the same
+ * anchor and the cave has moved half the map away.
+ */
+export const CLEARING = { x: 6, y: 38 } as const;
 
 /** The neighbours and the cave: knocked on, never opened. */
 export const FACADES: { id: string; plan: BuildingPlan }[] = [
@@ -163,11 +241,20 @@ export const LANDMARKS: { id: string; x: number; y: number }[] = [
   { id: 'shed', x: 56, y: 12 },
   { id: 'farm', x: 58, y: 22 },
   { id: 'pond', x: 36, y: 43 },
-  { id: 'cave', x: 9, y: 42 },
+  // The mine, at the top of the mountain path. Two rows below its own step, so
+  // the picture is of the cliff with the cave in it and not of her hat.
+  { id: 'cave', x: 10, y: CLIFF_FOOT + 2 },
+  // The same cliff where nothing is cut into it — the boundary on its own.
+  { id: 'cliff', x: 26, y: CLIFF_FOOT + 2 },
   { id: 'woods', x: 14, y: 22 },
   // Where the trail runs out of map. The tree line stops, the undergrowth
   // thickens, and one day there will be somewhere through it.
   { id: 'woods_gap', x: 7, y: 29 },
+  /** The campsite the cave left behind when it moved into the cliff. */
+  { id: 'clearing', x: 9, y: 42 },
+  // The two fenced edges, photographed from just inside them.
+  { id: 'fence_east', x: FENCE_EAST - 2, y: 26 },
+  { id: 'fence_south', x: 40, y: FENCE_SOUTH - 2 },
 ];
 
 /**
@@ -201,8 +288,10 @@ export const APRONS: Cell[] = [
   ...rect(30, 11, 8, 2),
   ...rect(39, 11, 7, 2),
   ...rect(52, 11, 7, 2),
-  // The clearing outside the cave, which is dressed by hand and must stay open.
+  // The campsite clearing, which is dressed by hand and must stay open.
   ...rect(5, 38, 9, 5),
   // Room round the toadstool in the wood, so a spruce cannot land on top of it.
   ...rect(14, 20, 3, 3),
+  // The step outside the cave mouth, at the top of the mountain path.
+  ...rect(BUILDINGS.cave.x - 1, CLIFF_FOOT, 5, 2),
 ];

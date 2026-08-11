@@ -1,50 +1,206 @@
 /**
- * The wall of trees round the edge of the world, and the one gap in it.
+ * The edge of the world, and the one gap in it.
  *
- * The band is a spec rather than a drawing: how deep the world is fenced off,
- * how deep the trees are planted, and where the tree line is told to stop. The
- * gap is at the far west, on the Mystic Woods side, where a future prompt will
- * put a way out — today it reads as a path that carries on into the dark and
- * then gets too thick to push through. Closed with undergrowth on purpose: an
- * obvious wall there would say "this is the end of the game", and undergrowth
- * says "not yet".
+ * Matt's reference is Stardew Valley, and the principle behind it is his
+ * (2026-08-10): **the map boundary must be obstacle-filled.** It has to read as
+ * a wall of stuff from a metre away, and there has to be no walkable route to
+ * any cell on the map's own border. The band of scattered trees this replaced
+ * failed both — single rows of trunks with walkable air between them, and an
+ * invisible edge three tiles further out doing the actual stopping.
+ *
+ * So each edge is now a thing rather than a density:
+ *
+ *   north   a mountain cliff, with the Secret Cave cut into its face
+ *   east    a heavy ranch fence, with a treeline behind it
+ *   south   the same fence, the same treeline
+ *   west    the wood's own trunks, one in every cell of one column
+ *
+ * The gap is at the far west, on the Mystic Woods side, where a future prompt
+ * will put a way out — today it reads as a path that carries on into the dark
+ * and then gets too thick to push through. Closed with undergrowth on purpose:
+ * an obvious wall there would say "this is the end of the game", and undergrowth
+ * says "not yet". It is the one place `EDGE` is the only thing stopping her, and
+ * the build gate is told about it by name rather than being weakened.
+ *
+ * Nothing in here is filtered against `KEEP_CLEAR` the way an inland scatter is.
+ * The boundary is what everything else gets out of the way of, so it is placed
+ * by hand and `assertRoadsClear` is what catches a road run into it.
  */
 
-import { frame, rect, scatter, union, without, Cells } from '../../../tools/world/shapes.js';
-import { EDGE_DEPTH, COLS, ROWS, TREE_BAND, WOODS_GAP } from './plan.js';
-import { cellsOf, KEEP_CLEAR } from './roads.js';
+import {
+  Cells,
+  frame,
+  pick,
+  rect,
+  rng,
+  scatter,
+  union,
+  without,
+  type Placement,
+} from '../../../tools/world/shapes.js';
+import {
+  BUILDINGS,
+  CLIFF_FOOT,
+  CLIFF_LIP,
+  COLS,
+  EDGE_DEPTH,
+  FENCE_EAST,
+  FENCE_SOUTH,
+  ROWS,
+  WOOD_WALL,
+  WOODS_GAP,
+} from './plan.js';
+import { cellsOf, KEEP_CLEAR, plantAt } from './roads.js';
 
 const SEED = 90_210;
 
-/** Blocked outright, whatever is drawn on it. The world stops here. */
+/**
+ * Blocked outright, whatever is drawn on it.
+ *
+ * The backstop, not the boundary. Every edge below stands inside this frame and
+ * does the stopping she can see; this is what is left if one of them ever grows
+ * a hole, and what closes the woods gap where a visible wall would say the wrong
+ * thing. The build gate runs once with it and once without, so it can never
+ * quietly become the only thing holding the world in again.
+ */
 export const EDGE = frame(COLS, ROWS, EDGE_DEPTH);
 
-/** Where the trees are planted: deeper than the block, so the wall has depth. */
-const BAND = frame(COLS, ROWS, TREE_BAND);
+/** The window the tree wall leaves open, as a lookup. */
+const GAP = new Cells(WOODS_GAP);
+
+// --- north: the cliff -------------------------------------------------------
+
+/** The three columns the cave mouth is cut into, so the face skips them. */
+const CAVE_COLS = new Set(
+  Array.from({ length: 3 }, (_, i) => BUILDINGS.cave.x + i),
+);
 
 /**
- * The tree line, minus the window where the woods are supposed to open.
+ * The cliff, column by column, all the way across.
  *
- * The band overhangs the blocked edge by two tiles, so its inner trees stand on
- * ground she can walk — and a trunk four tiles below its own anchor can land in
- * the middle of the road the trail leaves the map by. Hence the same keep-clear
- * set every other scatter uses.
+ * Four rows of picture: plateau grass above (which is the map's own grass, so
+ * nothing draws it), the lip where that grass gives out, two courses of boulder,
+ * and the shadow at the foot. The lip and the face are solid; the shadow is the
+ * row she walks along with the rock at her shoulder.
+ *
+ * The cave's three columns get the lip and nothing else. Its own picture is the
+ * two courses of boulder with a mine cut through them and a step at the bottom,
+ * so it lands exactly where the face and the shadow would have — which is what
+ * makes it read as cut *into* the cliff rather than parked in front of it.
  */
-export const EDGE_TREES = scatter({
-  region: without(BAND, new Cells(WOODS_GAP)),
-  images: ['spruceBig', 'spruceBig2', 'oakBig', 'oakBig2', 'birchBig', 'spruceMed'],
-  chance: 0.85,
+export const CLIFF: Placement[] = (() => {
+  const out: Placement[] = [];
+  for (let x = 0; x < COLS; x++) {
+    out.push(plantAt('cliffLip', x, CLIFF_LIP));
+    if (CAVE_COLS.has(x)) continue;
+    out.push(plantAt('cliffFace', x, CLIFF_LIP + 1));
+    out.push({ image: 'cliffShadow', x, y: CLIFF_FOOT });
+  }
+  return out;
+})();
+
+// --- east and south: the fence ----------------------------------------------
+
+/**
+ * The fence: down the east side from the cliff's foot, then west along the
+ * south to meet the wood.
+ *
+ * Every tile of it is solid, so the fence has no gaps in the sense that matters.
+ * The gaps it does have are the ones between its rails, and those are backed by
+ * the treeline behind it — which is the whole reason `BEHIND_FENCE` exists.
+ */
+export const FENCE: Placement[] = [
+  ...Array.from({ length: FENCE_SOUTH - CLIFF_FOOT }, (_, i) =>
+    plantAt('fenceUpright', FENCE_EAST, CLIFF_FOOT + i),
+  ),
+  ...Array.from({ length: FENCE_EAST - WOOD_WALL + 1 }, (_, i) =>
+    plantAt('fenceRunning', WOOD_WALL + i, FENCE_SOUTH),
+  ),
+];
+
+// --- west: the wood is the wall ---------------------------------------------
+
+/**
+ * A trunk in every cell of one column, from the cliff's foot to the fence.
+ *
+ * Not a scatter. A scatter is what the west edge used to be, and at any density
+ * a scatter leaves cells empty — which is exactly the walkable air the overlay
+ * was showing. Big trees are four tiles of picture around one tile of trunk, so
+ * a solid column of them is a canopy she cannot see daylight through standing
+ * over a wall she cannot walk through, and the two are the same trees.
+ *
+ * The window at `WOODS_GAP` is left out, and stays left out.
+ */
+export const WOOD_WALL_TREES: Placement[] = (() => {
+  const random = rng(SEED + 3);
+  const trees = ['spruceBig', 'spruceBig2', 'oakBig', 'oakBig2', 'spruceBig', 'birchBig'] as const;
+  const out: Placement[] = [];
+  for (let y = CLIFF_FOOT; y < FENCE_SOUTH; y++) {
+    if (GAP.has(WOOD_WALL, y)) continue;
+    out.push(plantAt(pick(random, trees), WOOD_WALL, y));
+  }
+  return out;
+})();
+
+// --- what stands behind all of it -------------------------------------------
+
+/**
+ * The depth behind each edge: more wood west of the wall, a treeline east of
+ * the fence and south of it, and a thin stand at the cliff's foot.
+ *
+ * The cliff-foot stand is the only one of the four she can walk among, and it
+ * keeps `KEEP_CLEAR` — a spruce in the middle of the mountain path or on a
+ * neighbour's doorstep would undo the two things it is there to decorate.
+ */
+export const BEHIND_FENCE: Placement[] = [
+  // East. No spacing at all: the strip behind the fence is three tiles wide and
+  // forty long, and spacing a scatter over three tiles is how you get one tree
+  // every third row and daylight between them — which is precisely the gap the
+  // rails are supposed to have something behind.
+  ...scatter({
+    region: rect(FENCE_EAST + 1, CLIFF_FOOT, COLS - FENCE_EAST - 1, FENCE_SOUTH - CLIFF_FOOT),
+    images: ['spruceBig', 'oakBig2', 'birchBig', 'spruceMed', 'spruceBig2', 'oakMed', 'bushDark'],
+    chance: 0.55,
+    seed: SEED + 4,
+    cellsOf,
+  }),
+  // South. Anything here is nearer the camera than the fence is, so a big tree
+  // leaning over the rails is what a tree behind a fence actually looks like.
+  ...scatter({
+    region: rect(WOOD_WALL, FENCE_SOUTH + 1, FENCE_EAST - WOOD_WALL + 1, ROWS - FENCE_SOUTH - 1),
+    images: ['spruceBig', 'spruceBig2', 'oakBig', 'oakBig2', 'birchBig', 'spruceMed', 'bushDark'],
+    chance: 0.5,
+    seed: SEED + 5,
+    cellsOf,
+  }),
+];
+
+/** More wood, west of the wall. Never seen whole — only ever through the wall. */
+export const BEHIND_WOOD_WALL: Placement[] = scatter({
+  region: without(rect(0, CLIFF_FOOT, WOOD_WALL, FENCE_SOUTH - CLIFF_FOOT), GAP),
+  images: ['spruceBig', 'spruceBig2', 'oakBig', 'birchBig', 'spruceMed'],
+  chance: 0.7,
   spacing: 1,
-  jitter: 0.35,
-  seed: SEED,
+  seed: SEED + 6,
+  cellsOf,
+});
+
+/** A thin stand at the cliff's foot, wherever the village has left room for it. */
+export const CLIFF_FOOT_TREES: Placement[] = scatter({
+  region: rect(WOOD_WALL + 1, CLIFF_FOOT + 1, FENCE_EAST - WOOD_WALL - 1, 3),
+  images: ['spruceBig', 'spruceBig2', 'oakBig2', 'spruceMed', 'oakMed', 'bush', 'bushDark'],
+  chance: 0.3,
+  spacing: 2,
+  jitter: 0.4,
+  seed: SEED + 7,
   avoid: KEEP_CLEAR,
   cellsOf,
 });
 
 /**
  * What closes the gap. Thick, soft and entirely walk-through — the map's own
- * edge is what actually stops her, three tiles further out, and she never gets
- * to touch it.
+ * edge is what actually stops her, three tiles further out, and it is the one
+ * place in the world that is true of.
  */
 export const GAP_UNDERGROWTH = scatter({
   region: union(WOODS_GAP, rect(4, 26, 5, 8)),

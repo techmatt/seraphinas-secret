@@ -42,12 +42,18 @@ test('holding B shows the collision grid, and changes nothing else', async ({ pa
 test('the wood, with its hitboxes showing', async ({ page }) => {
   const { canvas, errors } = await bootGame(page);
 
-  // The three densest stands of trees in the world. Whatever a tree's collision
-  // does wrong, it does it seventy times over in these three views.
+  // The densest stands of trees in the world, and one framing per edge of it.
+  // Whatever a tree's collision does wrong it does seventy times over in the
+  // first three; the last four are the boundary, where what the overlay has to
+  // show is a *continuous* run of solid cells with no walkable air in it.
   const places: [string, string][] = [
     ['woods', '40-hitboxes-woods.png'],
     ['woods_gap', '41-hitboxes-woods-gap.png'],
-    ['cave', '42-hitboxes-cave.png'],
+    ['clearing', '42-hitboxes-clearing.png'],
+    ['cave', '43-hitboxes-cliff-cave.png'],
+    ['cliff', '44-hitboxes-cliff.png'],
+    ['fence_east', '45-hitboxes-fence-east.png'],
+    ['fence_south', '46-hitboxes-fence-south.png'],
   ];
 
   for (const [id, file] of places) {
