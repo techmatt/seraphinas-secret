@@ -157,5 +157,64 @@
     "speaker": "seraphina",
     "text": "I need my hammer!",
     "note": "The same sentence from the other end: said at a gem rock with the axe out."
+  },
+  {
+    "id": "sneak_cave_greet",
+    "speaker": "sneak",
+    "text": "You made it! Stand by the fire.",
+    "say": "You made it. Stand by the fire.",
+    "note": "He is already in the cave when she gets there. Said on arrival, and what the yellow button replays until she is actually standing in the circle. Same mid-line '!' fix."
+  },
+  {
+    "id": "sneak_press_red",
+    "speaker": "sneak",
+    "text": "Press the red button!",
+    "note": "The ritual, one instruction at a time. The colour word in the text is the reading material; the slot row shows the same colour as a dot, never a letter. Bangs here are line-final and cost nothing."
+  },
+  {
+    "id": "sneak_press_green",
+    "speaker": "sneak",
+    "text": "Now the green button!"
+  },
+  {
+    "id": "sneak_press_blue",
+    "speaker": "sneak",
+    "text": "Now the blue button!"
+  },
+  {
+    "id": "sneak_try_red",
+    "speaker": "sneak",
+    "text": "Try the red one!",
+    "note": "A wrong press never goes backwards — it fizzles, everybody giggles, and he says which one it was again. See CLAUDE.md, 'No fail states'."
+  },
+  {
+    "id": "sneak_try_green",
+    "speaker": "sneak",
+    "text": "Try the green one!"
+  },
+  {
+    "id": "sneak_try_blue",
+    "speaker": "sneak",
+    "text": "Try the blue one!"
+  },
+  {
+    "id": "sneak_faeries_real",
+    "speaker": "sneak",
+    "text": "Faeries! Real faeries!",
+    "say": "Faeries. Real faeries!",
+    "note": "The big moment. Mid-line bang split, so the second half does not start a second late."
+  },
+  {
+    "id": "hazel_pretty",
+    "speaker": "hazel",
+    "text": "So pretty!",
+    "note": "Hazel came to the cave too, and this is the whole of what she has to say about faeries."
+  },
+  {
+    "id": "sneak_thanks",
+    "speaker": "sneak",
+    "text": "We did it! Thank you, Seraphina.",
+    "say": "We did it. Thank you, Seraphina.",
+    "note": "The last line of the quest. Same mid-line '!' fix."
   }
 ]

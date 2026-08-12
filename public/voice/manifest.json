@@ -919,6 +919,306 @@
         }
       ],
       "duration": 1.463
+    },
+    {
+      "id": "sneak_cave_greet",
+      "speaker": "sneak",
+      "text": "You made it! Stand by the fire.",
+      "audio": "voice/sneak_cave_greet.mp3",
+      "words": [
+        {
+          "word": "You",
+          "start": 0.098,
+          "end": 0.29
+        },
+        {
+          "word": "made",
+          "start": 0.302,
+          "end": 0.579
+        },
+        {
+          "word": "it!",
+          "start": 0.591,
+          "end": 0.831
+        },
+        {
+          "word": "Stand",
+          "start": 1.659,
+          "end": 2.2
+        },
+        {
+          "word": "by",
+          "start": 2.212,
+          "end": 2.356
+        },
+        {
+          "word": "the",
+          "start": 2.368,
+          "end": 2.476
+        },
+        {
+          "word": "fire.",
+          "start": 2.488,
+          "end": 3.005
+        }
+      ],
+      "duration": 3.005
+    },
+    {
+      "id": "sneak_press_red",
+      "speaker": "sneak",
+      "text": "Press the red button!",
+      "audio": "voice/sneak_press_red.mp3",
+      "words": [
+        {
+          "word": "Press",
+          "start": 0.098,
+          "end": 0.447
+        },
+        {
+          "word": "the",
+          "start": 0.459,
+          "end": 0.591
+        },
+        {
+          "word": "red",
+          "start": 0.603,
+          "end": 0.915
+        },
+        {
+          "word": "button!",
+          "start": 0.927,
+          "end": 1.384
+        }
+      ],
+      "duration": 1.384
+    },
+    {
+      "id": "sneak_press_green",
+      "speaker": "sneak",
+      "text": "Now the green button!",
+      "audio": "voice/sneak_press_green.mp3",
+      "words": [
+        {
+          "word": "Now",
+          "start": 0.098,
+          "end": 0.447
+        },
+        {
+          "word": "the",
+          "start": 0.459,
+          "end": 0.603
+        },
+        {
+          "word": "green",
+          "start": 0.615,
+          "end": 1.012
+        },
+        {
+          "word": "button!",
+          "start": 1.024,
+          "end": 1.492
+        }
+      ],
+      "duration": 1.492
+    },
+    {
+      "id": "sneak_press_blue",
+      "speaker": "sneak",
+      "text": "Now the blue button!",
+      "audio": "voice/sneak_press_blue.mp3",
+      "words": [
+        {
+          "word": "Now",
+          "start": 0.098,
+          "end": 0.423
+        },
+        {
+          "word": "the",
+          "start": 0.435,
+          "end": 0.579
+        },
+        {
+          "word": "blue",
+          "start": 0.591,
+          "end": 0.891
+        },
+        {
+          "word": "button!",
+          "start": 0.903,
+          "end": 1.396
+        }
+      ],
+      "duration": 1.396
+    },
+    {
+      "id": "sneak_try_red",
+      "speaker": "sneak",
+      "text": "Try the red one!",
+      "audio": "voice/sneak_try_red.mp3",
+      "words": [
+        {
+          "word": "Try",
+          "start": 0.098,
+          "end": 0.423
+        },
+        {
+          "word": "the",
+          "start": 0.435,
+          "end": 0.567
+        },
+        {
+          "word": "red",
+          "start": 0.579,
+          "end": 0.879
+        },
+        {
+          "word": "one!",
+          "start": 0.891,
+          "end": 1.264
+        }
+      ],
+      "duration": 1.264
+    },
+    {
+      "id": "sneak_try_green",
+      "speaker": "sneak",
+      "text": "Try the green one!",
+      "audio": "voice/sneak_try_green.mp3",
+      "words": [
+        {
+          "word": "Try",
+          "start": 0.098,
+          "end": 0.423
+        },
+        {
+          "word": "the",
+          "start": 0.435,
+          "end": 0.567
+        },
+        {
+          "word": "green",
+          "start": 0.579,
+          "end": 0.963
+        },
+        {
+          "word": "one!",
+          "start": 0.976,
+          "end": 1.336
+        }
+      ],
+      "duration": 1.336
+    },
+    {
+      "id": "sneak_try_blue",
+      "speaker": "sneak",
+      "text": "Try the blue one!",
+      "audio": "voice/sneak_try_blue.mp3",
+      "words": [
+        {
+          "word": "Try",
+          "start": 0.098,
+          "end": 0.423
+        },
+        {
+          "word": "the",
+          "start": 0.435,
+          "end": 0.555
+        },
+        {
+          "word": "blue",
+          "start": 0.567,
+          "end": 0.867
+        },
+        {
+          "word": "one!",
+          "start": 0.879,
+          "end": 1.252
+        }
+      ],
+      "duration": 1.252
+    },
+    {
+      "id": "sneak_faeries_real",
+      "speaker": "sneak",
+      "text": "Faeries! Real faeries!",
+      "audio": "voice/sneak_faeries_real.mp3",
+      "words": [
+        {
+          "word": "Faeries!",
+          "start": 0.098,
+          "end": 0.879
+        },
+        {
+          "word": "Real",
+          "start": 1.695,
+          "end": 2.043
+        },
+        {
+          "word": "faeries!",
+          "start": 2.055,
+          "end": 2.776
+        }
+      ],
+      "duration": 2.776
+    },
+    {
+      "id": "hazel_pretty",
+      "speaker": "hazel",
+      "text": "So pretty!",
+      "audio": "voice/hazel_pretty.mp3",
+      "words": [
+        {
+          "word": "So",
+          "start": 0.097,
+          "end": 0.427
+        },
+        {
+          "word": "pretty!",
+          "start": 0.439,
+          "end": 0.946
+        }
+      ],
+      "duration": 0.946
+    },
+    {
+      "id": "sneak_thanks",
+      "speaker": "sneak",
+      "text": "We did it! Thank you, Seraphina.",
+      "audio": "voice/sneak_thanks.mp3",
+      "words": [
+        {
+          "word": "We",
+          "start": 0.098,
+          "end": 0.314
+        },
+        {
+          "word": "did",
+          "start": 0.326,
+          "end": 0.567
+        },
+        {
+          "word": "it!",
+          "start": 0.579,
+          "end": 0.819
+        },
+        {
+          "word": "Thank",
+          "start": 1.647,
+          "end": 1.959
+        },
+        {
+          "word": "you,",
+          "start": 1.971,
+          "end": 2.2
+        },
+        {
+          "word": "Seraphina.",
+          "start": 2.464,
+          "end": 3.293
+        }
+      ],
+      "duration": 3.293
     }
   ]
 }
