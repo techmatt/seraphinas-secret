@@ -378,7 +378,7 @@ export const hooks: TestHooks = {
     held: [],
     objects: [],
   },
-  session: () => ({ run: { quest: null, items: [], granted: [] }, world: {} }),
+  session: () => ({ run: { quest: null, items: [], granted: [], faeries: false }, world: {} }),
   swings: 0,
   whacks: 0,
   treeGaps: 0,

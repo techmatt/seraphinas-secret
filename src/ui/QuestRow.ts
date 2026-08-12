@@ -15,11 +15,24 @@
  * At the end of it, a yellow dot: the button that says the job again. The same
  * grammar as the blue dot at the end of the tool row, and the same rule as every
  * other button in this game — a colour, never a letter. See ButtonDot.
+ *
+ * **A box holds one of two things.** A gem she has to go and find, ghosted until
+ * she has it — or, during the ritual, the *button* she is going to be asked for,
+ * drawn as the coloured dot on the pad. The second kind is the same promise as
+ * the first: three boxes, all of them there from the start, filling up one at a
+ * time. She cannot read "red" and she does not have to, because the dot on the
+ * row and the button under her thumb are the same colour.
  */
 
 import Phaser from 'phaser';
 import { DEPTH, GAME_HEIGHT } from '../config';
-import { makeButtonDot, makeGlow, PAD_COLOR } from './ButtonDot';
+import {
+  makeButtonDot,
+  makeGlow,
+  padColor,
+  PAD_COLOR,
+  type PadColorName,
+} from './ButtonDot';
 import { GEM_ICONS, ICON_SIZE, type GemId } from './toolIcons';
 import type { QuestSlot } from '../quest/QuestEngine';
 
@@ -53,8 +66,9 @@ interface Box {
   container: Phaser.GameObjects.Container;
   frame: Phaser.GameObjects.Graphics;
   glow: Phaser.GameObjects.Image;
-  icon: Phaser.GameObjects.Image;
-  id: GemId;
+  /** The gem's picture, or the button's dot. One or the other, never both. */
+  icon: Phaser.GameObjects.Image | Phaser.GameObjects.Container;
+  id: string;
   filled: boolean;
 }
 
@@ -92,15 +106,30 @@ export function makeQuestRow(scene: Phaser.Scene): QuestRow {
 
     for (let i = 0; i < slots.length; i++) {
       const slot = slots[i]!;
-      const gem = GEM_ICONS[slot.id];
       const x = LEFT + i * (BOX + GAP) + BOX / 2;
       const y = BOTTOM - BOX / 2;
 
-      const glow = makeGlow(scene, 0, 0, BOX * 0.95, gem.tint, 0.55).setVisible(false);
+      // What the box is *about*, and what colour its own light is. A gem gives
+      // both; a button gives its pad colour and draws itself.
+      const tint =
+        slot.kind === 'button'
+          ? padColor(slot.id as PadColorName)
+          : GEM_ICONS[slot.id as GemId].tint;
+
+      const glow = makeGlow(scene, 0, 0, BOX * 0.95, tint, 0.55).setVisible(false);
       const frame = scene.add.graphics();
-      const icon = scene.add.image(0, 0, gem.file, gem.slot).setScale(ICON_SCALE);
-      if (scene.textures.exists(gem.file)) {
-        scene.textures.get(gem.file).setFilter(Phaser.Textures.FilterMode.NEAREST);
+
+      let icon: Box['icon'];
+      if (slot.kind === 'button') {
+        // Not pulsing: the row is saying which buttons this is about, not asking
+        // to be pressed. The one asking is the boy, out loud, one at a time.
+        icon = makeButtonDot(scene, 0, 0, { color: tint, radius: 13 });
+      } else {
+        const gem = GEM_ICONS[slot.id as GemId];
+        icon = scene.add.image(0, 0, gem.file, gem.slot).setScale(ICON_SCALE);
+        if (scene.textures.exists(gem.file)) {
+          scene.textures.get(gem.file).setFilter(Phaser.Textures.FilterMode.NEAREST);
+        }
       }
 
       const box = scene.add.container(x, y, [glow, frame, icon]);
@@ -151,8 +180,12 @@ export function makeQuestRow(scene: Phaser.Scene): QuestRow {
       ease: 'Back.easeOut',
       onComplete: () => box.container.setScale(1),
     });
-    box.icon.setTintFill(0xffffff);
-    scene.time.delayedCall(110, () => box.icon.clearTint());
+    // A gem flashes white as it lands. A button dot is already its own light and
+    // a container has nothing to tint, so it gets the thump and nothing else.
+    const icon = box.icon;
+    if (!(icon instanceof Phaser.GameObjects.Image)) return;
+    icon.setTintFill(0xffffff);
+    scene.time.delayedCall(110, () => icon.clearTint());
   };
 
   return { container, show, land, slotAt };

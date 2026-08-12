@@ -57,8 +57,12 @@ const STANDS = FLOOR.y - 2;
  * The fire, and therefore the room — the point every other thing in here is
  * arranged around, in tiles, at the foot of the flame.
  *
- * Exported because it is not only scenery: the ritual's spell circle is drawn
- * around this point and its two guests stand beside it. See `src/quest/quests.ts`.
+ * It is not only scenery: the ritual's spell circle is drawn around this point
+ * and its two guests stand beside it. The quest writes the same two numbers down
+ * itself rather than importing them — `content/` is build-time source and the
+ * game only reads what the generator wrote — so if this moves, `FIRE` in
+ * `src/quest/quests.ts` moves with it, and `quest.spec` is what notices if it
+ * does not.
  */
 export const FIRE = { x: 10.5, y: 11.5 } as const;
 

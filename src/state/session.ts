@@ -75,6 +75,16 @@ export interface SessionData {
     items: string[];
     /** Tools a quest has lent her. The axe is not one; it is hers. */
     granted: string[];
+    /**
+     * The faeries are out, and following her.
+     *
+     * A flag rather than a list of three, because there is nothing to remember
+     * about one: they have no positions worth keeping — they are wherever she
+     * is — and no state that outlives a zone. In `run` because the seam is the
+     * right one: they came out of a quest, and the night that resets the quest
+     * is the night they go home. Sleep is the day cycle's to build.
+     */
+    faeries: boolean;
   };
   /** Survives sleep. Keyed by zone id. */
   world: Record<string, ZoneDelta>;
@@ -84,7 +94,7 @@ export class SessionState {
   private data: SessionData = SessionState.empty();
 
   private static empty(): SessionData {
-    return { run: { quest: null, items: [], granted: [] }, world: {} };
+    return { run: { quest: null, items: [], granted: [], faeries: false }, world: {} };
   }
 
   /** A deep copy, for anyone who only wants to look. */
@@ -94,6 +104,7 @@ export class SessionState {
         quest: this.data.run.quest ? { ...this.data.run.quest, done: [...this.data.run.quest.done] } : null,
         items: [...this.data.run.items],
         granted: [...this.data.run.granted],
+        faeries: this.data.run.faeries,
       },
       world: Object.fromEntries(
         Object.entries(this.data.world).map(([zone, delta]) => [
@@ -152,6 +163,29 @@ export class SessionState {
 
   has(item: string): boolean {
     return this.data.run.items.includes(item);
+  }
+
+  /**
+   * Take one back out of her pocket. What a quest does when a thing she has been
+   * carrying is spent — a stone going into the fire is not hers any more, and a
+   * row that still showed it would be the game forgetting what it just drew.
+   */
+  drop(item: string): boolean {
+    const at = this.data.run.items.indexOf(item);
+    if (at < 0) return false;
+    this.data.run.items.splice(at, 1);
+    return true;
+  }
+
+  // --- what is following her ------------------------------------------------
+
+  get faeries(): boolean {
+    return this.data.run.faeries;
+  }
+
+  /** They are out. Nothing puts them back but a page reload — or, later, sleep. */
+  summonFaeries(): void {
+    this.data.run.faeries = true;
   }
 
   get granted(): readonly string[] {

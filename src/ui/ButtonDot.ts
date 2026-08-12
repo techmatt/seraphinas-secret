@@ -16,6 +16,23 @@ export const PAD_COLOR = {
   y: 0xf2c43d,
 } as const;
 
+/**
+ * The same four, the other way round: colour name to face button.
+ *
+ * The ritual asks for buttons by colour out loud — "press the red button" — and
+ * this is the one place that sentence is turned back into a button. It belongs
+ * here with the rest of the pad, so that the rules layer can talk about a red
+ * button without knowing there is such a thing as a B.
+ */
+export const FACE_BY_COLOR = { green: 'a', red: 'b', blue: 'x', yellow: 'y' } as const;
+
+/** A colour the pad actually has. */
+export type PadColorName = keyof typeof FACE_BY_COLOR;
+
+export function padColor(name: PadColorName): number {
+  return PAD_COLOR[FACE_BY_COLOR[name]];
+}
+
 /** Texture key for the soft radial blob every glow in the game is made of. */
 export const GLOW_TEXTURE = 'glow';
 
