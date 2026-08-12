@@ -1,16 +1,14 @@
 import { test, expect } from '@playwright/test';
-import {
-  bootGame,
-  closeUpOfHer,
-  freeze,
-  readHooks,
-  snap,
-  standAt,
-  walk,
-  walkAndRead,
-} from './harness';
+import { bootGame, readHooks, walk, walkAndRead } from './harness';
 
-test('she is a drawn character, out of the side-loaded pack', async ({ page }) => {
+/**
+ * Everything about how she is drawn and which way she faces, in one boot.
+ *
+ * Four tests once, one per direction and one for letting go, each of them paying
+ * for its own page load to hold a key for a quarter of a second. The claims are
+ * unchanged; the boots are not.
+ */
+test('she is a drawn character who faces the way she walks', async ({ page }) => {
   const { errors } = await bootGame(page);
 
   const boot = await readHooks(page);
@@ -25,21 +23,6 @@ test('she is a drawn character, out of the side-loaded pack', async ({ page }) =
   expect(boot.player.anim, 'she idles the way the map spawns her').toBe('idle-down');
   expect(boot.player.facing).toBe('down');
 
-  await snap(page, '11-player.png');
-
-  // Close up, on the open green of the village lawn, which is the ground her
-  // gold hair has to stay legible against. The blessed outfit's hair is the one
-  // thing about her that changed and the one thing a 1280-wide frame cannot
-  // show — she is seventy pixels tall in every other picture in this folder.
-  await standAt(page, 'green');
-  await closeUpOfHer(page, '13-player-hair.png');
-
-  expect(errors, 'no uncaught page errors').toEqual([]);
-});
-
-test('walking turns her to face the way she is going', async ({ page }) => {
-  const { errors } = await bootGame(page);
-
   const down = await walkAndRead(page, 'ArrowDown', 250);
   expect(down.player.facing, 'down turns her towards the room').toBe('down');
   expect(down.player.anim).toBe('walk-down');
@@ -51,38 +34,17 @@ test('walking turns her to face the way she is going', async ({ page }) => {
   const right = await walkAndRead(page, 'ArrowRight', 250);
   expect(right.player.facing).toBe('right');
   expect(right.player.anim).toBe('walk-right');
-
-  // Mid-stride, frozen: the audit frame for the walk cycle.
-  await page.keyboard.down('ArrowRight');
-  await page.waitForTimeout(250);
-  await freeze(page);
-  await snap(page, '12-player-walk.png');
-  await page.keyboard.up('ArrowRight');
-
-  expect(errors, 'no uncaught page errors').toEqual([]);
-});
-
-test('walking left plays the right-hand animation, mirrored', async ({ page }) => {
-  const { errors } = await bootGame(page);
-
-  const right = await walkAndRead(page, 'ArrowRight', 250);
-  expect(right.player.anim).toBe('walk-right');
   expect(right.player.flipped, 'the sheet is drawn facing right').toBe(false);
 
-  const left = await walkAndRead(page, 'ArrowLeft', 250);
   // The pack draws down, up and right only; left is the author's stated intent
   // for a flip, so there is no `walk-left` to find. If one ever appears here,
   // something has invented an animation the art does not have.
+  const left = await walkAndRead(page, 'ArrowLeft', 250);
   expect(left.player.facing, 'she is facing left').toBe('left');
   expect(left.player.anim, 'and doing it with the right-hand row').toBe('walk-right');
   expect(left.player.flipped, 'mirrored').toBe(true);
 
-  expect(errors, 'no uncaught page errors').toEqual([]);
-});
-
-test('letting go idles her where she stands, still facing the way she went', async ({ page }) => {
-  const { errors } = await bootGame(page);
-
+  // Letting go idles her where she stands, still facing the way she went.
   await walk(page, 'ArrowUp', 250);
   const stopped = await readHooks(page);
   expect(stopped.player.anim, 'the walk stops').toBe('idle-up');
@@ -90,7 +52,9 @@ test('letting go idles her where she stands, still facing the way she went', asy
 
   await walk(page, 'ArrowLeft', 250);
   const stoppedLeft = await readHooks(page);
-  expect(stoppedLeft.player.anim).toBe('idle-right');
+  expect(stoppedLeft.player.anim, 'and an idle is mirrored the same way a walk is').toBe(
+    'idle-right',
+  );
   expect(stoppedLeft.player.flipped).toBe(true);
 
   expect(errors, 'no uncaught page errors').toEqual([]);

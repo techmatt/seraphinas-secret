@@ -1,7 +1,15 @@
 import { test, expect } from '@playwright/test';
-import { GREETING_LINE, freeze, openTitle, pressStart, readHooks, snap, type Hooks } from './harness';
+import { GREETING_LINE, openTitle, readHooks, type Hooks } from './harness';
 
-test('the game opens on the title screen, not in the room', async ({ page }) => {
+/**
+ * The whole front door, in one page load.
+ *
+ * It used to be three tests — the title sits there, the press speaks, the room
+ * opens — and they were three boots of the same sequence, because each one is
+ * the next moment of the one before. The assertions are all still here; only the
+ * two extra page loads have gone.
+ */
+test('the title screen speaks its greeting and hands over to the room', async ({ page }) => {
   const { errors } = await openTitle(page);
 
   const idle = await readHooks(page);
@@ -9,18 +17,11 @@ test('the game opens on the title screen, not in the room', async ({ page }) => 
   expect(idle.ready, 'the room is not playable yet').toBe(false);
   expect(idle.voice.lineId, 'nobody is talking yet').toBeNull();
 
-  await snap(page, '01-title.png');
-
-  // A click focuses the page; it must not be mistaken for the press. If this
-  // ever starts the game, a stray mouse click skips the front door.
+  // `openTitle` clicks the canvas to focus the page; it must not be mistaken for
+  // the press. If a stray mouse click ever starts the game, it skips the front
+  // door.
   await page.waitForTimeout(250);
   expect((await readHooks(page)).scene, 'a click alone does not start the game').toBe('title');
-
-  expect(errors, 'no uncaught page errors').toEqual([]);
-});
-
-test('the press unlocks audio, speaks a greeting, then opens the room', async ({ page }) => {
-  const { errors } = await openTitle(page);
 
   await page.keyboard.press('Enter');
 
@@ -37,18 +38,11 @@ test('the press unlocks audio, speaks a greeting, then opens the room', async ({
   expect(greeting.audio, 'the press is what unlocks the AudioContext').toBe('running');
   expect(greeting.voice.words.join(' '), 'the greeting shows its words').toBe("Hi! Let's play!");
 
-  // Let the burst spread, then freeze it — particles outlive neither the
-  // screenshot round trip nor the transition.
-  await page.waitForTimeout(140);
-  await freeze(page);
-  await snap(page, '02-title-greeting.png');
-
-  expect(errors, 'no uncaught page errors').toEqual([]);
-});
-
-test('the room is playable once the title screen hands over', async ({ page }) => {
-  const { errors } = await openTitle(page);
-  await pressStart(page);
+  await page.waitForFunction(
+    () => (window as unknown as { __seraphina: Hooks }).__seraphina.ready === true,
+    undefined,
+    { timeout: 20_000 },
+  );
 
   const playing = await readHooks(page);
   expect(playing.scene, 'the room is live').toBe('room');

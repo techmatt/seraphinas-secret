@@ -121,49 +121,6 @@ function pickTree(hooks: Snapshot) {
 const rock = (hooks: Snapshot, id: string) => hooks.quest.objects.find((o) => o.id === id);
 
 /**
- * Every spot the quest puts something in has to be somewhere she can stand.
- *
- * The stones and the hammer live in `src/quest/quests.ts` rather than in the
- * layout, so the build's own reachability gate never sees them — this is the
- * thing that stands in for it, over the same collision grid the game walks on.
- * A stone inside a hedge is a quest that cannot be finished, and no screenshot
- * would show it.
- */
-test('every quest object stands somewhere she can stand', async ({ page }) => {
-  const { errors } = await bootGame(page);
-  await waitForVoice(page);
-
-  await acceptQuest(page);
-  const withHammer = await readHooks(page);
-  const hammer = withHammer.quest.objects.find((o) => o.id === 'hammer');
-  expect(hammer, 'the hammer is out while phase one is on').toBeDefined();
-  expect(isBlocked(withHammer, hammer!.x, hammer!.y), 'and it is lying somewhere open').toBe(
-    false,
-  );
-
-  await fetchHammer(page);
-  const withRocks = await readHooks(page);
-  expect(withRocks.quest.objects.map((o) => o.id).sort(), 'three stones, out together').toEqual([
-    'malachite',
-    'ruby',
-    'sapphire',
-  ]);
-  for (const stone of withRocks.quest.objects) {
-    expect(isBlocked(withRocks, stone.x, stone.y), `${stone.id} is standing on open ground`).toBe(
-      false,
-    );
-    // And it is a walk, not a hunt: no two of them are in the same place, and
-    // none of them is on top of her.
-    expect(
-      Math.hypot(stone.x - withRocks.player.x, stone.y - withRocks.player.y),
-      `${stone.id} is far enough away to be worth walking to`,
-    ).toBeGreaterThan(withRocks.world.tile * 4);
-  }
-
-  expect(errors, 'no uncaught page errors').toEqual([]);
-});
-
-/**
  * The whole quest, end to end, in an order the quest did not ask for.
  *
  * Free order is the design (Matt): each stone fills its own slot and no slot
@@ -172,12 +129,16 @@ test('every quest object stands somewhere she can stand', async ({ page }) => {
  * malachite, ruby, sapphire. A test that took them in order would pass just as
  * well against a queue.
  *
- * In the fast suite despite the length of it. It is three walks across the
- * village and eight swings and it costs about twenty seconds, which is real
- * money against a two-and-a-half-minute suite — and it is the only thing that
- * proves the three layers this prompt built (store, engine, scene) agree with
- * each other from one end of a quest to the other. That is exactly what the fast
- * suite is for: everything that fails when the code is wrong.
+ * It also checks, as each phase puts its things out, that they are standing
+ * somewhere she can stand. The stones and the hammer live in `src/quest/quests.ts`
+ * rather than in the layout, so the build's own reachability gate never sees
+ * them; this is what stands in for it, over the same collision grid the game
+ * walks on. A stone inside a hedge is a quest that cannot be finished, and no
+ * screenshot would show it.
+ *
+ * In the fast suite despite the length of it. It is the only thing that proves
+ * the three layers (store, engine, scene) agree with each other from one end of
+ * a quest to the other, which is exactly what the fast suite is for.
  */
 test('the faerie quest, from the offer to the cave', async ({ page }) => {
   const { errors } = await bootGame(page);
@@ -207,6 +168,10 @@ test('the faerie quest, from the offer to the cave', async ({ page }) => {
   );
   expect(taken.quest.slots, 'nothing to collect in this phase').toEqual([]);
 
+  const hammer = taken.quest.objects.find((o) => o.id === 'hammer');
+  expect(hammer, 'the hammer is out while phase one is on').toBeDefined();
+  expect(isBlocked(taken, hammer!.x, hammer!.y), 'and it is lying somewhere open').toBe(false);
+
   await fetchHammer(page);
 
   const armed = await readHooks(page);
@@ -219,9 +184,7 @@ test('the faerie quest, from the offer to the cave', async ({ page }) => {
   expect(armed.tools.holding, 'and straight into her hand — no button to find first').toBe(
     'hammer',
   );
-  expect(armed.session.run.granted, 'the store knows the quest lent it to her').toEqual([
-    'hammer',
-  ]);
+  expect(armed.session.run.granted, 'the store knows the quest lent it to her').toEqual(['hammer']);
   expect(armed.quest.instruction, 'and the job has changed').toBe('sneak_quest_crack');
   expect(
     armed.quest.slots.map((s) => s.id),
@@ -229,12 +192,24 @@ test('the faerie quest, from the offer to the cave', async ({ page }) => {
   ).toEqual(['malachite', 'ruby', 'sapphire']);
   expect(armed.quest.slots.every((s) => !s.filled), 'and every one of them empty').toBe(true);
 
+  expect(armed.quest.objects.map((o) => o.id).sort(), 'three stones, out together').toEqual([
+    'malachite',
+    'ruby',
+    'sapphire',
+  ]);
+  for (const stone of armed.quest.objects) {
+    expect(isBlocked(armed, stone.x, stone.y), `${stone.id} is standing on open ground`).toBe(false);
+    // And it is a walk, not a hunt: none of them is on top of her.
+    expect(
+      Math.hypot(stone.x - armed.player.x, stone.y - armed.player.y),
+      `${stone.id} is far enough away to be worth walking to`,
+    ).toBeGreaterThan(armed.world.tile * 4);
+  }
+
   // Out of order, on purpose.
   await crack(page, 'sapphire');
   const one = await readHooks(page);
-  expect(one.quest.slots.find((s) => s.id === 'sapphire')?.filled, 'the blue one is in').toBe(
-    true,
-  );
+  expect(one.quest.slots.find((s) => s.id === 'sapphire')?.filled, 'the blue one is in').toBe(true);
   expect(
     one.quest.slots.filter((s) => s.filled).length,
     'and it is the only one — the other two are still out there',
@@ -344,19 +319,52 @@ test('a doorway does not undo an afternoon', async ({ page }) => {
 });
 
 /**
- * The wrong tool is never a wrong answer.
+ * The two ways a quest refuses to punish her, from one boot.
  *
- * Both halves, because they are the same rule seen from either end: the axe on a
- * stone and the hammer in a tree. Each one lands a real blow — the thing wobbles
- * and the game answers — and neither one moves anything an inch. There is no
- * buzzer, no damage and no going backwards; the swing simply does not bite. See
- * CLAUDE.md, "No fail states".
+ * The yellow button says the job again, from anywhere. She is four and she will
+ * forget, and the version of this game where forgetting means walking back
+ * across the village to ask is a game with a chore in it. So the instruction is a
+ * button — the yellow one, which is a yellow dot on screen and never the letter
+ * Y — and the balloon comes up over *her*, in his voice, because she is the one
+ * remembering what he said.
+ *
+ * And the wrong tool is never a wrong answer. Both halves, because they are the
+ * same rule seen from either end: the axe on a stone and the hammer in a tree.
+ * Each one lands a real blow — the thing wobbles and the game answers — and
+ * neither one moves anything an inch. There is no buzzer, no damage and no going
+ * backwards; the swing simply does not bite. See CLAUDE.md, "No fail states".
  */
-test('the wrong tool shakes things and breaks nothing', async ({ page }) => {
+test('the yellow button remembers, and the wrong tool breaks nothing', async ({ page }) => {
   const { errors } = await bootGame(page);
   await waitForVoice(page);
 
+  // Nothing on: the button says nothing, which is the only honest answer.
+  await tap(page, 'KeyY');
+  expect((await readHooks(page)).voice.lineId, 'no quest, nothing to remember').toBeNull();
+
   await acceptQuest(page);
+
+  // Deliberately away from him, because "from anywhere" is the claim.
+  await standByProp(page, 'well');
+  const here = await readHooks(page);
+  const sneak = here.npcs.find((n) => n.id === 'sneak')!;
+  expect(
+    Math.hypot(sneak.x - here.player.x, sneak.y - here.player.y),
+    'and she is nowhere near him',
+  ).toBeGreaterThan(here.interactRadius * 3);
+
+  await tap(page, 'KeyY');
+  const said = await readHooks(page);
+
+  expect(said.voice.lineId, 'the phase’s own instruction, said again').toBe('sneak_quest_hammer');
+  expect(said.voice.words.length, 'with words to light up').toBeGreaterThan(0);
+  expect(said.voice.bubble.visible, 'and a balloon to put them in').toBe(true);
+  expect(said.voice.bubble.speaker, 'which is hers — she is the one remembering').toBe('seraphina');
+  expect(
+    Math.abs(said.voice.bubble.x - said.player.x),
+    'sitting over her, not over the boy across the village',
+  ).toBeLessThan(60);
+
   await fetchHammer(page);
 
   // The hammer, in a tree.
@@ -397,51 +405,6 @@ test('the wrong tool shakes things and breaks nothing', async ({ page }) => {
     'and every slot on the row is still empty',
   ).toBe(true);
   expect(afterRock.quest.phase, 'and the quest has not moved').toBe('gems');
-
-  expect(errors, 'no uncaught page errors').toEqual([]);
-});
-
-/**
- * The yellow button says the job again, from anywhere.
- *
- * She is four and she will forget, and the version of this game where forgetting
- * means walking back across the village to ask is a game with a chore in it. So
- * the instruction is a button — the yellow one, which is a yellow dot on screen
- * and never the letter Y — and the balloon comes up over *her*, in his voice,
- * because she is the one remembering what he said.
- */
-test('the yellow button replays the job, over her, in his voice', async ({ page }) => {
-  const { errors } = await bootGame(page);
-  await waitForVoice(page);
-
-  // Nothing on: the button says nothing, which is the only honest answer.
-  await tap(page, 'KeyY');
-  expect((await readHooks(page)).voice.lineId, 'no quest, nothing to remember').toBeNull();
-
-  await acceptQuest(page);
-
-  // Deliberately away from him, because "from anywhere" is the claim.
-  await standByProp(page, 'well');
-  const here = await readHooks(page);
-  const sneak = here.npcs.find((n) => n.id === 'sneak')!;
-  expect(
-    Math.hypot(sneak.x - here.player.x, sneak.y - here.player.y),
-    'and she is nowhere near him',
-  ).toBeGreaterThan(here.interactRadius * 3);
-
-  await tap(page, 'KeyY');
-  const said = await readHooks(page);
-
-  expect(said.voice.lineId, 'the phase’s own instruction, said again').toBe('sneak_quest_hammer');
-  expect(said.voice.words.length, 'with words to light up').toBeGreaterThan(0);
-  expect(said.voice.bubble.visible, 'and a balloon to put them in').toBe(true);
-  expect(said.voice.bubble.speaker, 'which is hers — she is the one remembering').toBe(
-    'seraphina',
-  );
-  expect(
-    Math.abs(said.voice.bubble.x - said.player.x),
-    'sitting over her, not over the boy across the village',
-  ).toBeLessThan(60);
 
   expect(errors, 'no uncaught page errors').toEqual([]);
 });

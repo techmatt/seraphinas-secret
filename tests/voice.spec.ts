@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 
-import { bootGame, readHooks, snap, standByProp, waitForVoice, type Hooks } from './harness';
+import { bootGame, readHooks, standByProp, waitForVoice, type Hooks } from './harness';
 
 interface ManifestLine {
   id: string;
@@ -23,6 +23,13 @@ const manifest = JSON.parse(
 
 /** The line the yard's star speaks; see the `star` prop in world/rooms.ts. */
 const STONE_LINE = 'seraphina_secret';
+
+/**
+ * The prop this test pokes, and what it says. The vector star retired with the
+ * tile world; the well is what stands near her front door now.
+ */
+const POKED_PROP = 'well';
+const POKED_LINE = 'dad_sparkle';
 
 test('the manifest has a timed word for every word that will be shown', () => {
   expect(manifest.lines.length, 'a manifest entry per authored line').toBe(authored.length);
@@ -55,37 +62,38 @@ test('the manifest has a timed word for every word that will be shown', () => {
 });
 
 /**
- * The prop this test walks up to, and what it says. The vector star retired
- * with the tile world; the well is what stands near her front door now.
+ * The highlight, from all three angles, in one boot.
+ *
+ * They were three tests: a poked prop lights the right word, the highlight moves
+ * on its own, and it visits every word in turn. The middle one is the only claim
+ * the other two cannot make — scrubbing proves the mapping from time to word,
+ * not that anything is driving the clock — so all three are still asserted. The
+ * two extra page loads are what has gone.
  */
-const POKED_PROP = 'well';
-const POKED_LINE = 'dad_sparkle';
-
-test('a poked prop speaks, and the right word is lit halfway through', async ({ page }) => {
+test('a spoken line lights one word at a time, and the audio clock drives it', async ({ page }) => {
   const { errors } = await bootGame(page);
   await waitForVoice(page);
 
   expect((await readHooks(page)).voice.lineId, 'nothing is being said yet').toBeNull();
 
-  // Stood by rather than walked to: this test is about which word is lit
-  // halfway through a line, and `smoke.spec` already walks up to this same well
-  // on foot and presses it.
+  // Stood by rather than walked to: this is about which word is lit, and
+  // `world.spec` already walks up to this same well on foot and presses it.
   await standByProp(page, POKED_PROP);
   await page.keyboard.press('KeyZ');
 
   const speaking = await readHooks(page);
   expect(speaking.voice.lineId, 'pressing Z should start the line').toBe(POKED_LINE);
 
-  const line = manifest.lines.find((l) => l.id === POKED_LINE)!;
+  const poked = manifest.lines.find((l) => l.id === POKED_LINE)!;
   expect(speaking.voice.words, 'the bubble shows every word of the line').toEqual(
-    line.words.map((w) => w.word),
+    poked.words.map((w) => w.word),
   );
 
   // Aim at the middle of the middle word. Real-time playback cannot be trusted
   // to still be on it by the time an assertion crosses the wire, so freeze the
   // line's clock there instead.
-  const target = Math.floor(line.words.length / 2);
-  const word = line.words[target]!;
+  const target = Math.floor(poked.words.length / 2);
+  const word = poked.words[target]!;
   const middle = (word.start + word.end) / 2;
 
   await page.evaluate(
@@ -99,57 +107,34 @@ test('a poked prop speaks, and the right word is lit halfway through', async ({ 
   );
   expect(lit.voice.words[lit.voice.highlighted]).toBe(word.word);
 
-  await snap(page, '07-speech-bubble.png');
-
-  expect(errors, 'no uncaught page errors').toEqual([]);
-});
-
-test('left alone, the highlight advances on the audio clock', async ({ page }) => {
-  const { errors } = await bootGame(page);
-  await waitForVoice(page);
-
+  // Left alone, the highlight advances on the audio clock. Deliberately loose:
+  // this guards that playback drives the highlight at all, which the scrubbing
+  // cannot see. Exactly which word is lit after a wall-clock wait is not
+  // something a test should be asked to promise.
   await page.evaluate(
     (id) => (window as unknown as { __seraphina: Hooks }).__seraphina.voice.say(id),
     STONE_LINE,
   );
-
   const line = manifest.lines.find((l) => l.id === STONE_LINE)!;
-  // Deliberately loose: this guards that playback drives the highlight at all,
-  // which the scrubbing tests cannot see. Exactly which word is lit after a
-  // wall-clock wait is not something a test should be asked to promise.
   const wait = 1.5;
   await page.waitForTimeout(wait * 1000);
 
-  const { voice } = await readHooks(page);
-  expect(voice.lineId, 'still on the line').toBe(STONE_LINE);
-  const expected = line.words.findIndex((w) => wait >= w.start && wait < w.end);
-  expect(voice.highlighted, `about word ${expected} after ${wait}s`).toBeGreaterThan(1);
-  expect(voice.highlighted).toBeLessThan(line.words.length);
+  const running = await readHooks(page);
+  expect(running.voice.lineId, 'still on the line').toBe(STONE_LINE);
+  expect(running.voice.highlighted, `some way into it after ${wait}s`).toBeGreaterThan(1);
+  expect(running.voice.highlighted).toBeLessThan(line.words.length);
 
-  expect(errors, 'no uncaught page errors').toEqual([]);
-});
-
-test('the highlight walks the whole line, one word at a time', async ({ page }) => {
-  const { errors } = await bootGame(page);
-  await waitForVoice(page);
-
-  await page.evaluate(
-    (id) => (window as unknown as { __seraphina: Hooks }).__seraphina.voice.say(id),
-    STONE_LINE,
-  );
-
-  const line = manifest.lines.find((l) => l.id === STONE_LINE)!;
+  // And every word of it gets its own turn, in order.
   const seen: number[] = [];
-
-  for (const [index, word] of line.words.entries()) {
-    if (word.end <= word.start) continue;
+  for (const [index, entry] of line.words.entries()) {
+    if (entry.end <= entry.start) continue;
     const highlighted = await page.evaluate((t) => {
       const hooks = (window as unknown as { __seraphina: Hooks }).__seraphina;
       hooks.voice.scrub(t);
       return hooks.voice.highlighted;
-    }, (word.start + word.end) / 2);
+    }, (entry.start + entry.end) / 2);
     seen.push(highlighted);
-    expect(highlighted, `at the middle of "${word.word}"`).toBe(index);
+    expect(highlighted, `at the middle of "${entry.word}"`).toBe(index);
   }
 
   expect(seen.length, 'every timed word got its turn').toBe(

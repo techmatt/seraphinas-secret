@@ -3,14 +3,11 @@ import { spawnSync } from 'node:child_process';
 import { createRequire } from 'node:module';
 import {
   bootGame,
-  freeze,
   isBlocked,
   readHooks,
-  snap,
   standByProp,
   standByTree,
   tap,
-  walk,
   type Hooks,
   type Snapshot,
 } from './harness';
@@ -111,6 +108,17 @@ async function framesAcrossASwing(page: Page): Promise<Record<string, number[]>>
   throw new Error('she never swung');
 }
 
+/** Every layer of a sampled swing drew a real animation rather than one held frame. */
+function expectAnimated(drawn: Record<string, number[]>, what: string) {
+  expect(Object.keys(drawn), `${what}: the axe is in her hands`).toContain('seraphina-axe');
+  for (const [layer, frames] of Object.entries(drawn)) {
+    expect(
+      frames.length,
+      `${what}: ${layer} drew frames ${frames.join(',')} — a swing is six of them`,
+    ).toBeGreaterThanOrEqual(3);
+  }
+}
+
 /**
  * The emptiest tile in the zone: the one furthest from anything the green
  * button could be about.
@@ -205,6 +213,14 @@ function pickTree(hooks: Snapshot, choppable: boolean, skip: string[] = []) {
   return tree;
 }
 
+/**
+ * The axe against both kinds of tree, in one boot: one that comes down and one
+ * the boundary needs, which shakes and never does.
+ *
+ * Everything reacts and nothing is a dead end. She will absorb "some trees are
+ * too big" from the second half without being told, which is the only way she
+ * could.
+ */
 test('three whacks fell a tree, two more give the ground back', async ({ page }) => {
   const { errors } = await bootGame(page);
 
@@ -214,10 +230,6 @@ test('three whacks fell a tree, two more give the ground back', async ({ page })
   expect(isBlocked(start, target.x, target.y), 'a standing trunk is solid').toBe(true);
 
   await standByTree(page, target.id);
-  // Four boxes with the axe in the first and three drawn empty, and the blue
-  // dot that says which button changes them. Evidence for the report.
-  await snap(page, '50-tool-row.png');
-
   await chop(page, 3);
 
   const felled = await readHooks(page);
@@ -236,7 +248,6 @@ test('three whacks fell a tree, two more give the ground back', async ({ page })
   expect(isBlocked(felled, target.x, target.y), 'a stump still stands in the trunk’s tile').toBe(
     true,
   );
-  await snap(page, '52-felled.png');
 
   await chop(page, 2);
 
@@ -248,80 +259,54 @@ test('three whacks fell a tree, two more give the ground back', async ({ page })
     'and the tile is walkable — the live grid, not the one the map file shipped',
   ).toBe(false);
 
-  // The claim is not that a character in a string changed. It is that she can
-  // walk where the tree was, so she walks there — one axis at a time, aiming at
-  // the middle of the tile the trunk was standing in.
-  for (let hop = 0; hop < 10; hop++) {
-    const here = await readHooks(page);
-    const at = cellOf(here, here.player.x, here.player.y);
-    if (at.col === col && at.row === row) break;
-
-    const dx = target.x - here.player.x;
-    const dy = target.y - here.player.y;
-    const alongX = Math.abs(dx) >= Math.abs(dy);
-    await walk(
-      page,
-      alongX
-        ? dx > 0
-          ? 'ArrowRight'
-          : 'ArrowLeft'
-        : dy > 0
-          ? 'ArrowDown'
-          : 'ArrowUp',
-      150,
-    );
-  }
-
+  // The claim is not that a character in a string changed, it is that she can be
+  // where the tree was. Put there rather than walked there: `teleport` refuses
+  // any tile the game's own collision test calls solid and slides her to the
+  // nearest one that is not, so landing in this cell is that test agreeing.
+  // Walking the last four tiles took ten round trips and proved the same thing.
+  await teleport(page, target);
   const stood = await readHooks(page);
   expect(
     cellOf(stood, stood.player.x, stood.player.y),
     'she is standing in the tile the tree was standing in',
   ).toEqual({ col, row });
 
-  // And the swing itself, mid-flight, off a second tree — the first one is a
-  // hole in the ground by now. Frozen, because the arc is drawn on one frame of
-  // six and a screenshot round trip outlives the whole swing.
-  const next = pickTree(stood, true, [target.id]);
-  await standByTree(page, next.id);
-  await tap(page, 'KeyZ');
-  await page.waitForFunction(
-    () => (window as unknown as { __seraphina: Hooks }).__seraphina.player.anim.startsWith('chop'),
-    undefined,
-    { timeout: 10_000 },
-  );
-  // Frozen the instant the swing is seen, with nothing waited out in between:
-  // the whole swing is half a second and a round trip to this page is most of a
-  // frame, so anything added here is the difference between a picture of the
-  // axe and a picture of her standing next to a tree.
-  await freeze(page);
-  await snap(page, '51-chop.png');
-
-  expect(errors, 'no uncaught page errors').toEqual([]);
-});
-
-test('a tree the boundary needs shakes, sheds leaves, and never comes down', async ({ page }) => {
-  const { errors } = await bootGame(page);
-
-  const start = await readHooks(page);
-  const target = pickTree(start, false);
-  await standByTree(page, target.id);
-
+  // And a tree the boundary needs: three of the same blows, and it is still a
+  // whole tree. Three is what felled the last one.
+  const fixed = pickTree(stood, false);
+  await standByTree(page, fixed.id);
   const before = await readHooks(page);
   await chop(page, 3);
   const after = await readHooks(page);
 
-  // Everything reacts. Nothing is a dead end. She will absorb "some trees are
-  // too big" from this without being told, which is the only way she could.
   expect(after.whacks - before.whacks, 'every blow landed on it').toBe(3);
-  expect(after.peakParticles, 'and threw leaves each time').toBeGreaterThan(0);
-
-  expect(treeNow(after, target.id).state, 'but it is still a whole tree').toBe('standing');
-  expect(isBlocked(after, target.x, target.y), 'and still solid').toBe(true);
+  expect(after.peakParticles, 'and it threw leaves each time').toBeGreaterThan(0);
+  expect(treeNow(after, fixed.id).state, 'but it is still a whole tree').toBe('standing');
+  expect(isBlocked(after, fixed.x, fixed.y), 'and still solid').toBe(true);
 
   expect(errors, 'no uncaught page errors').toEqual([]);
 });
 
-test('the blue button cycles the held tool, and the axe never leaves slot one', async ({ page }) => {
+/**
+ * What the two coloured buttons are about, from one boot.
+ *
+ * Blue is the tool row. Green is the thing in front of her first and the tool
+ * second — she carries the axe everywhere and there is no putting it down, so
+ * "green swings" and "green opens the door" cannot both be unconditional. The
+ * order is the one a four-year-old already expects from every other button she
+ * has pressed: if there is something here, do that; only when there is nothing
+ * does the tool come out. A door that had to be approached with an empty hand
+ * would be a door she could lock herself out of.
+ *
+ * And a tree takes the button without taking the dot. She walks through two
+ * hundred trees; a dot hopping from trunk to trunk beside her would be answering
+ * a question nobody asked, on every step of every wood. The button still swings
+ * at the nearest one — which is the half worth asserting, because "no dot" would
+ * be very easy to deliver by taking the tree off the button as well.
+ */
+test('the coloured buttons: blue cycles the row, green takes what is in front of her', async ({
+  page,
+}) => {
   const { errors } = await bootGame(page);
 
   const start = await readHooks(page);
@@ -369,27 +354,12 @@ test('the blue button cycles the held tool, and the axe never leaves slot one', 
   );
   expect(tookHammer, 'a granted tool can be').toBe(true);
 
-  const end = await readHooks(page);
-  expect(end.tools.slots).toEqual(['axe', null, null, null]);
-  expect(end.tools.held, 'and the light never sits on an empty box').toBe(0);
+  const emptied = await readHooks(page);
+  expect(emptied.tools.slots).toEqual(['axe', null, null, null]);
+  expect(emptied.tools.held, 'and the light never sits on an empty box').toBe(0);
 
-  expect(errors, 'no uncaught page errors').toEqual([]);
-});
-
-/**
- * The dot is a selection, and a tree is not one.
- *
- * She walks through two hundred trees; a dot hopping from trunk to trunk beside
- * her would be answering a question nobody asked, on every step of every wood.
- * The button still swings at the nearest one — which is the half of this worth
- * asserting, because "no dot" would be very easy to deliver by taking the tree
- * off the button as well.
- */
-test('a tree takes the green button without taking the green dot', async ({ page }) => {
-  const { errors } = await bootGame(page);
-
-  // The well first, so this says the dot still works rather than only that it
-  // is missing here.
+  // The well first, so what follows says the dot still works rather than only
+  // that it is missing at a tree.
   await standByProp(page, 'well');
   expect((await readHooks(page)).promptDot, 'the well asks to be pressed').toBe(true);
 
@@ -397,7 +367,6 @@ test('a tree takes the green button without taking the green dot', async ({ page
   await standByTree(page, choppable.id);
   const atChoppable = await readHooks(page);
   expect(atChoppable.promptDot, 'a tree she can fell does not').toBe(false);
-  await snap(page, '53-tree-no-dot.png');
 
   // And it is still hers to swing at.
   await whack(page);
@@ -412,66 +381,9 @@ test('a tree takes the green button without taking the green dot', async ({ page
   await standByTree(page, fixed.id);
   expect((await readHooks(page)).promptDot, 'nor does one she cannot').toBe(false);
 
-  expect(errors, 'no uncaught page errors').toEqual([]);
-});
-
-/**
- * Every swing animates — the second one as much as the first.
- *
- * She is a stack of seven sprites playing one animation between them, and the
- * axe is the only one of the seven that draws nothing outside the swing. So it
- * is the only one whose animation name does not change between swings, and the
- * only one a "do not restart what is already playing" guard can freeze on the
- * last frame of the previous swing. From the outside that is an axe that hangs
- * in the air while she chops, on every swing after the first, and the hooks say
- * `chop-down` throughout either way.
- *
- * Three swings at an unchoppable tree: it never changes state, so all three are
- * the same swing in the same direction at the same target, which is exactly the
- * repeat the guard used to swallow.
- */
-test('every swing animates, not just the first', async ({ page }) => {
-  const { errors } = await bootGame(page);
-
-  const start = await readHooks(page);
-  const target = pickTree(start, false);
-  await standByTree(page, target.id);
-
-  const swings = [
-    await framesAcrossASwing(page),
-    await framesAcrossASwing(page),
-    await framesAcrossASwing(page),
-  ];
-
-  for (let i = 0; i < swings.length; i++) {
-    const swing = swings[i]!;
-    expect(Object.keys(swing), `swing ${i + 1}: the axe is in her hands`).toContain('seraphina-axe');
-    for (const [layer, frames] of Object.entries(swing)) {
-      expect(
-        frames.length,
-        `swing ${i + 1}: ${layer} drew frames ${frames.join(',')} — a swing is six of them`,
-      ).toBeGreaterThanOrEqual(3);
-    }
-  }
-
-  expect(errors, 'no uncaught page errors').toEqual([]);
-});
-
-/**
- * The green button is about the thing in front of her first, and the axe second.
- *
- * She carries the axe everywhere and there is no putting it down, so "green
- * swings" and "green opens the door" cannot both be unconditional. The order is
- * the one a four-year-old already expects from every other button she has
- * pressed: if there is something here, do that; only when there is nothing does
- * the tool come out. A door that had to be approached with an empty hand would be
- * a door she could lock herself out of.
- */
-test('a door in reach takes the green button before the axe does', async ({ page }) => {
-  const { errors } = await bootGame(page);
-
+  // Last, because it ends up indoors: a door in reach takes the button before
+  // the axe does.
   await standByProp(page, 'outside_to_house');
-
   const outside = await readHooks(page);
   expect(outside.tools.holding, 'the axe is in her hand the whole time').toBe('axe');
   expect(outside.promptDot, 'and the door is the thing asking to be pressed').toBe(true);
@@ -494,18 +406,38 @@ test('a door in reach takes the green button before the axe does', async ({ page
 });
 
 /**
- * A swing at nothing is still a swing.
+ * The swing itself, in the middle of an empty field: three of them in a row, and
+ * then one taken at a walk.
  *
- * The alternative — green doing nothing at all when nothing is in reach — is the
- * version that reads as a broken button, because from where she is sitting a
- * press that produces silence is indistinguishable from a game that has stopped
- * working. So the axe comes out in the middle of an empty field, the arc plays in
- * full, there is a breath of air, and the world is exactly as it was.
+ * A swing at nothing is still a swing. The alternative — green doing nothing at
+ * all when nothing is in reach — is the version that reads as a broken button,
+ * because from where she is sitting a press that produces silence is
+ * indistinguishable from a game that has stopped working. So the axe comes out
+ * in the middle of an empty field, the arc plays in full, there is a breath of
+ * air, and the world is exactly as it was. The second half of that is the one
+ * worth guarding: a whiff that quietly hit something off screen would pass every
+ * animation assertion here.
  *
- * The second half is the one worth guarding: a whiff that quietly hit something
- * off screen would pass every animation assertion here.
+ * Three in a row, because she is a stack of seven sprites playing one animation
+ * between them, and the axe is the only one of the seven that draws nothing
+ * outside the swing. So it is the only one whose animation name does not change
+ * between swings, and the only one a "do not restart what is already playing"
+ * guard can freeze on the last frame of the previous swing. From the outside
+ * that is an axe that hangs in the air while she chops, on every swing after the
+ * first, and the hooks say `chop-down` throughout either way. An empty field is
+ * the strictest version of that repeat: nothing about the swing changes between
+ * them, because there is nothing there to change.
+ *
+ * And then one while walking. The swing used to nail her feet to the floor for
+ * half a second, which is the smallest fail state a game can have and still have
+ * one: the controls stop answering, and the only way to learn why is to already
+ * know. Now she keeps walking, the blow stays aimed where it was aimed, and the
+ * picture is the swing's for its whole duration — her feet slide, and that is the
+ * accepted cost. Both halves have to be asserted together: displacement alone
+ * would also be true of a swing cancelled the moment she moved, and frames alone
+ * would be true of the old locked version.
  */
-test('green in an empty field swings at the air and changes nothing', async ({ page }) => {
+test('a swing at nothing is a whole swing, and she can walk through one', async ({ page }) => {
   const { errors } = await bootGame(page);
 
   const start = await readHooks(page);
@@ -521,43 +453,62 @@ test('green in an empty field swings at the air and changes nothing', async ({ p
     'and no trunk is within reach either — the search found honest emptiness',
   ).toBe(true);
 
-  const drawn = await framesAcrossASwing(page);
-  expect(Object.keys(drawn), 'the axe is still drawn for a swing at nothing').toContain(
-    'seraphina-axe',
-  );
-  for (const [layer, frames] of Object.entries(drawn)) {
-    expect(
-      frames.length,
-      `${layer} drew frames ${frames.join(',')} — a whiff is the whole animation, not a stub`,
-    ).toBeGreaterThanOrEqual(3);
+  for (let swing = 1; swing <= 3; swing++) {
+    expectAnimated(await framesAcrossASwing(page), `swing ${swing}`);
   }
 
   const after = await readHooks(page);
-  expect(after.swings, 'the swing was counted').toBe(before.swings + 1);
-  expect(after.whacks, 'and nothing was hit by it').toBe(before.whacks);
+  expect(after.swings, 'all three were counted').toBe(before.swings + 3);
+  expect(after.whacks, 'and nothing was hit by any of them').toBe(before.whacks);
   expect(
     after.trees.map((t) => t.state),
     'every tree in the zone is exactly as it was',
   ).toEqual(before.trees.map((t) => t.state));
   expect(after.sparkles, 'and nothing was poked').toBe(before.sparkles);
 
+  // Somewhere to actually go. Walking into a wall is nought pixels of
+  // displacement, and would read here as a movement lock that is still in place.
+  const { tile } = after.world;
+  const open = [
+    { key: 'ArrowRight', dx: 1, dy: 0 },
+    { key: 'ArrowLeft', dx: -1, dy: 0 },
+    { key: 'ArrowDown', dx: 0, dy: 1 },
+    { key: 'ArrowUp', dx: 0, dy: -1 },
+  ].find((way) =>
+    [1, 2, 3].every(
+      (step) =>
+        !isBlocked(
+          after,
+          after.player.x + way.dx * tile * step,
+          after.player.y + way.dy * tile * step,
+        ),
+    ),
+  );
+  if (!open) throw new Error('the emptiest field in the zone has nowhere to walk to');
+
+  const walking = await swingWhileWalking(page, open.key);
+
+  expect(
+    Math.hypot(walking.to.x - walking.from.x, walking.to.y - walking.from.y),
+    'she covered ground with the axe over her head',
+  ).toBeGreaterThan(30);
+  expectAnimated(walking.frames, 'the swing she took at a walk');
+
+  // And nothing else got a turn at the picture. A walk frame in here is the
+  // guard in `apply()` letting a walk request through mid-chop, which is what
+  // used to be prevented by taking her legs away instead.
+  expect(
+    walking.anims.every((anim) => anim.startsWith('chop')),
+    `the chop owned the animation throughout — saw ${walking.anims.join(', ')}`,
+  ).toBe(true);
+
   expect(errors, 'no uncaught page errors').toEqual([]);
 });
 
 /**
- * Swing and walk at the same time, sampled inside the page.
- *
- * The swing used to nail her feet to the floor for half a second, which is the
- * smallest fail state a game can have and still have one: the controls stop
- * answering, and the only way to learn why is to already know. Now she keeps
- * walking, the blow stays aimed where it was aimed, and the picture is the
- * swing's for its whole duration — her feet slide, and that is the accepted cost.
- *
- * Both halves have to be asserted together. Displacement alone would also be
- * true of a swing that was cancelled the moment she moved, and frames alone would
- * be true of the old locked version. The sampler lives in the page for the same
- * reason `framesAcrossASwing`'s does: the window is half a second and a round trip
- * is most of a frame of it.
+ * Swing and walk at the same time, sampled inside the page — for the same reason
+ * `framesAcrossASwing`'s sampler lives there: the window is half a second and a
+ * round trip is most of a frame of it.
  */
 async function swingWhileWalking(page: Page, key: string) {
   await page.keyboard.down(key);
@@ -618,59 +569,6 @@ async function swingWhileWalking(page: Page, key: string) {
     await page.keyboard.up(key);
   }
 }
-
-test('she can walk while she swings, and the swing keeps the picture', async ({ page }) => {
-  const { errors } = await bootGame(page);
-
-  // The same empty field the whiff uses: a swing that connected with something
-  // would fell it, and a felled tree changes what is under her feet mid-test.
-  const start = await readHooks(page);
-  await teleport(page, emptyGround(start));
-  await page.waitForTimeout(200);
-
-  // Somewhere to actually go. Walking into a wall is nought pixels of
-  // displacement, and would read here as a movement lock that is still in place.
-  const here = await readHooks(page);
-  const { tile } = here.world;
-  const ways = [
-    { key: 'ArrowRight', dx: 1, dy: 0 },
-    { key: 'ArrowLeft', dx: -1, dy: 0 },
-    { key: 'ArrowDown', dx: 0, dy: 1 },
-    { key: 'ArrowUp', dx: 0, dy: -1 },
-  ];
-  const open = ways.find((way) =>
-    [1, 2, 3].every(
-      (step) =>
-        !isBlocked(here, here.player.x + way.dx * tile * step, here.player.y + way.dy * tile * step),
-    ),
-  );
-  if (!open) throw new Error('the emptiest field in the zone has nowhere to walk to');
-
-  const swing = await swingWhileWalking(page, open.key);
-
-  const moved = Math.hypot(swing.to.x - swing.from!.x, swing.to.y - swing.from!.y);
-  expect(moved, 'she covered ground with the axe over her head').toBeGreaterThan(30);
-
-  expect(Object.keys(swing.frames), 'and the axe was drawn while she did it').toContain(
-    'seraphina-axe',
-  );
-  for (const [layer, frames] of Object.entries(swing.frames)) {
-    expect(
-      frames.length,
-      `${layer} drew frames ${frames.join(',')} — the swing animated while she walked`,
-    ).toBeGreaterThanOrEqual(3);
-  }
-
-  // And nothing else got a turn at the picture. A walk frame in here is the
-  // guard in `apply()` letting a walk request through mid-chop, which is what
-  // used to be prevented by taking her legs away instead.
-  expect(
-    swing.anims.every((anim) => anim.startsWith('chop')),
-    `the chop owned the animation throughout — saw ${swing.anims.join(', ')}`,
-  ).toBe(true);
-
-  expect(errors, 'no uncaught page errors').toEqual([]);
-});
 
 /**
  * The build gate, run as a build.

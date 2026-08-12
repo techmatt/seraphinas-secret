@@ -3,35 +3,49 @@ import {
   bootGame,
   isBlocked,
   readHooks,
-  snap,
   standAt,
   standByProp,
   tap,
   walk,
-  walkThroughDoorway,
   walkToLandmark,
-  walkToPoint,
   walkToProp,
   type Hooks,
 } from './harness';
 
-test('the game opens outside her house, in a world bigger than the screen', async ({ page }) => {
+const teleport = (page: Page, x: number, y: number) =>
+  page.evaluate(
+    ([tx, ty]) => (window as unknown as { __seraphina: Hooks }).__seraphina.teleport(tx!, ty!),
+    [x, y],
+  );
+
+/**
+ * The exterior, from one boot: what is in it, that the camera behaves, that a
+ * poked prop answers, that walls are walls and that the overlay which draws them
+ * turns on and off.
+ *
+ * Seven tests once — one page load each, all of them asking a small question
+ * about the same zone. Page startup is the dominant cost in this suite, so they
+ * are one page load now. What is *reached on foot* rather than teleported to is
+ * chosen deliberately: the well, because a prop she cannot reach is a prop that
+ * does not exist, and Joey's door, because the road past the facades is the one
+ * she walks most. Everything else is stood at.
+ */
+test('the world she wakes up in', async ({ page }) => {
   const { errors } = await bootGame(page);
 
-  const world = await readHooks(page);
-  expect(world.room, 'the title screen opens onto the exterior').toBe('outside');
-  expect(world.doorways.map((d) => d.to), 'her front door leads into the house').toEqual([
-    'house',
-  ]);
+  const start = await readHooks(page);
+  expect(start.room, 'the title screen opens onto the exterior').toBe('outside');
+  expect(start.doorways.map((d) => d.to), 'her front door leads into the house').toEqual(['house']);
+  expect(start.sparkles, 'nothing has sparkled yet').toBe(0);
 
   // The point of the rebuild: it does not fit on one screen any more.
-  expect(world.world.width, 'the exterior is several screens wide').toBeGreaterThan(
-    world.camera.width * 2,
+  expect(start.world.width, 'the exterior is several screens wide').toBeGreaterThan(
+    start.camera.width * 2,
   );
-  expect(world.world.height, 'and several tall').toBeGreaterThan(world.camera.height * 2);
+  expect(start.world.height, 'and several tall').toBeGreaterThan(start.camera.height * 2);
 
   // Everything Matt named is somewhere in it.
-  expect(world.landmarks.map((m) => m.id).sort()).toEqual([
+  expect(start.landmarks.map((m) => m.id).sort()).toEqual([
     'cave',
     'clearing',
     'cliff',
@@ -48,61 +62,70 @@ test('the game opens outside her house, in a world bigger than the screen', asyn
     'woods_gap',
   ]);
 
-  expect(errors, 'no uncaught page errors').toEqual([]);
-});
-
-test('the camera follows her, and stops at the edge of the world', async ({ page }) => {
-  const { errors } = await bootGame(page);
-
-  const before = await readHooks(page);
+  // The well stands on her own street, a hop from where the title screen puts
+  // her down — which is the point of it being there. Walked to, and the only
+  // prop in the fast suite that is: this is where "the arrow keys move her and
+  // the green button answers" is proved end to end.
+  await walkToProp(page, 'well');
+  await tap(page, 'KeyZ');
+  const poked = await readHooks(page);
+  expect(poked.sparkles, 'Z near the well should sparkle').toBe(1);
+  expect(poked.peakParticles, 'and put particles on screen').toBeGreaterThan(0);
 
   // Walked in bursts until she has covered some ground, rather than for a fixed
   // time. How far a held key carries her depends on what the machine is doing —
-  // the first second in a zone is its slowest, and a loaded CI box is slower
-  // still — and the claim under test is that the camera follows, not how fast
-  // she is.
+  // the first second in a zone is its slowest — and the claim under test is that
+  // the camera follows, not how fast she is.
+  const before = await readHooks(page);
   let after = before;
   for (let burst = 0; burst < 6 && after.player.x < before.player.x + 200; burst++) {
     await walk(page, 'ArrowRight', 900);
     after = await readHooks(page);
   }
-
   expect(after.player.x, 'she moved').toBeGreaterThan(before.player.x + 200);
   expect(after.camera.x, 'and the camera came with her').toBeGreaterThan(before.camera.x + 100);
-
   // The camera lags on purpose, so it is behind her rather than centred on her.
-  const lead = after.player.x - (after.camera.x + after.camera.width / 2);
-  expect(Math.abs(lead), 'but it is not welded to her').toBeGreaterThan(0);
+  expect(
+    Math.abs(after.player.x - (after.camera.x + after.camera.width / 2)),
+    'but it is not welded to her',
+  ).toBeGreaterThan(0);
 
   // Walk into the top-left corner of the world and the view has to stop dead
   // rather than showing the outside of the map.
-  await page.evaluate(() =>
-    (window as unknown as { __seraphina: Hooks }).__seraphina.teleport(0, 0),
-  );
+  await teleport(page, 0, 0);
   const corner = await readHooks(page);
   expect(corner.camera.x, 'the camera clamps to the west edge').toBe(0);
   expect(corner.camera.y, 'and to the north edge').toBe(0);
 
-  await page.evaluate(
-    ([w, h]) => (window as unknown as { __seraphina: Hooks }).__seraphina.teleport(w!, h!),
-    [corner.world.width, corner.world.height],
-  );
+  await teleport(page, corner.world.width, corner.world.height);
   const far = await readHooks(page);
   expect(far.camera.x + far.camera.width, 'and to the east edge').toBe(far.world.width);
   expect(far.camera.y + far.camera.height, 'and to the south edge').toBe(far.world.height);
 
-  expect(errors, 'no uncaught page errors').toEqual([]);
-});
+  // The hitbox overlay: held, not toggled, and it is the keyboard's B rather
+  // than the pad's — the pad's red button is her cancel. The pictures it takes
+  // are `hitboxes.spec`'s job; that it turns on at all is this one's.
+  await page.keyboard.down('KeyB');
+  await page.waitForFunction(
+    () => (window as unknown as { __seraphina: Hooks }).__seraphina.hitboxes === true,
+    undefined,
+    { timeout: 5_000 },
+  );
+  const held = await readHooks(page);
+  expect(held.player.x, 'holding it does not move her').toBeCloseTo(far.player.x, 0);
+  expect(held.sparkles, 'and it is not an interaction').toBe(far.sparkles);
+  await page.keyboard.up('KeyB');
+  await page.waitForFunction(
+    () => (window as unknown as { __seraphina: Hooks }).__seraphina.hitboxes === false,
+    undefined,
+    { timeout: 5_000 },
+  );
 
-test('walking into her house stops her at the wall', async ({ page }) => {
-  const { errors } = await bootGame(page);
-
-  const start = await readHooks(page);
+  // A wall is a wall. Stand under the east end of her house, well clear of the
+  // doorway, and pick the spot out of the collision grid rather than assuming
+  // where it is: the layout is data, and a test that hardcodes a wall breaks
+  // when it moves.
   const tile = start.world.tile;
-
-  // Stand under the east end of the house, well clear of the doorway, and pick
-  // the spot out of the collision grid rather than assuming where it is: the
-  // layout is data and a test that hardcodes a wall breaks when it moves.
   const door = start.doorways.find((d) => d.id === 'outside_to_house')!;
   let approach: { x: number; y: number } | null = null;
   for (let step = 2; step <= 4 && !approach; step++) {
@@ -115,60 +138,147 @@ test('walking into her house stops her at the wall', async ({ page }) => {
   }
   expect(approach, 'there is a stretch of house wall east of the door').not.toBeNull();
 
-  await page.evaluate(
-    ([x, y]) => (window as unknown as { __seraphina: Hooks }).__seraphina.teleport(x!, y!),
-    [approach!.x, approach!.y],
-  );
-
+  await teleport(page, approach!.x, approach!.y);
   await walk(page, 'ArrowUp', 1600);
-  const after = await readHooks(page);
-
-  expect(after.room, 'she did not walk through the wall into the house').toBe('outside');
+  const stopped = await readHooks(page);
+  expect(stopped.room, 'she did not walk through the wall into the house').toBe('outside');
   expect(
-    isBlocked(after, after.player.x, after.player.y - tile),
+    isBlocked(stopped, stopped.player.x, stopped.player.y - tile),
     'she is stopped with something solid directly in front of her',
   ).toBe(true);
   expect(
-    isBlocked(after, after.player.x, after.player.y - 2),
+    isBlocked(stopped, stopped.player.x, stopped.player.y - 2),
     'and she is not inside it',
   ).toBe(false);
+
+  // Buildings collide at the base only, which is the half of it a picture cannot
+  // settle: the screenshot of Joey's house looks exactly the same whether his
+  // roof is solid or not. Every building used to block a rectangle the size of
+  // its own picture — roof, eaves and a column of bare grass down each side — so
+  // the cell four tiles behind his door was inside his house, and there was
+  // nowhere behind anything in the village to stand.
+  //
+  // Read off the grid rather than walked round to. Walking it was thirty-five
+  // seconds of the suite, and the grid is what the walk was consulting.
+  const joey = start.interactables.find((p) => p.id === 'joey_door')!;
+  expect(isBlocked(start, joey.x, joey.y - 4 * tile), 'the back of his house is grass').toBe(false);
+  expect(
+    isBlocked(start, joey.x, joey.y - 2 * tile),
+    'and the foot of his front wall is still a wall',
+  ).toBe(true);
+
+  // A facade is the one thing in the game allowed to answer with no words: the
+  // design law is that text must speak, and a knock has no text.
+  await standAt(page, 'facades');
+  await walkToProp(page, 'joey_door');
+  await tap(page, 'KeyZ');
+  const knocked = await readHooks(page);
+  expect(knocked.sparkles, 'Joey’s door reacts').toBe(poked.sparkles + 1);
+  expect(knocked.voice.lineId, 'but says nothing — there is no text to speak').toBeNull();
+  expect(knocked.room, 'and it is not a way in').toBe('outside');
 
   expect(errors, 'no uncaught page errors').toEqual([]);
 });
 
-test('she presses to go in, and walks to come out', async ({ page }) => {
+/**
+ * Watch a doorway fire, from inside the page.
+ *
+ * The flourish is under half a second end to end, which a round trip per frame
+ * cannot reliably land inside. So the watching happens in the page: it waits for
+ * the transition to start, looks a beat later, and reports what it saw —
+ * including the particle high-water mark, which is read there rather than here
+ * because the zone it belongs to is about to be torn down.
+ */
+function watchTransition(page: Page) {
+  return page.evaluate(
+    (holdMs) =>
+      new Promise<{ room: string | null; transitioning: boolean; peakParticles: number }>(
+        (resolve) => {
+          const hooks = (window as unknown as { __seraphina: Hooks }).__seraphina;
+          const tick = () => {
+            if (!hooks.transitioning) {
+              requestAnimationFrame(tick);
+              return;
+            }
+            window.setTimeout(
+              () =>
+                resolve({
+                  room: hooks.room,
+                  transitioning: hooks.transitioning,
+                  peakParticles: hooks.peakParticles,
+                }),
+              holdMs,
+            );
+          };
+          tick();
+        },
+      ),
+    120,
+  );
+}
+
+/** Wait out a doorway: the zone has swapped and the arrival flourish has landed. */
+async function arrive(page: Page, from: string | null) {
+  await page.waitForFunction(
+    (before) => {
+      const h = (window as unknown as { __seraphina: Hooks }).__seraphina;
+      return h.room !== before && !h.transitioning;
+    },
+    from,
+    { timeout: 20_000 },
+  );
+  await page.waitForTimeout(560);
+  return readHooks(page);
+}
+
+/**
+ * Her front door, both ways, and what is behind it.
+ *
+ * Four tests once: the press that opens it, the flourish it opens with, the
+ * props in the house, and the walk that brings her back out. They are one
+ * journey, so they are one test — and the two halves of the flourish are the
+ * reason it cannot simply be `walkThroughDoorway` twice: what has to be caught
+ * is the moment *during* the wash, when the zone has not swapped yet.
+ *
+ * Stardew's convention: the front door is a thing you press, and coming out of a
+ * building has never needed one.
+ */
+test('a press to go in, a walk to come out, and the house in between', async ({ page }) => {
   const { errors } = await bootGame(page);
 
   const outside = await readHooks(page);
-  expect(outside.room).toBe('outside');
-
-  // Stardew's convention: the front door is a thing you press, and it is
-  // offered to her the same way every prop is — by being in the list the green
-  // dot is drawn from.
   const front = outside.doorways.find((d) => d.id === 'outside_to_house')!;
   expect(front.enter, 'her front door is entered with a press').toBe('press');
   expect(
     outside.interactables.map((i) => i.id),
     'and it takes its turn among the pokeable things',
   ).toContain('outside_to_house');
+  // The title screen puts her on her own doorstep, so the green dot is already
+  // showing over the door and the press needs no steering at all — which is also
+  // how a four-year-old is taught what the green button is for.
+  expect(
+    Math.hypot(front.x - outside.player.x, front.y - outside.player.y),
+    'she starts within reach of her own front door',
+  ).toBeLessThanOrEqual(outside.interactRadius);
 
   // Standing in the opening is not enough, and that is the point: a door she
   // could fall through on the way past is the nearest thing to a fail state.
-  await page.evaluate(
-    ([x, y]) => (window as unknown as { __seraphina: Hooks }).__seraphina.teleport(x!, y!),
-    [front.x, front.y],
-  );
+  await teleport(page, front.x, front.y);
   await page.waitForTimeout(600);
   const loitering = await readHooks(page);
   expect(loitering.room, 'standing in the doorway does not open it').toBe('outside');
   expect(loitering.transitioning).toBe(false);
 
-  const inside = await walkThroughDoorway(page, 'outside_to_house');
-  expect(inside, 'her front door leads into the house').toBe('house');
+  const goingIn = watchTransition(page);
+  await tap(page, 'KeyZ');
+  const inward = await goingIn;
+  expect(inward.transitioning, 'the press opened the door').toBe(true);
+  expect(inward.room, 'the zone does not swap until the wash covers the seam').toBe('outside');
+  expect(inward.peakParticles, 'the threshold bursts on the way in').toBeGreaterThan(0);
 
-  const house = await readHooks(page);
+  const house = await arrive(page, 'outside');
+  expect(house.room, 'her front door leads into the house').toBe('house');
   expect(house.ready, 'the house finished building').toBe(true);
-  expect(house.transitioning, 'and the transition is over').toBe(false);
   expect(house.interactables.map((p) => p.id), 'the house has its own props').toEqual([
     'bed',
     'wardrobe',
@@ -177,20 +287,42 @@ test('she presses to go in, and walks to come out', async ({ page }) => {
   ]);
   expect(house.world.width, 'the interior scrolls too').toBeGreaterThan(house.camera.width);
 
-  // Arrival is stepped clear of the door she came through — standing in it
-  // would bounce her straight back out, which is as near a fail state as this
-  // game gets.
-  const door = house.doorways.find((d) => d.id === 'house_to_outside')!;
-  expect(Math.abs(house.player.y - door.y), 'she stands clear of the doorway').toBeGreaterThan(
+  // Arrival is stepped clear of the door she came through — standing in it would
+  // bounce her straight back out, which is as near a fail state as this game gets.
+  const out = house.doorways.find((d) => d.id === 'house_to_outside')!;
+  expect(Math.abs(house.player.y - out.y), 'she stands clear of the doorway').toBeGreaterThan(
     house.world.tile,
   );
+  expect(out.enter, 'and coming out is a walk, not a press').toBe('walk');
 
-  // And it is a graph, not a one-way trip — walked, with no press: coming out
-  // of a building has never needed one and still does not.
-  expect(house.doorways.find((d) => d.id === 'house_to_outside')!.enter).toBe('walk');
-  const back = await walkThroughDoorway(page, 'house_to_outside');
-  expect(back, 'the front door leads back outside').toBe('outside');
-  expect((await readHooks(page)).landmarks.map((m) => m.id)).toContain('woods');
+  // Stood by rather than walked to: the claim here is that a poked prop sparkles
+  // and speaks, and getting to things is the well's test and the wood's.
+  await standByProp(page, 'bed');
+  await tap(page, 'KeyZ');
+  const bed = await readHooks(page);
+  expect(bed.sparkles, 'the bed takes a press').toBe(1);
+  // Design law: nothing appears on screen without a voice behind it.
+  expect(bed.voice.lineId, 'and says something').toBe('seraphina_bed');
+  expect(bed.voice.words.length, 'with words to highlight').toBeGreaterThan(0);
+
+  await standByProp(page, 'wardrobe');
+  await tap(page, 'KeyZ');
+  const wardrobe = await readHooks(page);
+  expect(wardrobe.sparkles, 'so does the wardrobe').toBe(2);
+  expect(wardrobe.voice.lineId).toBe('seraphina_wardrobe');
+
+  // And out again on her feet alone, with no press anywhere in it.
+  await teleport(page, out.x, out.y - 2 * house.world.tile);
+  const comingOut = watchTransition(page);
+  await page.keyboard.down('ArrowDown');
+  const outward = await comingOut;
+  await page.keyboard.up('ArrowDown');
+  expect(outward.transitioning, 'the doorway fired on the walk alone').toBe(true);
+  expect(outward.room, 'the zone does not swap until the wash covers the seam').toBe('house');
+
+  const back = await arrive(page, 'house');
+  expect(back.room, 'the front door leads back outside').toBe('outside');
+  expect(back.landmarks.map((m) => m.id), 'and it is the world she left').toContain('woods');
 
   expect(errors, 'no uncaught page errors').toEqual([]);
 });
@@ -222,169 +354,9 @@ test('the Mystic Woods can be reached on foot', { tag: '@slow' }, async ({ page 
   // And the wood has something in it worth having walked to.
   await walkToProp(page, 'woods_toadstool');
   await tap(page, 'KeyZ');
-  const poked = await readHooks(page);
-  expect(poked.sparkles, 'the toadstool takes a press').toBe(1);
-  expect(poked.voice.lineId, 'and says something').toBe('seraphina_munchy');
-
-  expect(errors, 'no uncaught page errors').toEqual([]);
-});
-
-test('a neighbour’s door knocks, and does not open', async ({ page }) => {
-  const { errors } = await bootGame(page);
-
-  // Stood on the road outside the neighbours' houses rather than walked there
-  // from her own front door: the wood test already proves the world connects,
-  // and this one is about what a knock does.
-  await standAt(page, 'facades');
-
-  // A facade is the one thing in the game allowed to answer with no words: the
-  // design law is that text must speak, and a knock has no text.
-  await walkToProp(page, 'joey_door');
-  await tap(page, 'KeyZ');
-
-  const knocked = await readHooks(page);
-  expect(knocked.sparkles, 'Joey’s door reacts').toBe(1);
-  expect(knocked.voice.lineId, 'but says nothing — there is no text to speak').toBeNull();
-  expect(knocked.room, 'and it is not a way in').toBe('outside');
-
-  expect(errors, 'no uncaught page errors').toEqual([]);
-});
-
-/**
- * The half of "buildings collide at the base only" that a picture cannot settle.
- * A hitbox has no picture, so the screenshot of Joey's house looks exactly the
- * same whether his roof is solid or not — walking round the back of it is what
- * tells the two apart.
- */
-test('there is a way round the back of a neighbour’s house', async ({ page }) => {
-  const { errors } = await bootGame(page);
-
-  const start = await readHooks(page);
-  const tile = start.world.tile;
-
-  // Joey's door, and the grass four tiles behind it. Every building used to
-  // block a rectangle the size of its own picture — roof, eaves and a column of
-  // bare grass down each side — so this cell was inside his house and there was
-  // nowhere behind anything in the village to stand.
-  const door = start.interactables.find((p) => p.id === 'joey_door')!;
-  const behind = { x: door.x, y: door.y - 4 * tile };
-
-  expect(isBlocked(start, behind.x, behind.y), 'the back of his house is grass').toBe(false);
-  expect(
-    isBlocked(start, behind.x, behind.y + 2 * tile),
-    'and the foot of his front wall is still a wall',
-  ).toBe(true);
-
-  // Stood on the road and walked from there: the claim is that the space can be
-  // reached, so the way into it is hers to find.
-  await standAt(page, 'facades');
-  await walkToPoint(page, behind, tile);
-
-  const round = await readHooks(page);
-  expect(round.room, 'she walked round it rather than out of the world').toBe('outside');
-  expect(
-    round.player.y,
-    'and ended up north of the wall, with his house between her and the road',
-  ).toBeLessThan(behind.y + 2 * tile);
-
-  expect(errors, 'no uncaught page errors').toEqual([]);
-});
-
-test('the house props sparkle and speak', async ({ page }) => {
-  const { errors } = await bootGame(page);
-  await walkThroughDoorway(page, 'outside_to_house');
-
-  // Stood by rather than walked to, twice below as well: the claim here is that
-  // a poked prop sparkles and speaks. Getting to it is the front door's test and
-  // the wood's, both of which walk.
-  await standByProp(page, 'bed');
-  await tap(page, 'KeyZ');
-  const bed = await readHooks(page);
-  expect(bed.sparkles, 'the bed takes a press').toBe(1);
-  // Design law: nothing appears on screen without a voice behind it.
-  expect(bed.voice.lineId, 'and says something').toBe('seraphina_bed');
-  expect(bed.voice.words.length, 'with words to highlight').toBeGreaterThan(0);
-
-  await standByProp(page, 'wardrobe');
-  await tap(page, 'KeyZ');
-  const wardrobe = await readHooks(page);
-  expect(wardrobe.sparkles, 'so does the wardrobe').toBe(2);
-  expect(wardrobe.voice.lineId).toBe('seraphina_wardrobe');
-
-  expect(errors, 'no uncaught page errors').toEqual([]);
-});
-
-/**
- * The flourish is under half a second end to end, which a round trip per frame
- * cannot reliably land inside. So the watching happens in the page: it freezes
- * the scene a beat after the doorway fires and reports what it saw.
- */
-async function watchTransition(page: Page) {
-  return page.evaluate(
-    (holdMs) =>
-      new Promise<{ room: string | null; transitioning: boolean }>((resolve) => {
-        const hooks = (window as unknown as { __seraphina: Hooks }).__seraphina;
-        const tick = () => {
-          if (!hooks.transitioning) {
-            requestAnimationFrame(tick);
-            return;
-          }
-          window.setTimeout(() => {
-            const seen = { room: hooks.room, transitioning: hooks.transitioning };
-            hooks.pause();
-            resolve(seen);
-          }, holdMs);
-        };
-        tick();
-      }),
-    120,
-  );
-}
-
-test('going in is a press, and it is a flourish rather than a cut', async ({ page }) => {
-  const { errors } = await bootGame(page);
-
-  // The title screen puts her on her own doorstep, so the green dot is already
-  // showing over the door and the press needs no steering at all — which is
-  // also how a four-year-old is taught what the green button is for.
-  const start = await readHooks(page);
-  const front = start.doorways.find((d) => d.id === 'outside_to_house')!;
-  expect(
-    Math.hypot(front.x - start.player.x, front.y - start.player.y),
-    'she starts within reach of her own front door',
-  ).toBeLessThanOrEqual(start.interactRadius);
-
-  const watching = watchTransition(page);
-  await tap(page, 'KeyZ');
-  const mid = await watching;
-
-  expect(mid.transitioning, 'the press opened the door').toBe(true);
-  expect(mid.room, 'the zone does not swap until the wash covers the seam').toBe('outside');
-
-  const frozen = await readHooks(page);
-  expect(frozen.peakParticles, 'the threshold bursts on the way in').toBeGreaterThan(0);
-
-  await snap(page, '09-transition.png');
-
-  expect(errors, 'no uncaught page errors').toEqual([]);
-});
-
-test('coming out is still a walk, with no press anywhere in it', async ({ page }) => {
-  const { errors } = await bootGame(page);
-  expect(await walkThroughDoorway(page, 'outside_to_house')).toBe('house');
-
-  // Walked at, not pressed: the doorway has to fire on her feet alone.
-  const house = await readHooks(page);
-  const out = house.doorways.find((d) => d.id === 'house_to_outside')!;
-  expect(out.enter).toBe('walk');
-
-  const watching = watchTransition(page);
-  await page.keyboard.down('ArrowDown');
-  const mid = await watching;
-  await page.keyboard.up('ArrowDown');
-
-  expect(mid.transitioning, 'the doorway fired on the walk alone').toBe(true);
-  expect(mid.room, 'the zone does not swap until the wash covers the seam').toBe('house');
+  const munched = await readHooks(page);
+  expect(munched.sparkles, 'the toadstool takes a press').toBe(1);
+  expect(munched.voice.lineId, 'and says something').toBe('seraphina_munchy');
 
   expect(errors, 'no uncaught page errors').toEqual([]);
 });

@@ -1,46 +1,17 @@
 /**
- * The hitbox overlay, and the pictures taken through it.
+ * The pictures taken through the hitbox overlay.
  *
- * Two jobs. The first is a normal test: holding B shows the collision grid,
- * letting go hides it, and nothing about the game changes either way. The second
- * is the audit trail — three tree-dense framings photographed with the overlay
- * up, which is the only way anyone can see whether a trunk is standing on the
- * tile that stops her.
+ * The audit trail — tree-dense framings photographed with the overlay up, which
+ * is the only way anyone can see whether a trunk is standing on the tile that
+ * stops her. That the overlay turns on and off at all, and changes nothing while
+ * it is up, is asserted in `world.spec`'s smoke test rather than here: it is two
+ * key events and a boolean, and it was paying for a page load of its own.
  */
 
 import { test, expect } from '@playwright/test';
-import { bootGame, readHooks, snap, standAt, withHitboxes, type Hooks } from './harness';
+import { bootGame, readHooks, snap, standAt, withHitboxes } from './harness';
 
-test('holding B shows the collision grid, and changes nothing else', async ({ page }) => {
-  const { errors } = await bootGame(page);
-
-  const before = await readHooks(page);
-  expect(before.hitboxes, 'the overlay is off until it is asked for').toBe(false);
-
-  // The keyboard's B, not the pad's — the pad's red button is her cancel.
-  await page.keyboard.down('KeyB');
-  await page.waitForFunction(
-    () => (window as unknown as { __seraphina: Hooks }).__seraphina.hitboxes === true,
-    undefined,
-    { timeout: 5_000 },
-  );
-  const held = await readHooks(page);
-  expect(held.player.x, 'holding it does not move her').toBeCloseTo(before.player.x, 0);
-  expect(held.player.y).toBeCloseTo(before.player.y, 0);
-  expect(held.sparkles, 'and it is not an interaction').toBe(before.sparkles);
-
-  await page.keyboard.up('KeyB');
-  await page.waitForFunction(
-    () => (window as unknown as { __seraphina: Hooks }).__seraphina.hitboxes === false,
-    undefined,
-    { timeout: 5_000 },
-  );
-
-  expect(errors, 'no uncaught page errors').toEqual([]);
-});
-
-// @slow: seven framings, and its output is pictures rather than assertions. The
-// test above it is the one that fails when the overlay breaks.
+// @slow: seven framings, and its output is pictures rather than assertions.
 test('the wood, with its hitboxes showing', { tag: '@slow' }, async ({ page }) => {
   const { errors } = await bootGame(page);
 
