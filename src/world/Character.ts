@@ -257,7 +257,12 @@ export class Character extends Phaser.GameObjects.Container {
   }
 
   /**
-   * Swing the axe, once, facing `direction`, and stand back up afterwards.
+   * Swing a tool, once, facing `direction`, and stand back up afterwards.
+   *
+   * `swing` is the animation's name — `chop` for the axe, `hammer` for the
+   * hammer — and it is what decides which rows of the sheet play and therefore
+   * which tool is drawn in her hands. The pack draws one body for both, so this
+   * is the only thing that tells them apart.
    *
    * `onLand` fires partway through rather than at the end: the pack draws the
    * blow landing on the second frame of six, and a tree that shakes when the
@@ -267,15 +272,20 @@ export class Character extends Phaser.GameObjects.Container {
    * A second call while the first is still running is ignored, which is what
    * makes holding the green button a rhythm rather than a stutter.
    */
-  chop(direction: Direction, onLand: () => void, onDone: () => void): boolean {
+  chop(
+    swing: AnimName,
+    direction: Direction,
+    onLand: () => void,
+    onDone: () => void,
+  ): boolean {
     if (this.swinging) return false;
 
     this.swinging = true;
     this.facingNow = direction;
-    this.animNow = 'chop';
+    this.animNow = swing;
     this.apply();
 
-    const row = this.sheet.anims.find((a) => a.name === 'chop');
+    const row = this.sheet.anims.find((a) => a.name === swing);
     // Half a second of swing at the sheet's own rate; the blow is frame two.
     const perFrame = 1000 / (row?.frameRate ?? 12);
     this.scene.time.delayedCall(perFrame * LANDS_ON, onLand);

@@ -26,8 +26,15 @@ export type Direction = 'down' | 'up' | 'left' | 'right';
 /** Which way a row of the sheet is drawn. Left is absent on purpose. */
 export type SheetDirection = 'down' | 'up' | 'right';
 
-/** Everything she can be doing. Grows as rows of the sheet get used. */
-export type AnimName = 'idle' | 'walk' | 'chop';
+/**
+ * Everything she can be doing. Grows as rows of the sheet get used.
+ *
+ * `chop` is the axe and `hammer` is the hammer. Two names rather than one
+ * "swing", because they are drawn off different rows with different tools in her
+ * hands, and because the animation key is what a test reads to say which of the
+ * two actually happened.
+ */
+export type AnimName = 'idle' | 'walk' | 'chop' | 'hammer';
 
 /** The row that gets mirrored when she walks left. */
 export function sheetDirection(facing: Direction): SheetDirection {
@@ -130,9 +137,13 @@ const PLAYER_GRID = { frameWidth: 64, frameHeight: 64, columns: 9 } as const;
  * handle lands in her hands in every frame of 35-37, and its swoosh arc is drawn
  * to match that body. See CHOP_ROWS below for its half of the same measurement.
  *
- * 38-40 is the identical body under a different tool. It is left unmapped: a
- * hammer swing is a later prompt's problem, and mapping a row nothing draws
- * would be a guess written down as a fact.
+ * Rows 38-40 are the hammer, and they are the same body again. Measured rather
+ * than assumed, and the measurement is the interesting part: 37 and 40 are
+ * byte-identical across all nine columns, and 35/38 and 36/39 differ by 31 and 5
+ * pixels of a 36,864-pixel band. So the pack drew one swing and shipped it
+ * twice, once per tool sheet, and nothing in the body could have broken the tie
+ * — 38-40 is the group this game calls the hammer because that is the half of
+ * the pair the axe is not already using.
  */
 const STANDING_ROWS: AnimRow[] = [
   { name: 'idle', facing: 'down', row: 0, frames: 6, frameRate: 6 },
@@ -150,6 +161,12 @@ const PLAYER_ROWS: AnimRow[] = [
   { name: 'chop', facing: 'down', row: 35, frames: 6, frameRate: 12, repeat: 0 },
   { name: 'chop', facing: 'right', row: 36, frames: 6, frameRate: 12, repeat: 0 },
   { name: 'chop', facing: 'up', row: 37, frames: 6, frameRate: 12, repeat: 0 },
+  // The same six frames at the same rate: one swing, drawn twice by the pack.
+  // What makes this the hammer is HAMMER_ROWS below, which is the only part of
+  // the pair that is actually different.
+  { name: 'hammer', facing: 'down', row: 38, frames: 6, frameRate: 12, repeat: 0 },
+  { name: 'hammer', facing: 'right', row: 39, frames: 6, frameRate: 12, repeat: 0 },
+  { name: 'hammer', facing: 'up', row: 40, frames: 6, frameRate: 12, repeat: 0 },
 ];
 
 /**
@@ -166,6 +183,28 @@ const AXE_ROWS: Partial<Record<`${AnimName}-${SheetDirection}`, number>> = {
   'chop-down': 0,
   'chop-right': 1,
   'chop-up': 2,
+};
+
+/**
+ * The hammer, on the same grid. Rows 3-5 of `Iron_Tools.png`.
+ *
+ * **The pack has no hammer.** `Iron_Tools.png` is axe, pickaxe, hoe and watering
+ * can, and rows 3-5 are the pickaxe: a curved iron head on a short handle,
+ * raised overhead facing up or down and swung in an arc facing sideways. Which
+ * is the right picture for the job whatever it is called — it is the only tool
+ * in the pack drawn hitting the ground rather than sweeping across it, and what
+ * she does with it is crack open stones.
+ *
+ * So "hammer" is the fiction and the pickaxe is the art, and the two are told
+ * apart nowhere in the game except this comment. Her belt icon stays the round
+ * mallet (see `TOOL_ICONS`), which is the one of the ten icons that could never
+ * be mistaken for the axe in the box beside it — and telling those two apart at
+ * a glance is what the blue button is for.
+ */
+const HAMMER_ROWS: Partial<Record<`${AnimName}-${SheetDirection}`, number>> = {
+  'hammer-down': 3,
+  'hammer-right': 4,
+  'hammer-up': 5,
 };
 
 /**
@@ -198,6 +237,16 @@ export const SERAPHINA: CharacterSheet = {
       file: `${PLAYER}/Tools/Iron/Iron_Tools.png`,
       columns: 6,
       rows: AXE_ROWS,
+    },
+    // Same file, same grid, different rows. Two partial layers rather than one
+    // that switches: a partial layer is drawn only during the animations it
+    // lists, so the axe hides itself during a hammer swing and the hammer hides
+    // itself during a chop, with nothing anywhere having to decide which.
+    {
+      key: 'seraphina-hammer',
+      file: `${PLAYER}/Tools/Iron/Iron_Tools.png`,
+      columns: 6,
+      rows: HAMMER_ROWS,
     },
   ],
   anims: PLAYER_ROWS,

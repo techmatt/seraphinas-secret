@@ -79,6 +79,24 @@ export class ToolBelt {
   }
 
   /**
+   * Put a tool in her hand outright.
+   *
+   * What a quest does the moment it grants one, so the thing she was just given
+   * is the thing she is holding — a four-year-old who has to find the blue
+   * button before her new hammer does anything has been handed a puzzle instead
+   * of a hammer. Tool-switching gets its practice honestly, the first time she
+   * wants the axe back.
+   *
+   * Returns whether she is now holding it.
+   */
+  hold(tool: ToolId): boolean {
+    const at = this.boxes.indexOf(tool);
+    if (at < 0) return false;
+    this.slot = at;
+    return true;
+  }
+
+  /**
    * The blue button: the next tool along, wrapping, skipping empty boxes.
    *
    * Returns whether the held tool actually changed. With only the axe it cannot,

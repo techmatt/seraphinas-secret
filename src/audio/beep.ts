@@ -157,6 +157,64 @@ export function playThudChime(): void {
 }
 
 /**
+ * The hammer going into stone: a hard crack with grit behind it.
+ *
+ * Higher and shorter than the axe's woody thunk, because the two have to be
+ * tellable apart with your eyes shut — that is most of how "the hammer is for
+ * the stones" gets learned without anybody saying it. `step` escalates the same
+ * way, and for the same reason: the escalation *is* the progress bar.
+ */
+export function playRockCrack(step: number): void {
+  const drop = Math.min(step, 2);
+  playNotes([
+    { freq: 392 - drop * 40, at: 0, dur: 0.07, peak: 0.17 + drop * 0.04 },
+    { freq: 262 - drop * 24, at: 0.03, dur: 0.11, peak: 0.14 + drop * 0.04 },
+  ]);
+  playNoise(0.07 + drop * 0.02, 5200, 1400, 0.09 + drop * 0.03);
+}
+
+/**
+ * A stone coming open and the gem inside it: the crack, then three bright notes
+ * climbing out of it. The biggest noise a single blow makes in this game.
+ */
+export function playGemBreak(): void {
+  playNoise(0.3, 5600, 900, 0.2);
+  playNotes([
+    { freq: 196, at: 0, dur: 0.16, peak: 0.2 },
+    { freq: 987.8, at: 0.1, dur: 0.22 },
+    { freq: 1318.5, at: 0.19, dur: 0.24 },
+    { freq: 1760, at: 0.28, dur: 0.34 },
+  ]);
+}
+
+/**
+ * Picking something up: two notes going up, and nothing underneath them. Small
+ * on purpose — the celebration belongs to the thing that just became possible,
+ * not to bending down.
+ */
+export function playPickup(): void {
+  playNotes([
+    { freq: 659.3, at: 0, dur: 0.14 },
+    { freq: 987.8, at: 0.08, dur: 0.2 },
+  ]);
+}
+
+/**
+ * The big one: a rising run with a chord on the end of it. For the moments the
+ * whole quest turns over — the job being taken, and the last stone cracking.
+ */
+export function playFanfare(): void {
+  playNotes([
+    { freq: 523.3, at: 0, dur: 0.18 },
+    { freq: 659.3, at: 0.1, dur: 0.18 },
+    { freq: 784, at: 0.2, dur: 0.2 },
+    { freq: 1046.5, at: 0.3, dur: 0.42 },
+    { freq: 1318.5, at: 0.32, dur: 0.42, peak: 0.18 },
+    { freq: 1568, at: 0.34, dur: 0.46, peak: 0.16 },
+  ]);
+}
+
+/**
  * The doorway's run of notes, played quickly — the sound of going somewhere.
  * The order is the caller's, so a flourish can rise on the way in and fall on
  * the way out; see world/transition.ts.
