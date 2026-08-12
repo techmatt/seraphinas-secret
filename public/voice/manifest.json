@@ -791,6 +791,134 @@
         }
       ],
       "duration": 3.69
+    },
+    {
+      "id": "seraphina_axe",
+      "speaker": "seraphina",
+      "text": "Axe!",
+      "audio": "voice/seraphina_axe.mp3",
+      "words": [
+        {
+          "word": "Axe!",
+          "start": 0.104,
+          "end": 0.689
+        }
+      ],
+      "duration": 0.689
+    },
+    {
+      "id": "seraphina_hammer",
+      "speaker": "seraphina",
+      "text": "Hammer!",
+      "audio": "voice/seraphina_hammer.mp3",
+      "words": [
+        {
+          "word": "Hammer!",
+          "start": 0.104,
+          "end": 0.756
+        }
+      ],
+      "duration": 0.756
+    },
+    {
+      "id": "seraphina_malachite",
+      "speaker": "seraphina",
+      "text": "Malachite!",
+      "audio": "voice/seraphina_malachite.mp3",
+      "words": [
+        {
+          "word": "Malachite!",
+          "start": 0.104,
+          "end": 1.001
+        }
+      ],
+      "duration": 1.001
+    },
+    {
+      "id": "seraphina_ruby",
+      "speaker": "seraphina",
+      "text": "Ruby!",
+      "audio": "voice/seraphina_ruby.mp3",
+      "words": [
+        {
+          "word": "Ruby!",
+          "start": 0.104,
+          "end": 0.702
+        }
+      ],
+      "duration": 0.702
+    },
+    {
+      "id": "seraphina_sapphire",
+      "speaker": "seraphina",
+      "text": "Sapphire!",
+      "audio": "voice/seraphina_sapphire.mp3",
+      "words": [
+        {
+          "word": "Sapphire!",
+          "start": 0.104,
+          "end": 0.96
+        }
+      ],
+      "duration": 0.96
+    },
+    {
+      "id": "seraphina_need_axe",
+      "speaker": "seraphina",
+      "text": "I need my axe!",
+      "audio": "voice/seraphina_need_axe.mp3",
+      "words": [
+        {
+          "word": "I",
+          "start": 0.104,
+          "end": 0.24
+        },
+        {
+          "word": "need",
+          "start": 0.254,
+          "end": 0.621
+        },
+        {
+          "word": "my",
+          "start": 0.634,
+          "end": 0.838
+        },
+        {
+          "word": "axe!",
+          "start": 0.852,
+          "end": 1.436
+        }
+      ],
+      "duration": 1.436
+    },
+    {
+      "id": "seraphina_need_hammer",
+      "speaker": "seraphina",
+      "text": "I need my hammer!",
+      "audio": "voice/seraphina_need_hammer.mp3",
+      "words": [
+        {
+          "word": "I",
+          "start": 0.104,
+          "end": 0.24
+        },
+        {
+          "word": "need",
+          "start": 0.254,
+          "end": 0.621
+        },
+        {
+          "word": "my",
+          "start": 0.634,
+          "end": 0.824
+        },
+        {
+          "word": "hammer!",
+          "start": 0.838,
+          "end": 1.463
+        }
+      ],
+      "duration": 1.463
     }
   ]
 }

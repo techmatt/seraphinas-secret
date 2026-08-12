@@ -119,5 +119,43 @@
     "text": "We have them all! Meet me at the Secret Cave.",
     "say": "We have them all. Meet me at the Secret Cave.",
     "note": "Where the quest parks until the cave, the ritual and the faeries are built. Same mid-line '!' fix."
+  },
+  {
+    "id": "seraphina_axe",
+    "speaker": "seraphina",
+    "text": "Axe!",
+    "note": "The first of the barks: her naming what she just switched to or picked up. Every one of these is `seraphina_` followed by the game's own id for the thing, and src/voice/barks.ts derives the id rather than listing it — so a new tool is a line in this file and nothing else. The bang is line-final, which edge-tts does not pad; only a mid-line one costs a second of silence."
+  },
+  {
+    "id": "seraphina_hammer",
+    "speaker": "seraphina",
+    "text": "Hammer!"
+  },
+  {
+    "id": "seraphina_malachite",
+    "speaker": "seraphina",
+    "text": "Malachite!"
+  },
+  {
+    "id": "seraphina_ruby",
+    "speaker": "seraphina",
+    "text": "Ruby!"
+  },
+  {
+    "id": "seraphina_sapphire",
+    "speaker": "seraphina",
+    "text": "Sapphire!"
+  },
+  {
+    "id": "seraphina_need_axe",
+    "speaker": "seraphina",
+    "text": "I need my axe!",
+    "note": "Said at a tree with the hammer in her hand. It names the tool that would work, because the thing to learn is what to do — not that this did not."
+  },
+  {
+    "id": "seraphina_need_hammer",
+    "speaker": "seraphina",
+    "text": "I need my hammer!",
+    "note": "The same sentence from the other end: said at a gem rock with the axe out."
   }
 ]
