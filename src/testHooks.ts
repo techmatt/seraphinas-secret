@@ -16,6 +16,13 @@ export interface Marker {
   y: number;
 }
 
+export interface TreeMarker extends Marker {
+  /** The layout says she may fell this one. */
+  choppable: boolean;
+  /** Whole tree, felled to a stump, or knocked out entirely. */
+  state: 'standing' | 'stump' | 'gone';
+}
+
 export interface DoorwayMarker extends Marker {
   /** Room id on the far side. */
   to: string;
@@ -101,10 +108,45 @@ export interface TestHooks {
     blocked: string;
   };
   /**
-   * Everything the green dot appears over: this zone's pokeable props, and any
-   * door that is entered with a press rather than walked through.
+   * Everything the green dot appears over: this zone's pokeable props, any door
+   * that is entered with a press rather than walked through, and every tree.
+   *
+   * Trees are in here because the game's rule is "the nearest one wins", and a
+   * harness steering by a list the game does not use would be steering by a
+   * different rule. What each tree currently *is* lives in `trees` below.
    */
   interactables: Marker[];
+  /**
+   * Every tree in the zone, and what is left of it.
+   *
+   * `standing` is a whole tree, `stump` is one she has felled, `gone` is one
+   * whose stump she has knocked out — and only `gone` means the tile has been
+   * handed back to the collision grid. `choppable` is the layout's decision;
+   * an unchoppable tree shakes for ever and never leaves `standing`.
+   */
+  trees: TreeMarker[];
+  /**
+   * The four boxes and which one is lit. `slots` has a null for each empty box,
+   * because an empty box is drawn and a test has to be able to see that.
+   */
+  tools: { slots: (string | null)[]; held: number; holding: string | null };
+  /**
+   * Put a tool in the first free box, standing in for the quest that will do it
+   * later. Returns which box, or null if there was no room or she has one.
+   */
+  giveTool: (tool: string) => number | null;
+  /** Take one back. Returns false for the axe, whoever asks. */
+  takeTool: (tool: string) => boolean;
+  /**
+   * How many swings she has started, and how many blows have landed.
+   *
+   * Two numbers rather than one because they are two different claims: a swing
+   * that started proves the button reached the animation, and a blow that
+   * landed proves the animation reached the tree. A press during a swing is
+   * neither, which is what makes holding green a rhythm instead of a stutter.
+   */
+  swings: number;
+  whacks: number;
   /** This zone's doorways, at the centre of each opening. */
   doorways: DoorwayMarker[];
   /**
@@ -219,6 +261,12 @@ export const hooks: TestHooks = {
   camera: { x: 0, y: 0, width: 0, height: 0 },
   world: { width: 0, height: 0, tile: 0, cols: 0, rows: 0, blocked: '' },
   interactables: [],
+  trees: [],
+  tools: { slots: [], held: 0, holding: null },
+  giveTool: () => null,
+  takeTool: () => false,
+  swings: 0,
+  whacks: 0,
   doorways: [],
   landmarks: [],
   interactRadius: 0,

@@ -42,6 +42,87 @@ function playNotes(notes: Note[]): void {
   }
 }
 
+/**
+ * A burst of filtered noise: wood splitting, or a canopy coming through itself.
+ *
+ * The only thing in here that is not an oscillator, because the one sound a
+ * triangle wave cannot make is a crash. Still synthesised and still never
+ * throws — real sound design replaces all of this together.
+ */
+function playNoise(seconds: number, from: number, to: number, peak: number): void {
+  const c = getAudioContext();
+  if (!c) return;
+  unlockAudio();
+
+  const frames = Math.max(1, Math.floor(c.sampleRate * seconds));
+  const buffer = c.createBuffer(1, frames, c.sampleRate);
+  const samples = buffer.getChannelData(0);
+  for (let i = 0; i < frames; i++) samples[i] = Math.random() * 2 - 1;
+
+  const source = c.createBufferSource();
+  source.buffer = buffer;
+
+  // A band sliding down the spectrum. Rising would read as a whistle; falling
+  // is what every splitting, tumbling, landing thing in the world does.
+  const filter = c.createBiquadFilter();
+  filter.type = 'bandpass';
+  filter.Q.value = 1.2;
+  const now = c.currentTime;
+  filter.frequency.setValueAtTime(from, now);
+  filter.frequency.exponentialRampToValueAtTime(to, now + seconds);
+
+  const gain = c.createGain();
+  gain.gain.setValueAtTime(0.0001, now);
+  gain.gain.exponentialRampToValueAtTime(peak, now + 0.02);
+  gain.gain.exponentialRampToValueAtTime(0.0001, now + seconds);
+
+  source.connect(filter);
+  filter.connect(gain);
+  gain.connect(c.destination);
+  source.start(now);
+  source.stop(now + seconds);
+}
+
+/**
+ * The axe going in: a woody knock with a bit of split behind it.
+ *
+ * `step` is how many blows have landed on this thing, and it lowers the pitch
+ * and raises the volume — the sound escalates exactly the way the shake and the
+ * leaves do, because all three are the only thing telling her the tree is
+ * nearly down. Nothing on screen counts, and nothing needs to.
+ */
+export function playChopThunk(step: number): void {
+  const drop = Math.min(step, 2);
+  playNotes([
+    { freq: 196 - drop * 26, at: 0, dur: 0.1, peak: 0.2 + drop * 0.04 },
+    { freq: 131 - drop * 16, at: 0.02, dur: 0.16, peak: 0.16 + drop * 0.04 },
+  ]);
+  playNoise(0.09 + drop * 0.02, 2600, 700, 0.1 + drop * 0.03);
+}
+
+/** The whole thing coming down: a long crash, then it lands. */
+export function playTreeCrash(): void {
+  playNoise(0.62, 3400, 220, 0.22);
+  playNotes([
+    { freq: 130.8, at: 0.34, dur: 0.4, peak: 0.24 },
+    { freq: 87.3, at: 0.42, dur: 0.5, peak: 0.22 },
+    // Three bright notes on top of the thud, because this is the big moment and
+    // a crash on its own would read as something having gone wrong.
+    { freq: 659.3, at: 0.4, dur: 0.24 },
+    { freq: 880, at: 0.5, dur: 0.24 },
+    { freq: 1318.5, at: 0.6, dur: 0.32 },
+  ]);
+}
+
+/** The stump popping out: a short hollow knock and a little rise. */
+export function playStumpPop(): void {
+  playNotes([
+    { freq: 261.6, at: 0, dur: 0.12, peak: 0.2 },
+    { freq: 523.3, at: 0.07, dur: 0.18 },
+  ]);
+  playNoise(0.12, 1800, 500, 0.12);
+}
+
 /** A short two-note sparkle. The sound of poking something. */
 export function playSparkleChime(): void {
   playNotes([

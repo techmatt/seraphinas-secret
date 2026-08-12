@@ -1,9 +1,16 @@
 import Phaser from 'phaser';
-import { playSparkleChime, playThudChime } from '../audio/beep';
+import {
+  playChopThunk,
+  playSparkleChime,
+  playStumpPop,
+  playThudChime,
+  playTreeCrash,
+} from '../audio/beep';
 import { unlockAudio } from '../audio/context';
 import { DEPTH, GAME_HEIGHT, TILE_SIZE, WORLD_SCALE } from '../config';
 import { makeButtonDot } from '../ui/ButtonDot';
 import { makeStickHint, type StickHint } from '../ui/StickHint';
+import { makeToolRow, preloadToolIcons, type ToolRow } from '../ui/ToolRow';
 import { SpeechBubble } from '../ui/SpeechBubble';
 import { VoiceBank } from '../voice/VoiceBank';
 import {
@@ -18,6 +25,8 @@ import { Doorway } from '../world/Doorway';
 import { loadMap, spawnOf, type FlourishId, type MapData } from '../world/mapData';
 import { makeProp, nudgeProp, type Prop } from '../world/scenery';
 import { TileWorld } from '../world/TileWorld';
+import { toolBelt, type ToolId } from '../world/ToolBelt';
+import { makeLeafEmitter, Tree } from '../world/Tree';
 import { STARTING_ZONE, type ZoneId } from '../world/zones';
 import { playArrivalFlourish, playExitFlourish } from '../world/transition';
 import { hooks, syncAudioHook } from '../testHooks';
@@ -114,17 +123,22 @@ export class RoomScene extends Phaser.Scene {
 
   private props: Prop[] = [];
   private doorways: Doorway[] = [];
+  private trees: Tree[] = [];
   private interactables: Interactable[] = [];
 
   private sparkles!: Phaser.GameObjects.Particles.ParticleEmitter;
+  private leaves!: Phaser.GameObjects.Particles.ParticleEmitter;
   private prompt!: Phaser.GameObjects.Container;
   private stickHint?: StickHint;
+  private toolRow!: ToolRow;
   private bubble!: SpeechBubble;
   private voice!: VoiceBank;
 
   private cursors?: Phaser.Types.Input.Keyboard.CursorKeys;
   private wasd?: Record<'up' | 'down' | 'left' | 'right', Phaser.Input.Keyboard.Key>;
   private interactKey?: Phaser.Input.Keyboard.Key;
+  /** The blue button, on the keyboard. Cycles the held tool. See ButtonDot. */
+  private toolKey?: Phaser.Input.Keyboard.Key;
 
   /** Hold this and the collision grid shows. See DebugHitboxes. */
   private hitboxKey?: Phaser.Input.Keyboard.Key;
@@ -132,8 +146,9 @@ export class RoomScene extends Phaser.Scene {
   /** Forced on by a test, so a headless screenshot can hold no key at all. */
   private hitboxesPinned = false;
 
-  /** Previous frame's A-button state, so a held button fires once. */
+  /** Previous frame's A- and X-button state, so a held button fires once. */
   private padInteractWasDown = false;
+  private padToolWasDown = false;
 
   /** One-way latch: the zone is left once. */
   private leaving = false;
@@ -166,10 +181,12 @@ export class RoomScene extends Phaser.Scene {
     // create() has to be put back by hand.
     this.props = [];
     this.doorways = [];
+    this.trees = [];
     this.interactables = [];
     this.leaving = false;
     this.doorwaysArmed = false;
     this.padInteractWasDown = false;
+    this.padToolWasDown = false;
     this.stickHint = undefined;
     this.hitboxesPinned = false;
   }
@@ -177,6 +194,7 @@ export class RoomScene extends Phaser.Scene {
   preload(): void {
     this.makeSparkTexture();
     preloadCharacter(this, SERAPHINA);
+    preloadToolIcons(this);
     if (this.mapData) TileWorld.preload(this, this.mapData);
   }
 
@@ -200,11 +218,37 @@ export class RoomScene extends Phaser.Scene {
     this.cameras.main.setBackgroundColor(map.backdrop);
     this.world = new TileWorld(this, map);
 
+    // The bursts are built before anything that can throw one, because a tree
+    // needs somewhere to put its leaves the first time she hits it.
+    this.sparkles = this.add.particles(0, 0, 'spark', {
+      speed: { min: 90, max: 320 },
+      angle: { min: 0, max: 360 },
+      scale: { start: 1.1, end: 0 },
+      alpha: { start: 1, end: 0 },
+      lifespan: { min: 380, max: 900 },
+      gravityY: 220,
+      blendMode: 'ADD',
+      tint: [0xfff3b0, 0xffd166, 0xf78ddd, 0x9be7ff],
+      emitting: false,
+    });
+    this.sparkles.setDepth(DEPTH.sparkles);
+    this.leaves = makeLeafEmitter(this);
+
     for (const def of map.doorways) this.doorways.push(new Doorway(this, def));
     for (const def of map.props) this.props.push(makeProp(this, this.world, def));
+    for (const def of map.trees ?? []) {
+      this.trees.push(
+        new Tree(this, this.world, def, { leaves: this.leaves, sparkles: this.sparkles }),
+      );
+    }
 
-    // Everything the green dot can appear over, in one list: the props, and the
-    // doors you press rather than walk through.
+    // Everything the green dot can appear over, in one list: the props, the
+    // doors you press rather than walk through, and every tree in the zone.
+    //
+    // Trees are in here rather than beside it because "the nearest thing wins"
+    // has to be one question with one answer — a wood where the dot is over the
+    // toadstool and the press hits the spruce behind it would be the game
+    // lying about what the button does.
     this.interactables = [
       ...this.props.map((prop) => ({
         id: prop.def.id,
@@ -220,6 +264,12 @@ export class RoomScene extends Phaser.Scene {
           y: door.y,
           press: () => this.leaveThrough(door),
         })),
+      ...this.trees.map((tree) => ({
+        id: tree.def.id,
+        x: tree.x,
+        y: tree.y,
+        press: () => this.swingAt(tree),
+      })),
     ];
 
     const spawn = spawnOf(map, this.arrivedVia);
@@ -233,20 +283,11 @@ export class RoomScene extends Phaser.Scene {
 
     this.setupCamera();
 
-    this.sparkles = this.add.particles(0, 0, 'spark', {
-      speed: { min: 90, max: 320 },
-      angle: { min: 0, max: 360 },
-      scale: { start: 1.1, end: 0 },
-      alpha: { start: 1, end: 0 },
-      lifespan: { min: 380, max: 900 },
-      gravityY: 220,
-      blendMode: 'ADD',
-      tint: [0xfff3b0, 0xffd166, 0xf78ddd, 0x9be7ff],
-      emitting: false,
-    });
-    this.sparkles.setDepth(DEPTH.sparkles);
-
-    this.hitboxes = new DebugHitboxes(this, this.world);
+    // Trees come and go, so the overlay asks for theirs rather than being told
+    // once. It only asks while it is on screen, which is while B is held.
+    this.hitboxes = new DebugHitboxes(this, this.world, () =>
+      this.trees.map((tree) => tree.footprint),
+    );
 
     this.setupInput();
     this.drawHud();
@@ -303,6 +344,22 @@ export class RoomScene extends Phaser.Scene {
       this.hitboxesPinned = on;
       this.updateHitboxes();
     };
+    // The quest system's two verbs, ahead of the quest system. Exposed so the
+    // cycling test can put a second tool on the row without a quest to grant it
+    // — the belt has to work with two things in it before anything can put a
+    // second thing in it, and this is the only way to prove that today.
+    hooks.giveTool = (tool) => {
+      const slot = toolBelt.give(tool as ToolId);
+      this.toolRow.refresh();
+      this.syncToolHooks();
+      return slot;
+    };
+    hooks.takeTool = (tool) => {
+      const taken = toolBelt.take(tool as ToolId);
+      this.toolRow.refresh();
+      this.syncToolHooks();
+      return taken;
+    };
     hooks.scene = 'room';
     hooks.transitioning = false;
     hooks.ready = true;
@@ -317,8 +374,14 @@ export class RoomScene extends Phaser.Scene {
     const pad = this.input.gamepad?.getPad(0);
 
     if (!this.leaving) {
-      this.movePlayer(seconds, pad);
-      this.checkDoorways();
+      // Mid-swing she is not steering. Half a second of not being in control is
+      // the price of the swing landing where she aimed it, and it is the only
+      // moment in the game where the stick does nothing.
+      if (!this.player.chopping) {
+        this.movePlayer(seconds, pad);
+        this.checkDoorways();
+      }
+      this.handleTools(pad);
       this.handleInteract(pad);
     }
     this.player.setDepth(this.player.y);
@@ -330,7 +393,10 @@ export class RoomScene extends Phaser.Scene {
     this.syncPlayerHooks();
     this.syncCameraHooks();
     hooks.fps = Math.round(this.game.loop.actualFps);
-    hooks.aliveParticles = this.sparkles.getAliveParticleCount();
+    // Both emitters. "Particles on screen" is one question, and a leaf shed by
+    // a tree she just hit is as much of an answer as a sparkle is.
+    hooks.aliveParticles =
+      this.sparkles.getAliveParticleCount() + this.leaves.getAliveParticleCount();
     hooks.peakParticles = Math.max(hooks.peakParticles, hooks.aliveParticles);
     hooks.voice.lineId = this.bubble.lineId;
     hooks.voice.words = this.bubble.spokenWords;
@@ -406,6 +472,29 @@ export class RoomScene extends Phaser.Scene {
     hooks.camera.height = camera.height;
   }
 
+  /**
+   * Every tree and what is left of it. Written on a change rather than every
+   * frame: there are a couple of hundred of them in the exterior and their
+   * state only ever moves when she swings at one.
+   */
+  private syncTreeHooks(): void {
+    hooks.trees = this.trees.map((tree) => ({
+      id: tree.def.id,
+      x: tree.x,
+      y: tree.y,
+      choppable: tree.choppable,
+      state: tree.state,
+    }));
+  }
+
+  private syncToolHooks(): void {
+    hooks.tools = {
+      slots: [...toolBelt.slots],
+      held: toolBelt.heldSlot,
+      holding: toolBelt.held,
+    };
+  }
+
   /** What is in this zone, for a test that wants to walk somewhere. */
   private syncWorldHooks(): void {
     hooks.room = this.zoneId;
@@ -415,10 +504,15 @@ export class RoomScene extends Phaser.Scene {
       tile: TILE_SIZE,
       cols: this.world.map.cols,
       rows: this.world.map.rows,
-      blocked: this.world.map.blocked,
+      // The live grid, not the string the map file arrived as. She can take a
+      // tile back now, and a route planner working off the boot-time snapshot
+      // would refuse to walk through the gap she just made.
+      blocked: this.world.blockedString,
     };
     this.syncPlayerHooks();
     this.syncCameraHooks();
+    this.syncTreeHooks();
+    this.syncToolHooks();
 
     hooks.interactables = this.interactables.map(({ id, x, y }) => ({ id, x, y }));
     hooks.doorways = this.doorways.map((d) => ({
@@ -449,6 +543,11 @@ export class RoomScene extends Phaser.Scene {
       right: keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D),
     };
     this.interactKey = keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.Z);
+    // The keyboard stand-in for the pad's blue button. Named for the button and
+    // not for what it does, the same way Z stands in for green — the keyboard
+    // exists so tests can drive the game, and a test that presses "the blue
+    // button" is a test that reads like the pad in her hands.
+    this.toolKey = keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.X);
     this.hitboxKey = keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.B);
 
     // The title screen already unlocked audio; this is only insurance for a
@@ -547,10 +646,34 @@ export class RoomScene extends Phaser.Scene {
       : false;
 
     const near = this.nearestInteractable();
-    this.prompt.setVisible(near !== null);
+    // Mid-swing the dot goes, so the thing she is hitting does not also look
+    // like a thing she has not pressed yet.
+    this.prompt.setVisible(near !== null && !this.player.chopping);
     if (near) this.prompt.setPosition(near.x, near.y - 58);
 
     if ((padPressed || keyPressed) && near) near.press();
+  }
+
+  /**
+   * The blue button: the next tool along.
+   *
+   * With only the axe there is nothing to cycle to, and the row bounces instead
+   * of doing nothing at all — see ToolRow. The path is real either way, because
+   * the button has to have been worth pressing before the hammer arrives or she
+   * will never have found out it is there.
+   */
+  private handleTools(pad?: Phaser.Input.Gamepad.Gamepad): void {
+    const padDown = pad?.X ?? false;
+    const padPressed = padDown && !this.padToolWasDown;
+    this.padToolWasDown = padDown;
+
+    const keyPressed = this.toolKey ? Phaser.Input.Keyboard.JustDown(this.toolKey) : false;
+    if (!padPressed && !keyPressed) return;
+
+    if (toolBelt.cycle()) playSparkleChime();
+    else this.toolRow.bounce(toolBelt.heldSlot);
+    this.toolRow.refresh();
+    this.syncToolHooks();
   }
 
   /** The closest thing within arm's reach, or null. */
@@ -663,6 +786,69 @@ export class RoomScene extends Phaser.Scene {
     hooks.sparkles += 1;
   }
 
+  /**
+   * Swing the axe at a tree.
+   *
+   * She turns to face it and the blow lands partway through the swing, not at
+   * the end of it — see `Character.chop`. Everything that happens to the tree is
+   * the tree's business; this picks the noise and shakes the camera by how big
+   * a thing just happened.
+   *
+   * Without the axe in hand nothing happens at all, which today cannot occur:
+   * the axe is welded into slot one. The check is here because the day a quest
+   * hands her a hammer is the day "the green button chops" stops being true, and
+   * finding that out then would mean finding it out in the wood.
+   */
+  private swingAt(tree: Tree): void {
+    if (!toolBelt.holding('axe')) return;
+    if (tree.state === 'gone') return;
+
+    const towards = this.directionTo(tree.x, tree.y);
+    const swung = this.player.chop(
+      towards,
+      () => this.landBlow(tree),
+      () => this.syncPlayerHooks(),
+    );
+    if (swung) hooks.swings += 1;
+  }
+
+  /** The moment the axe is in the wood. */
+  private landBlow(tree: Tree): void {
+    const before = tree.state;
+    const what = tree.whack();
+    if (!what) return;
+
+    hooks.whacks += 1;
+
+    if (what === 'shake') {
+      // Escalating, and the sound escalates with it. `before` rather than a
+      // count of its own: an unchoppable tree is always on its first blow, and
+      // that is exactly what it should keep sounding like.
+      playChopThunk(before === 'stump' ? 1 : 0);
+      this.cameras.main.shake(110, tree.choppable ? 0.004 : 0.0025);
+    } else if (what === 'fell') {
+      playTreeCrash();
+      this.cameras.main.shake(360, 0.011);
+      hooks.sparkles += 1;
+    } else {
+      playStumpPop();
+      this.cameras.main.shake(140, 0.005);
+      // The world just changed shape. Nothing else in the game does this, so
+      // nothing else has to tell the hooks about it.
+      this.syncWorldHooks();
+    }
+
+    this.syncTreeHooks();
+  }
+
+  /** Which of the four ways she is facing points at a thing. */
+  private directionTo(x: number, y: number): 'up' | 'down' | 'left' | 'right' {
+    const dx = x - this.player.x;
+    const dy = y - this.player.y;
+    if (Math.abs(dx) >= Math.abs(dy)) return dx > 0 ? 'right' : 'left';
+    return dy > 0 ? 'down' : 'up';
+  }
+
   // --- scenery -----------------------------------------------------------
 
   /** Particles need a texture key, so bake a tiny soft dot at boot. */
@@ -678,11 +864,18 @@ export class RoomScene extends Phaser.Scene {
   }
 
   private drawHud(): void {
+    // What she is carrying, bottom-left, with the empty boxes drawn.
+    this.toolRow = makeToolRow(this, toolBelt);
+
     // The zone used to caption itself "Walk: left stick or arrow keys". She
     // cannot read it, so it is a picture now — and it leaves once she walks.
     // Fixed to the screen, because the world moves underneath it.
+    //
+    // It has moved up the corner to clear the tool row and the space kept for
+    // the coin row above it. Still bottom-left: it is an instruction about the
+    // left stick, and the left stick is on the left.
     if (!walkHintDone) {
-      this.stickHint = makeStickHint(this, 108, GAME_HEIGHT - 80);
+      this.stickHint = makeStickHint(this, 108, GAME_HEIGHT - 264);
       this.stickHint.container.setDepth(DEPTH.hud).setScrollFactor(0);
     }
 

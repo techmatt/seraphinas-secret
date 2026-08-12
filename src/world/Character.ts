@@ -34,6 +34,17 @@ export const CHARACTER_SCALE = WORLD_SCALE;
  */
 export const FOOT_ORIGIN_Y = 41 / 64;
 
+/**
+ * Which frame of the swing the axe is actually in the wood.
+ *
+ * Frame one, counting from zero: the pack draws the wind-up in frame zero and
+ * the blow with its swoosh arc in frame one, and the four after it are the
+ * follow-through. Measured off `Iron_Tools.png` — the swoosh is only drawn on
+ * that frame — rather than picked, because "when did the axe land" is the one
+ * number the shake, the leaves and the thunk all have to agree on.
+ */
+const LANDS_ON = 1;
+
 /** Queue every layer of `sheet` onto the scene's loader. Call from preload(). */
 export function preloadCharacter(scene: Phaser.Scene, sheet: CharacterSheet): void {
   for (const layer of sheet.layers) {
@@ -73,11 +84,20 @@ export function registerCharacterAnims(scene: Phaser.Scene, sheet: CharacterShee
     if (!scene.textures.exists(layer.key)) continue;
     scene.textures.get(layer.key).setFilter(Phaser.Textures.FilterMode.NEAREST);
 
+    // A tool sheet is a crop of the character grid, not a copy of it, so which
+    // frame index a row starts at is a per-layer question. See SheetLayer.
+    const columns = layer.columns ?? sheet.columns;
+
     for (const row of sheet.anims) {
+      // A partial layer draws only what it lists — the axe exists during the
+      // swing and nowhere else, because that is all the pack drew.
+      const own = layer.rows ? layer.rows[`${row.name}-${row.facing}`] : row.row;
+      if (own === undefined) continue;
+
       const key = phaserKey(sheet, layer.key, row.name, row.facing);
       if (scene.anims.exists(key)) continue;
 
-      const first = row.row * sheet.columns;
+      const first = own * columns;
       scene.anims.create({
         key,
         frames: scene.anims.generateFrameNumbers(layer.key, {
@@ -85,7 +105,7 @@ export function registerCharacterAnims(scene: Phaser.Scene, sheet: CharacterShee
           end: first + row.frames - 1,
         }),
         frameRate: row.frameRate,
-        repeat: -1,
+        repeat: row.repeat ?? -1,
       });
     }
   }
@@ -105,6 +125,13 @@ export class Character extends Phaser.GameObjects.Container {
 
   private facingNow: Direction = 'down';
   private animNow: AnimName = 'idle';
+
+  /**
+   * Set while a swing is playing. A chop is the first thing she does that takes
+   * time, so it is the first thing that can be interrupted — and a swing that
+   * restarts every time a thumbstick twitches is a swing that never lands.
+   */
+  private swinging = false;
 
   constructor(
     scene: Phaser.Scene,
@@ -156,10 +183,48 @@ export class Character extends Phaser.GameObjects.Container {
 
   /** True while she is under her own steam; false idles her where she stands. */
   setMoving(moving: boolean): void {
+    if (this.swinging) return;
     const next: AnimName = moving ? 'walk' : 'idle';
     if (next === this.animNow) return;
     this.animNow = next;
     this.apply();
+  }
+
+  /** Mid-swing. The scene stops steering her while this is true. */
+  get chopping(): boolean {
+    return this.swinging;
+  }
+
+  /**
+   * Swing the axe, once, facing `direction`, and stand back up afterwards.
+   *
+   * `onLand` fires partway through rather than at the end: the pack draws the
+   * blow landing on the second frame of six, and a tree that shakes when the
+   * swing *finishes* looks like a tree that was pushed over rather than hit.
+   * `onDone` fires when she has her feet back under her.
+   *
+   * A second call while the first is still running is ignored, which is what
+   * makes holding the green button a rhythm rather than a stutter.
+   */
+  chop(direction: Direction, onLand: () => void, onDone: () => void): boolean {
+    if (this.swinging) return false;
+
+    this.swinging = true;
+    this.facingNow = direction;
+    this.animNow = 'chop';
+    this.apply();
+
+    const row = this.sheet.anims.find((a) => a.name === 'chop');
+    // Half a second of swing at the sheet's own rate; the blow is frame two.
+    const perFrame = 1000 / (row?.frameRate ?? 12);
+    this.scene.time.delayedCall(perFrame * LANDS_ON, onLand);
+    this.scene.time.delayedCall(perFrame * (row?.frames ?? 6), () => {
+      this.swinging = false;
+      this.animNow = 'idle';
+      this.apply();
+      onDone();
+    });
+    return true;
   }
 
   private apply(): void {
@@ -168,13 +233,20 @@ export class Character extends Phaser.GameObjects.Container {
 
     for (let i = 0; i < this.layers.length; i++) {
       const sprite = this.layers[i]!;
-      const key = phaserKey(this.sheet, this.sheet.layers[i]!.key, this.animNow, facing);
+      const layer = this.sheet.layers[i]!;
+      const key = phaserKey(this.sheet, layer.key, this.animNow, facing);
+      const has = this.scene.anims.exists(key);
 
       sprite.setFlipX(flip);
+      // A partial layer is only drawn during what it draws — see SheetLayer. A
+      // whole-character layer is left alone, so a sheet that failed to load
+      // still shows Phaser's missing-texture square rather than nothing at all,
+      // which is the difference between a visible bug and a silent one.
+      if (layer.rows) sprite.setVisible(has);
       // Turning around mid-stride must not restart the walk, or she moonwalks
       // on every change of direction.
       if (sprite.anims.getName() === key) continue;
-      if (this.scene.anims.exists(key)) sprite.play(key);
+      if (has) sprite.play(key);
     }
   }
 }

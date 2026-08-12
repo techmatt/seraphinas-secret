@@ -38,7 +38,7 @@ const OCCLUDER_ALPHA = 0.42;
 const FADE_RATE = 0.22;
 
 /** Anything in the world that can be faded, whether it is animated or not. */
-type WorldSprite = Phaser.GameObjects.Image | Phaser.GameObjects.Sprite;
+export type WorldSprite = Phaser.GameObjects.Image | Phaser.GameObjects.Sprite;
 
 /**
  * Frame zero of a strip keeps the image's own name, because a still sprite and
@@ -206,6 +206,41 @@ export class TileWorld {
     const row = Math.floor(y / TILE_SIZE);
     if (col < 0 || row < 0 || col >= this.cols || row >= this.rows) return true;
     return this.blocked[row * this.cols + col] === 1;
+  }
+
+  /**
+   * Give these tiles back. She has knocked the last of something out of them.
+   *
+   * The grid this walks on is the live one, built from the map file at boot and
+   * this map's own from then on — which is the whole reason the collision is a
+   * bitmap the world owns rather than the string it arrived as. Returns whether
+   * anything actually changed, so a caller only pays to tell the test hooks when
+   * the world really has a new hole in it.
+   */
+  clear(cells: Iterable<readonly [number, number]>): boolean {
+    let changed = false;
+    for (const [col, row] of cells) {
+      if (col < 0 || row < 0 || col >= this.cols || row >= this.rows) continue;
+      const i = row * this.cols + col;
+      if (!this.blocked[i]) continue;
+      this.blocked[i] = 0;
+      changed = true;
+    }
+    return changed;
+  }
+
+  /** The live collision grid, written the way the map file writes it. */
+  get blockedString(): string {
+    return Array.from(this.blocked, (b) => (b ? '1' : '0')).join('');
+  }
+
+  /**
+   * Stop fading this sprite. It is about to be destroyed, and an occluder whose
+   * image has gone is a null dereference once a frame for the rest of the zone.
+   */
+  forget(sprite: WorldSprite): void {
+    const i = this.occluders.findIndex((o) => o.image === sprite);
+    if (i >= 0) this.occluders.splice(i, 1);
   }
 
   /** Keep her feet on the map, whatever the collision test says. */

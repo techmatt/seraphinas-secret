@@ -57,14 +57,29 @@ interface Footprint {
   cells: Phaser.Geom.Rectangle | null;
 }
 
+/** A tree's current picture and the cells under it, or null once it is gone. */
+export interface LiveFootprint {
+  /** Sprite top-left, in pack pixels. */
+  x: number;
+  y: number;
+  cells: { x: number; y: number; w: number; h: number };
+}
+
 export class DebugHitboxes {
   private readonly graphics: Phaser.GameObjects.Graphics;
   private readonly footprints: Footprint[] = [];
   private showing = false;
 
+  /**
+   * @param live Anything that can change shape while the zone is running — the
+   *   trees, which fall down and leave stumps and eventually nothing at all. It
+   *   is a function rather than a list because the answer moves, and it is only
+   *   ever called while the overlay is on screen, which is while B is held.
+   */
   constructor(
     private readonly scene: Phaser.Scene,
     private readonly world: TileWorld,
+    private readonly live: () => (LiveFootprint | null)[] = () => [],
   ) {
     this.graphics = scene.add.graphics().setDepth(DEPTH.debug).setVisible(false);
     this.collectFootprints(world.map);
@@ -99,6 +114,29 @@ export class DebugHitboxes {
     }
   }
 
+  /**
+   * The trees, as they stand this frame. Their cells come straight from the
+   * generator rather than being re-derived from the picture, because a stump
+   * inherits the trunk's tile and is not the same size as the tree that left it.
+   */
+  private liveFootprints(): Footprint[] {
+    const out: Footprint[] = [];
+    for (const tree of this.live()) {
+      if (!tree) continue;
+      out.push({
+        x: tree.x * WORLD_SCALE,
+        y: tree.y * WORLD_SCALE,
+        cells: new Phaser.Geom.Rectangle(
+          tree.cells.x * TILE_SIZE,
+          tree.cells.y * TILE_SIZE,
+          tree.cells.w * TILE_SIZE,
+          tree.cells.h * TILE_SIZE,
+        ),
+      });
+    }
+    return out;
+  }
+
   /** Held down, or turned on by a test. Redrawing only happens while it is up. */
   setVisible(on: boolean): void {
     this.showing = on;
@@ -123,15 +161,17 @@ export class DebugHitboxes {
 
     this.drawSolidCells(g, view);
 
+    const all = [...this.footprints, ...this.liveFootprints()];
+
     g.lineStyle(2, FOOTPRINT, 0.95);
-    for (const { cells } of this.footprints) {
+    for (const { cells } of all) {
       if (cells && Phaser.Geom.Intersects.RectangleToRectangle(cells, view)) {
         g.strokeRectShape(cells);
       }
     }
 
     g.lineStyle(2, ORIGIN, 0.9);
-    for (const { x, y } of this.footprints) {
+    for (const { x, y } of all) {
       if (!view.contains(x, y)) continue;
       g.lineBetween(x - ORIGIN_ARM, y, x + ORIGIN_ARM, y);
       g.lineBetween(x, y - ORIGIN_ARM, x, y + ORIGIN_ARM);

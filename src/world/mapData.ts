@@ -73,6 +73,33 @@ export interface MapSprite {
   y: number;
 }
 
+/**
+ * A tree: the one sprite in the world the game is allowed to change its mind
+ * about. Out of `sprites` and into its own list, because she can walk up to one,
+ * hit it, knock it down and take its tile back — see `src/world/Tree.ts`.
+ */
+export interface MapTree {
+  id: string;
+  key: string;
+  /** Sprite top-left, in pack pixels. */
+  x: number;
+  y: number;
+  /** Middle of the trunk's tile: where she stands and where the dot appears. */
+  ax: number;
+  ay: number;
+  /** She may fell this one. Absent means she may only make it wobble. */
+  chop?: boolean;
+  /** The tiles the trunk makes solid, and where the stump then stands. */
+  cells: { x: number; y: number; w: number; h: number };
+  /**
+   * Of those, the ones felling it actually gives back — cells nothing else is
+   * also blocking. Worked out by the generator, which is the only thing that
+   * knows what else was put down: a birch sharing its tile with a fence post
+   * comes down and the post stays, and the tile with it.
+   */
+  clears: [number, number][];
+}
+
 export interface MapMarker {
   id: string;
   x: number;
@@ -124,9 +151,14 @@ export interface MapData {
   overlay?: number[];
   /** Ground tiles that cycle — the pond, mostly. */
   tileAnims?: MapTileAnim[];
-  /** One character per tile, '1' where she cannot stand. */
+  /**
+   * One character per tile, '1' where she cannot stand — with every tree still
+   * standing. TileWorld keeps the live grid and mutates it as she fells them.
+   */
   blocked: string;
   sprites: MapSprite[];
+  /** Every tree, choppable or not. Not in `sprites`: the scene places these. */
+  trees: MapTree[];
   spawns: Record<string, MapSpawn>;
   doorways: MapDoorway[];
   props: MapProp[];
