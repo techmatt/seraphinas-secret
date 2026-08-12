@@ -98,6 +98,18 @@ export type Hooks = {
     blocked: string;
   };
   interactables: { id: string; x: number; y: number }[];
+  trees: {
+    id: string;
+    x: number;
+    y: number;
+    choppable: boolean;
+    state: 'standing' | 'stump' | 'gone';
+  }[];
+  tools: { slots: (string | null)[]; held: number; holding: string | null };
+  giveTool: (tool: string) => number | null;
+  takeTool: (tool: string) => boolean;
+  swings: number;
+  whacks: number;
   doorways: { id: string; x: number; y: number; to: string; enter: 'walk' | 'press' }[];
   landmarks: { id: string; x: number; y: number }[];
   interactRadius: number;
@@ -126,7 +138,7 @@ export const readHooks = (page: Page) =>
   page.evaluate(() => {
     const h = (window as unknown as { __seraphina: Hooks }).__seraphina;
     // Functions do not survive the serialisation back to node; drop them.
-    const { pause, teleport, overview, debugHitboxes, voice, ...rest } = h;
+    const { pause, teleport, overview, debugHitboxes, giveTool, takeTool, voice, ...rest } = h;
     const { say, scrub, timings, ...voiceRest } = voice;
     return { ...rest, voice: voiceRest };
   });
@@ -235,6 +247,28 @@ async function settle(page: Page) {
     undefined,
     { timeout: 20_000 },
   );
+}
+
+/**
+ * Press a key and let go, slowly enough that the game sees it.
+ *
+ * `page.keyboard.press` sends the down and the up with nothing between them,
+ * and Phaser's Key clears its own just-pressed flag on the up — so a press that
+ * lands entirely inside one frame is not merely late, it is gone. Headless
+ * Chromium draws this game at fifteen to twenty frames a second, which makes
+ * that a coin toss on every press and a certainty somewhere in a run of five.
+ *
+ * So: hold it across a couple of frames. Nothing in the game is sensitive to
+ * how long a button is held — every button in it is edge-triggered — so this is
+ * only ever a more honest version of the same press.
+ */
+export async function tap(page: Page, key: string) {
+  await page.keyboard.down(key);
+  // Frames, not milliseconds: what has to happen between the down and the up is
+  // that the game gets a turn, and how long that takes is the frame rate's
+  // business. A stalled tab can hand this game a quarter-second frame.
+  await framesPass(page, 3, 500);
+  await page.keyboard.up(key);
 }
 
 /** Hold a key for a while so the character actually covers some ground. */
@@ -529,6 +563,13 @@ export async function standByProp(page: Page, id: string) {
   await framesPass(page, 4, 200);
   await walkToProp(page, id);
 }
+
+/**
+ * Stand her within reach of a tree. A tree is an interactable like any other —
+ * see `interactables` in the hooks — so this is `standByProp` under a name that
+ * reads right at the call site.
+ */
+export const standByTree = standByProp;
 
 /** Walk to a named place in the map data — "the woods", "the facade row". */
 export async function walkToLandmark(page: Page, id: string, within = 90) {
