@@ -290,6 +290,20 @@ export interface ImageDef {
    * and are never faded as occluders.
    */
   flat?: boolean;
+  /**
+   * This picture is a tree: something she can walk up to and hit with an axe.
+   *
+   * Which trees she may actually *fell* is a layout decision — see `chop` on a
+   * Placement — but whether a thing is a tree at all is a fact about the picture,
+   * so it is written down here beside the rectangle it describes. Everything
+   * marked here reacts to a whack; only the ones a layout also marks choppable
+   * ever come down.
+   *
+   * A tree with no `blocks` is deliberately not marked: the whole lifecycle is
+   * about the tile the trunk stands in, and one that stands in no tile has
+   * nothing to leave behind and nothing to give back.
+   */
+  tree?: boolean;
 }
 
 /**
@@ -393,40 +407,53 @@ export const IMAGES: Record<string, ImageDef> = {
   // is what had the whole wood blocking bare grass a tile below every tree.
   oakBig: {
     file: `${A}/Trees/Big_Oak_Tree.png`, x: 64, y: 0, w: 64, h: 80,
-    blocks: { x: 1.5, y: 3, w: 1, h: 1 },
+    blocks: { x: 1.5, y: 3, w: 1, h: 1 }, tree: true,
   },
   // The second slot of each big-tree sheet is the same tree without its shadow,
   // and with the last six pixels of trunk cut off. Same trunk, same tile.
   oakBig2: {
     file: `${A}/Trees/Big_Oak_Tree.png`, x: 128, y: 0, w: 64, h: 80,
-    blocks: { x: 1.5, y: 3, w: 1, h: 1 },
+    blocks: { x: 1.5, y: 3, w: 1, h: 1 }, tree: true,
   },
   spruceBig: {
     file: `${A}/Trees/Big_Spruce_tree.png`, x: 64, y: 0, w: 64, h: 80,
-    blocks: { x: 1.5, y: 3, w: 1, h: 1 },
+    blocks: { x: 1.5, y: 3, w: 1, h: 1 }, tree: true,
   },
   spruceBig2: {
     file: `${A}/Trees/Big_Spruce_tree.png`, x: 128, y: 0, w: 64, h: 80,
-    blocks: { x: 1.5, y: 3, w: 1, h: 1 },
+    blocks: { x: 1.5, y: 3, w: 1, h: 1 }, tree: true,
   },
   birchBig: {
     file: `${A}/Trees/Big_Birch_Tree.png`, x: 32, y: 0, w: 32, h: 80,
-    blocks: { x: 0.5, y: 3, w: 1, h: 1 },
+    blocks: { x: 0.5, y: 3, w: 1, h: 1 }, tree: true,
   },
   fruitBig: {
     file: `${A}/Trees/Big_Fruit_Tree.png`, x: 32, y: 0, w: 32, h: 64,
-    blocks: { x: 0.5, y: 2, w: 1, h: 1 },
+    blocks: { x: 0.5, y: 2, w: 1, h: 1 }, tree: true,
   },
   oakMed: {
     file: `${A}/Trees/Medium_Oak_Tree.png`, x: 32, y: 0, w: 32, h: 48,
-    blocks: { x: 0.5, y: 1, w: 1, h: 1 },
+    blocks: { x: 0.5, y: 1, w: 1, h: 1 }, tree: true,
   },
   spruceMed: {
     file: `${A}/Trees/Medium_Spruce_Tree.png`, x: 32, y: 0, w: 32, h: 48,
-    blocks: { x: 0.5, y: 1, w: 1, h: 1 },
+    blocks: { x: 0.5, y: 1, w: 1, h: 1 }, tree: true,
   },
   oakSmall: { file: `${A}/Trees/Small_Oak_Tree.png`, x: 32, y: 0, w: 32, h: 64 },
-  stump: { file: `${A}/Trees/Big_Oak_Tree.png`, x: 16, y: 48, w: 32, h: 32 },
+  /**
+   * What a felled tree leaves behind, and the one picture in the world that is
+   * put down by the game rather than by the generator.
+   *
+   * One tile exactly, blocking the tile it is drawn in — which is the trunk's
+   * own tile, so the stump inherits the hole in the world the tree was making
+   * and gives it back only when she knocks the stump out too. The art is 16x14
+   * at (24, 52) of the big-oak sheet; the rectangle starts two rows above it so
+   * the stump's foot lands on the bottom of its tile, where the trunk's was.
+   */
+  stump: {
+    file: `${A}/Trees/Big_Oak_Tree.png`, x: 24, y: 50, w: 16, h: 16,
+    blocks: { x: 0, y: 0, w: 1, h: 1 },
+  },
 
   // --- ground dressing ---------------------------------------------------
   // 16x16 cells of Outdoor_Decor.png, indexed (column, row) from its top-left.

@@ -37,6 +37,11 @@ export const CATEGORIES = [
   'Cute_Fantasy/Buildings',
   'Cute_Fantasy/Outdoor decoration',
   'Cute_Fantasy/Crops',
+  // The item icons, for the tool row. The only folder here the tile world does
+  // not draw from: `src/ui/toolIcons.ts` names the rectangles instead of
+  // `tools/world/catalog.ts`, because the HUD is not a place in the world and
+  // the generator has no business knowing what an axe looks like in a box.
+  'Cute_Fantasy/Icons',
 ];
 
 /** For the failure message and the README attribution. */
