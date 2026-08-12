@@ -315,34 +315,56 @@ export interface ImageDef {
 export const IMAGES: Record<string, ImageDef> = {
   // --- buildings ---------------------------------------------------------
   // Seraphina's house is the only enterable one; the rest are facades.
-  // Footprints stop one tile short of each building's drawn base, so she can
-  // walk right up to a door and stand on the step rather than being held off it.
+  //
+  // **A building is solid where its walls meet the ground, and nowhere else**
+  // (Matt, 2026-08-12, off the hitbox overlay). Every one of these used to block
+  // a near-whole-facade rectangle — the roof, the eaves, and a column of bare
+  // grass either side of the walls, because the block was as wide as the *slot*
+  // rather than as wide as the building drawn in it. So the front of the village
+  // was a wall of invisible boxes she was held off by a tile and a half, and
+  // there was no walking round the back of anything.
+  //
+  // What is written down instead is a measurement, two tiles tall, at the foot
+  // of the walls: `y` is picked so the rectangle's bottom edge lands on the
+  // drawn base — the same rule `world:footings` checks — and `x`/`w` span the
+  // wall's own width, which for every one of these buildings is a tile in from
+  // each side of the slot the pack drew it in. Everything above it is roof, and
+  // she walks behind it and it fades. See OCCLUDER_ALPHA in TileWorld.
   house: {
     file: `${A}/Buildings/Buildings/Houses/Stone/House_1_Stone_Base_Red.png`,
     x: 0, y: 0, w: 96, h: 128,
-    blocks: { x: 0, y: 0, w: 6, h: 7 },
+    blocks: { x: 1, y: 5, w: 4, h: 2 },
   },
   shed: {
     file: `${A}/Buildings/Buildings/Unique_Buildings/Shed/Shed_Red_Blue.png`,
     x: 0, y: 0, w: 96, h: 112,
-    blocks: { x: 0, y: 0, w: 6, h: 6 },
+    blocks: { x: 1, y: 4, w: 4, h: 2 },
   },
   joeyHouse: {
     file: `${A}/Buildings/Buildings/Houses/Wood/House_4_Wood_Green_Blue.png`,
     x: 0, y: 0, w: 112, h: 96,
-    blocks: { x: 0, y: 0, w: 7, h: 5 },
+    blocks: { x: 1, y: 3, w: 5, h: 2 },
   },
   scarHouse: {
     file: `${A}/Buildings/Buildings/Unique_Buildings/Fisherman_House/Fisherman_House_Green_Red.png`,
     x: 0, y: 0, w: 96, h: 112,
-    blocks: { x: 0, y: 0, w: 6, h: 6 },
+    blocks: { x: 1, y: 4, w: 4, h: 2 },
   },
   // The biggest thing in the village, and the reason the main road reads as a
   // street rather than a track: two building fronts side by side facing it.
+  //
+  // The one odd shape in the village, and the one place the base rule is a
+  // judgment rather than a measurement: it is L-shaped. The gabled block with
+  // the door in it stands on pack row 113, and the lower wing beside it stands
+  // fifteen pixels further back, on row 98. One rectangle cannot follow that
+  // step, so it follows the main block and the wing keeps the tile row its own
+  // wall starts in — which over-blocks the strip behind the wing by most of a
+  // tile, and is the smaller error: the other way round leaves a whole tile of
+  // the gabled block's front wall walkable.
   villageHall: {
     file: `${A}/Buildings/Buildings/Houses/Limestone/House_2_Limestone_Base_Blue.png`,
     x: 0, y: 0, w: 144, h: 128,
-    blocks: { x: 0, y: 0, w: 9, h: 7 },
+    blocks: { x: 1, y: 5, w: 7, h: 2 },
   },
   caveMouth: {
     file: `${A}/Tiles/Cliff/Stone_Cliff_1_Cave_Entrance.png`,
