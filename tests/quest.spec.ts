@@ -247,79 +247,11 @@ test('the faerie quest, from the offer to the cave', async ({ page }) => {
   expect(errors, 'no uncaught page errors').toEqual([]);
 });
 
-/**
- * She goes indoors halfway through and comes out to the world she left.
- *
- * The whole reason the session store exists. A zone is rebuilt from the
- * generated map file every time she walks into it, and that file has every tree
- * standing and every stone whole — so without the store, going in for a moment
- * undoes an afternoon. Four different things have to survive one doorway: how far
- * through the quest she is, what she is carrying, what the quest lent her, and
- * the two holes she has actually made in the world.
- */
-test('a doorway does not undo an afternoon', async ({ page }) => {
-  const { errors } = await bootGame(page);
-  await waitForVoice(page);
-
-  await acceptQuest(page);
-  await fetchHammer(page);
-  await crack(page, 'ruby');
-
-  // And a tree, knocked all the way out, so there is a hole in the collision
-  // grid as well as a missing sprite. The nearest choppable one to her, felled
-  // with the axe — which means putting the axe back in her hand, which is the
-  // blue button doing its own job.
-  await tap(page, 'KeyX');
-  const armed = await readHooks(page);
-  expect(armed.tools.holding, 'the blue button gets the axe back').toBe('axe');
-
-  const target = pickTree(await readHooks(page));
-  await standByTree(page, target.id);
-  for (let blow = 0; blow < 5; blow++) {
-    const now = await readHooks(page);
-    if (now.trees.find((t) => t.id === target.id)?.state === 'gone') break;
-    await whack(page);
-  }
-  const felled = await readHooks(page);
-  expect(felled.trees.find((t) => t.id === target.id)?.state, 'the tree is gone').toBe('gone');
-  expect(
-    isBlocked(felled, target.x, target.y),
-    'and its tile has been handed back to her',
-  ).toBe(false);
-
-  // In through the front door and straight back out of it.
-  await standByProp(page, 'outside_to_house');
-  expect(await walkThroughDoorway(page, 'outside_to_house'), 'she is indoors').toBe('house');
-  expect(await walkThroughDoorway(page), 'and back out again').toBe('outside');
-
-  const back = await readHooks(page);
-  expect(back.quest.phase, 'still halfway through phase two').toBe('gems');
-  expect(back.quest.held, 'still carrying the ruby').toEqual(['ruby']);
-  expect(
-    back.quest.slots.find((s) => s.id === 'ruby')?.filled,
-    'and its slot is still filled in',
-  ).toBe(true);
-  expect(back.tools.slots, 'still has the hammer the quest lent her').toEqual([
-    'axe',
-    'hammer',
-    null,
-    null,
-  ]);
-  expect(rock(back, 'ruby')?.broken, 'the stone she cracked is still cracked').toBe(true);
-  expect(rock(back, 'malachite')?.broken, 'and the two she did not are still whole').toBe(false);
-  expect(rock(back, 'sapphire')?.broken).toBe(false);
-
-  expect(back.trees.find((t) => t.id === target.id)?.state, 'the tree is still gone').toBe('gone');
-  expect(
-    isBlocked(back, target.x, target.y),
-    'and the ground it was standing on is still hers',
-  ).toBe(false);
-
-  expect(errors, 'no uncaught page errors').toEqual([]);
-});
 
 /**
- * The two ways a quest refuses to punish her, from one boot.
+ * An afternoon's worth of a quest, in one sitting: the button that remembers it,
+ * the tools that do not work, the ones that do, and a doorway that undoes none
+ * of it.
  *
  * The yellow button says the job again, from anywhere. She is four and she will
  * forget, and the version of this game where forgetting means walking back
@@ -328,13 +260,25 @@ test('a doorway does not undo an afternoon', async ({ page }) => {
  * Y — and the balloon comes up over *her*, in his voice, because she is the one
  * remembering what he said.
  *
- * And the wrong tool is never a wrong answer. Both halves, because they are the
- * same rule seen from either end: the axe on a stone and the hammer in a tree.
- * Each one lands a real blow — the thing wobbles and the game answers — and
- * neither one moves anything an inch. There is no buzzer, no damage and no going
+ * The wrong tool is never a wrong answer. Both halves, because they are the same
+ * rule seen from either end: the axe on a stone and the hammer in a tree. Each
+ * one lands a real blow — the thing wobbles and the game answers — and neither
+ * one moves anything an inch. There is no buzzer, no damage and no going
  * backwards; the swing simply does not bite. See CLAUDE.md, "No fail states".
+ * Then the same tree and the same kind of stone with the right tool in her hand,
+ * which is what makes the first half evidence rather than a stuck game.
+ *
+ * And then she goes indoors and comes out to the world she left, which is the
+ * whole reason the session store exists. A zone is rebuilt from the generated
+ * map file every time she walks into it, and that file has every tree standing
+ * and every stone whole — so without the store, going in for a moment undoes an
+ * afternoon. Four things have to survive one doorway: how far through the quest
+ * she is, what she is carrying, what the quest lent her, and the two holes she
+ * has actually made in the world.
  */
-test('the yellow button remembers, and the wrong tool breaks nothing', async ({ page }) => {
+test('the yellow button remembers, the wrong tool cannot spoil it, and a doorway does not undo it', async ({
+  page,
+}) => {
   const { errors } = await bootGame(page);
   await waitForVoice(page);
 
@@ -405,6 +349,62 @@ test('the yellow button remembers, and the wrong tool breaks nothing', async ({ 
     'and every slot on the row is still empty',
   ).toBe(true);
   expect(afterRock.quest.phase, 'and the quest has not moved').toBe('gems');
+
+  // Now the right tool in each hand, so the two above are a tool that does not
+  // bite rather than a game that has stopped listening. A different stone from
+  // the one she failed to crack, because the claim below is that the one she
+  // left whole is still whole after a doorway.
+  await tap(page, 'KeyX');
+  expect((await readHooks(page)).tools.holding, 'the hammer again').toBe('hammer');
+  await crack(page, 'ruby');
+
+  // And the same tree, knocked all the way out, so there is a hole in the
+  // collision grid as well as a missing sprite.
+  await tap(page, 'KeyX');
+  expect((await readHooks(page)).tools.holding, 'and the axe again').toBe('axe');
+  await standByTree(page, tree.id);
+  for (let blow = 0; blow < 5; blow++) {
+    const now = await readHooks(page);
+    if (now.trees.find((t) => t.id === tree.id)?.state === 'gone') break;
+    await whack(page);
+  }
+  const felled = await readHooks(page);
+  expect(
+    felled.trees.find((t) => t.id === tree.id)?.state,
+    'the tree the hammer could not dent is gone',
+  ).toBe('gone');
+  expect(
+    isBlocked(felled, tree.x, tree.y),
+    'and its tile has been handed back to her',
+  ).toBe(false);
+
+  // In through the front door and straight back out of it.
+  await standByProp(page, 'outside_to_house');
+  expect(await walkThroughDoorway(page, 'outside_to_house'), 'she is indoors').toBe('house');
+  expect(await walkThroughDoorway(page), 'and back out again').toBe('outside');
+
+  const back = await readHooks(page);
+  expect(back.quest.phase, 'still halfway through phase two').toBe('gems');
+  expect(back.quest.held, 'still carrying the ruby').toEqual(['ruby']);
+  expect(
+    back.quest.slots.find((s) => s.id === 'ruby')?.filled,
+    'and its slot is still filled in',
+  ).toBe(true);
+  expect(back.tools.slots, 'still has the hammer the quest lent her').toEqual([
+    'axe',
+    'hammer',
+    null,
+    null,
+  ]);
+  expect(rock(back, 'ruby')?.broken, 'the stone she cracked is still cracked').toBe(true);
+  expect(rock(back, 'malachite')?.broken, 'and the two she did not are still whole').toBe(false);
+  expect(rock(back, 'sapphire')?.broken).toBe(false);
+
+  expect(back.trees.find((t) => t.id === tree.id)?.state, 'the tree is still gone').toBe('gone');
+  expect(
+    isBlocked(back, tree.x, tree.y),
+    'and the ground it was standing on is still hers',
+  ).toBe(false);
 
   expect(errors, 'no uncaught page errors').toEqual([]);
 });
