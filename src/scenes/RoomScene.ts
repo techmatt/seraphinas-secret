@@ -187,11 +187,15 @@ export class RoomScene extends Phaser.Scene {
 
   private cursors?: Phaser.Types.Input.Keyboard.CursorKeys;
   private wasd?: Record<'up' | 'down' | 'left' | 'right', Phaser.Input.Keyboard.Key>;
-  private interactKey?: Phaser.Input.Keyboard.Key;
+  /**
+   * The green button, on the keyboard. Two keys, not one — see setupInput for
+   * why each face button has both an old key and a diamond key.
+   */
+  private interactKeys: Phaser.Input.Keyboard.Key[] = [];
   /** The blue button, on the keyboard. Cycles the held tool. See ButtonDot. */
-  private toolKey?: Phaser.Input.Keyboard.Key;
+  private toolKeys: Phaser.Input.Keyboard.Key[] = [];
   /** The yellow button, on the keyboard. Says the job again. See ButtonDot. */
-  private helpKey?: Phaser.Input.Keyboard.Key;
+  private helpKeys: Phaser.Input.Keyboard.Key[] = [];
 
   /** Hold this and the collision grid shows. See DebugHitboxes. */
   private hitboxKey?: Phaser.Input.Keyboard.Key;
@@ -695,15 +699,17 @@ export class RoomScene extends Phaser.Scene {
       left: keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A),
       right: keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D),
     };
-    this.interactKey = keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.Z);
-    // The keyboard stand-in for the pad's blue button. Named for the button and
-    // not for what it does, the same way Z stands in for green — the keyboard
-    // exists so tests can drive the game, and a test that presses "the blue
-    // button" is a test that reads like the pad in her hands.
-    this.toolKey = keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.X);
-    // And the pad's yellow button, on the key of the same name. Y is help: it
-    // says the current job again, from anywhere, in the voice of whoever asked.
-    this.helpKey = keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.Y);
+    // Each face button answers to two keys, because the keyboard is doing two
+    // jobs. Z/X/Y are the *test* keys: named for the button they stand in for,
+    // so a spec that presses "the blue button" reads like the pad in her hands,
+    // and every test in the suite already presses them. I/J/K/L are the *play*
+    // keys: a diamond under the right hand laid out like the pad's face — J left
+    // is blue, K bottom is green, I top is yellow — for the evenings the pad is
+    // flat and somebody still wants to play. Neither set is the real input. The
+    // pad is.
+    this.interactKeys = this.addKeys(keyboard, ['Z', 'K']);
+    this.toolKeys = this.addKeys(keyboard, ['X', 'J']);
+    this.helpKeys = this.addKeys(keyboard, ['Y', 'I']);
     this.hitboxKey = keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.B);
 
     // The title screen already unlocked audio; this is only insurance for a
@@ -711,6 +717,28 @@ export class RoomScene extends Phaser.Scene {
     keyboard.on('keydown', unlockAudio);
     this.input.on('pointerdown', unlockAudio);
     this.input.gamepad?.on('connected', unlockAudio);
+  }
+
+  private addKeys(
+    keyboard: Phaser.Input.Keyboard.KeyboardPlugin,
+    names: (keyof typeof Phaser.Input.Keyboard.KeyCodes)[],
+  ): Phaser.Input.Keyboard.Key[] {
+    return names.map((name) => keyboard.addKey(Phaser.Input.Keyboard.KeyCodes[name]));
+  }
+
+  /**
+   * Did any of these keys go down this frame?
+   *
+   * Every key is asked, even once the answer is known: `JustDown` clears the
+   * flag it reads, so short-circuiting would leave the unasked key still latched
+   * and fire it again on the next frame — one press, two swings.
+   */
+  private justPressed(keys: Phaser.Input.Keyboard.Key[]): boolean {
+    let pressed = false;
+    for (const key of keys) {
+      if (Phaser.Input.Keyboard.JustDown(key)) pressed = true;
+    }
+    return pressed;
   }
 
   /** Left stick if it is pushed, arrow keys / WASD otherwise. */
@@ -813,9 +841,7 @@ export class RoomScene extends Phaser.Scene {
     const padPressed = padDown && !this.padInteractWasDown;
     this.padInteractWasDown = padDown;
 
-    const keyPressed = this.interactKey
-      ? Phaser.Input.Keyboard.JustDown(this.interactKey)
-      : false;
+    const keyPressed = this.justPressed(this.interactKeys);
 
     const near = this.nearestInteractable();
     this.prompt.setVisible(near !== null);
@@ -844,7 +870,7 @@ export class RoomScene extends Phaser.Scene {
     const padPressed = padDown && !this.padToolWasDown;
     this.padToolWasDown = padDown;
 
-    const keyPressed = this.toolKey ? Phaser.Input.Keyboard.JustDown(this.toolKey) : false;
+    const keyPressed = this.justPressed(this.toolKeys);
     if (!padPressed && !keyPressed) return;
 
     if (toolBelt.cycle()) playSparkleChime();
@@ -871,7 +897,7 @@ export class RoomScene extends Phaser.Scene {
     const padPressed = padDown && !this.padHelpWasDown;
     this.padHelpWasDown = padDown;
 
-    const keyPressed = this.helpKey ? Phaser.Input.Keyboard.JustDown(this.helpKey) : false;
+    const keyPressed = this.justPressed(this.helpKeys);
     if (!padPressed && !keyPressed) return;
 
     const line = quests.instruction;

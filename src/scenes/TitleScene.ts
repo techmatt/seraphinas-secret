@@ -41,7 +41,10 @@ const START_KEYS = [
   'A',
   'S',
   'D',
+  // Both keyboard greens: Z, which every test presses, and K, which is where
+  // green sits in the play diamond. See RoomScene.setupInput.
   'Z',
+  'K',
 ] as const;
 
 /** How long to wait for voice before starting the game anyway. */
