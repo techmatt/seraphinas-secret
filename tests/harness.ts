@@ -828,6 +828,23 @@ export async function withHitboxes(page: Page, take: () => Promise<unknown>) {
   await pin(false);
 }
 
+/**
+ * Wait until nobody is talking.
+ *
+ * The little things she says to herself are dropped rather than queued while a
+ * real line is in the air — see `SpeechBubble.bark` — so "did the swing make her
+ * ask for the axe" is a question that can only be asked of a quiet moment. It
+ * needs asking because finishing a quest phase ends with the next instruction
+ * spoken, and the three seconds of that overlap whatever the test does next.
+ */
+export async function waitForQuiet(page: Page) {
+  await page.waitForFunction(
+    () => (window as unknown as { __seraphina: Hooks }).__seraphina.voice.lineId === null,
+    undefined,
+    { timeout: 20_000 },
+  );
+}
+
 /** The voice manifest loads after boot; nothing voice-shaped works before it. */
 export async function waitForVoice(page: Page) {
   await page.waitForFunction(

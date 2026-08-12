@@ -24,6 +24,7 @@ import { makeStickHint, type StickHint } from '../ui/StickHint';
 import { makeToolRow, preloadToolIcons, type ToolRow } from '../ui/ToolRow';
 import { GEM_ICONS } from '../ui/toolIcons';
 import { SpeechBubble, type Speaker } from '../ui/SpeechBubble';
+import { NEEDS, nameOf } from '../voice/barks';
 import { VoiceBank } from '../voice/VoiceBank';
 import {
   Character,
@@ -532,6 +533,22 @@ export class RoomScene extends Phaser.Scene {
     return { id: 'seraphina', x: this.player.x, y: this.player.y };
   }
 
+  /**
+   * Her, naming something to herself — over her own head, in her own voice.
+   *
+   * Every one of these is a thing she did with a button rather than a thing
+   * somebody said to her, so it goes in at the bottom of the pecking order: it
+   * cuts off another bark and gets dropped if anybody is mid-sentence. See
+   * `SpeechBubble.bark`. Verbose on purpose — this is a reading game, and a
+   * four-year-old who hears "Malachite!" while a green stone flies across the
+   * screen is being taught the word.
+   */
+  private bark(id: string): void {
+    unlockAudio();
+    if (!this.bubble.bark(id, this.speaking())) return;
+    this.syncVoiceHooks();
+  }
+
   /** update() does this every frame, but a paused scene has no frames. */
   private syncVoiceHooks(): void {
     hooks.voice.lineId = this.bubble.lineId;
@@ -873,8 +890,15 @@ export class RoomScene extends Phaser.Scene {
     const keyPressed = this.justPressed(this.toolKeys);
     if (!padPressed && !keyPressed) return;
 
-    if (toolBelt.cycle()) playSparkleChime();
-    else this.toolRow.bounce(toolBelt.heldSlot);
+    if (toolBelt.cycle()) {
+      playSparkleChime();
+      // And she says what she is now holding. Mashing blue therefore sounds like
+      // mashing blue: each bark cuts the last one off and nothing is queued, so
+      // three fast presses end on the name of the tool she actually has out
+      // rather than owing her three sentences about tools she has been through.
+      const held = toolBelt.held;
+      if (held) this.bark(nameOf(held));
+    } else this.toolRow.bounce(toolBelt.heldSlot);
     this.toolRow.refresh();
     this.syncToolHooks();
   }
@@ -1077,14 +1101,25 @@ export class RoomScene extends Phaser.Scene {
    * runs to six seconds, and an instruction laid over the top of it would be two
    * sentences at once — which for a child who is being read to is no sentences
    * at all.
+   *
+   * Which job it is, is decided *here* rather than when the timer fires. Six
+   * seconds is long enough to run off and finish the phase — the hammer is a
+   * short walk — and reading the instruction late meant reading whatever the
+   * quest had moved on to, which `nextPhase` has already said. From the outside
+   * that was the boy saying the same sentence twice, the second time over
+   * whatever she was doing by then.
    */
   private sayInstructionAfter(after: string): void {
     const spoken = this.voice.get(after)?.duration ?? 0;
+    const line = quests.instruction;
+    if (!line) return;
+
     this.time.delayedCall((spoken + 0.9) * 1000, () => {
       // She may have walked through a door in the six seconds he was talking.
       if (this.leaving || !this.scene.isActive()) return;
-      const line = quests.instruction;
-      if (!line) return;
+      // Or done the job in them, in which case this sentence is out of date and
+      // its replacement has already been spoken.
+      if (quests.instruction !== line) return;
       this.bubble.say(line, this.speaking());
       this.syncVoiceHooks();
     });
@@ -1227,6 +1262,12 @@ export class RoomScene extends Phaser.Scene {
     this.sparkles.explode(48, item.x, item.y - TILE_SIZE / 2);
     hooks.sparkles += 1;
 
+    // She names it as she straightens up. One line and not two, even though this
+    // also put a new tool in her hand: a pickup does not go through the blue
+    // button, so the switch bark never gets a turn — the two paths are separate
+    // by construction rather than by a flag one of them has to remember to set.
+    this.bark(nameOf(item.id));
+
     const { complete } = quests.finish(item.id, false);
     if (complete) this.nextPhase();
     else this.syncQuestHooks();
@@ -1252,8 +1293,12 @@ export class RoomScene extends Phaser.Scene {
 
     const line = quests.instruction;
     if (!line) return;
-    // A beat, so the fanfare is not talked over.
-    this.time.delayedCall(700, () => {
+    // A beat, so the fanfare is not talked over — and long enough now to let the
+    // bark that got her here finish first. A phase ends on a pickup or on a
+    // stone coming open, and both of those are her saying the thing's name; the
+    // longest of those names runs to a second, and an instruction laid over the
+    // last syllable of one would clip a word she is being taught.
+    this.time.delayedCall(1100, () => {
       if (this.leaving || !this.scene.isActive()) return;
       this.bubble.say(line, this.speaking());
       this.syncVoiceHooks();
@@ -1263,6 +1308,10 @@ export class RoomScene extends Phaser.Scene {
   /** The stone comes open, and what was in it flies to its box on the row. */
   private takeGem(rock: GemRock): void {
     const id = rock.id;
+    // Named as it comes out of the stone, so the word and the green thing flying
+    // across the screen are one event rather than two.
+    this.bark(nameOf(id));
+
     const { complete } = quests.finish(id);
     this.syncQuestHooks();
 
@@ -1417,6 +1466,12 @@ export class RoomScene extends Phaser.Scene {
     if (!what) return;
 
     hooks.whacks += 1;
+    // The hammer, in a tree. The blow is unchanged — it lands, the trunk shakes,
+    // it sheds leaves — and she names the tool that would have felled it. That
+    // is the difference between "nothing happened" and a game that told her what
+    // to go and do, and it is a hint in her own voice rather than a buzzer: see
+    // CLAUDE.md, "No fail states".
+    if (!bites) this.bark(NEEDS.axe);
 
     if (what === 'shake') {
       // Escalating, and the sound escalates with it. `before` rather than a
@@ -1449,6 +1504,8 @@ export class RoomScene extends Phaser.Scene {
     if (!what) return;
 
     hooks.whacks += 1;
+    // And the same sentence from the other end: the axe on a stone.
+    if (!cracks) this.bark(NEEDS.hammer);
 
     if (what === 'shake') {
       playRockCrack(0);

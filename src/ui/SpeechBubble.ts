@@ -57,6 +57,18 @@ export interface Speaker {
   y: number;
 }
 
+/**
+ * How much the line in the balloon matters.
+ *
+ * There are only two, and the whole of the distinction is what may talk over
+ * what. `said` is somebody saying something to her — a person, a prop, the job
+ * she has been given. `bark` is her naming what is in her hand. A bark cutting a
+ * bark off is the wanted behaviour, because mashing the blue button should sound
+ * like mashing the blue button; a bark cutting off the boy explaining the quest
+ * is a sentence she needed and did not get, so it is dropped instead.
+ */
+type Priority = 'said' | 'bark';
+
 export class SpeechBubble extends Phaser.GameObjects.Container {
   private readonly balloon: Phaser.GameObjects.Graphics;
   private readonly slab: Phaser.GameObjects.Rectangle;
@@ -69,6 +81,9 @@ export class SpeechBubble extends Phaser.GameObjects.Container {
   private scrubbed: number | null = null;
 
   private highlighted = -1;
+
+  /** What kind of line is up. Only meaningful while `line` is not null. */
+  private priority: Priority = 'said';
 
   /** Who the tail points at, in world space. */
   private speaker: Speaker = { id: 'seraphina', x: 0, y: 0 };
@@ -126,6 +141,29 @@ export class SpeechBubble extends Phaser.GameObjects.Container {
    * `speaker` is who the tail points at; it defaults to wherever it pointed last.
    */
   say(id: string, speaker?: Speaker): void {
+    this.speak(id, 'said', speaker);
+  }
+
+  /**
+   * Mutter a line, if there is nothing worth hearing already in the air.
+   *
+   * The whole difference from `say` is what it will not do. Another bark is cut
+   * off — that is the wanted behaviour, and the reason there is no queue: three
+   * presses of blue should sound like three presses of blue, not like three
+   * sentences owed to her. Anything somebody actually said to her wins outright
+   * and the bark is thrown away rather than held, because a bark held for two
+   * seconds is a bark about a tool she has since switched away from.
+   *
+   * Returns whether it was said, so a caller can tell a dropped bark from a
+   * spoken one.
+   */
+  bark(id: string, speaker: Speaker): boolean {
+    if (this.line !== null && this.priority === 'said') return false;
+    this.speak(id, 'bark', speaker);
+    return true;
+  }
+
+  private speak(id: string, priority: Priority, speaker?: Speaker): void {
     const line = this.bank.get(id);
     if (!line) {
       console.warn(`voice: no line "${id}" in the manifest`);
@@ -134,6 +172,7 @@ export class SpeechBubble extends Phaser.GameObjects.Container {
 
     this.stop();
     this.line = line;
+    this.priority = priority;
     this.scrubbed = null;
     if (speaker) this.speaker = { id: speaker.id, x: speaker.x, y: speaker.y };
     this.layout(line);

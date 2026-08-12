@@ -8,6 +8,7 @@ import {
   standByTree,
   standNear,
   tap,
+  waitForQuiet,
   waitForVoice,
   walkThroughDoorway,
   type Hooks,
@@ -265,8 +266,12 @@ test('the faerie quest, from the offer to the cave', async ({ page }) => {
  * one lands a real blow — the thing wobbles and the game answers — and neither
  * one moves anything an inch. There is no buzzer, no damage and no going
  * backwards; the swing simply does not bite. See CLAUDE.md, "No fail states".
- * Then the same tree and the same kind of stone with the right tool in her hand,
- * which is what makes the first half evidence rather than a stuck game.
+ * What it does instead is *say* which tool would have: the shake is the same as
+ * it ever was, and over it she names the axe. Then the same tree and the same
+ * kind of stone with the right tool in her hand, which is what makes the first
+ * half evidence rather than a stuck game — and the blue button that gets her
+ * there names what it handed her, because every tool she picks up or switches to
+ * is a word she is being taught.
  *
  * And then she goes indoors and comes out to the world she left, which is the
  * whole reason the session store exists. A zone is rebuilt from the generated
@@ -329,9 +334,33 @@ test('the yellow button remembers, the wrong tool cannot spoil it, and a doorway
   ).toBe('standing');
   expect(isBlocked(afterTree, tree.x, tree.y), 'and still solid').toBe(true);
 
-  // The axe, on a stone.
+  // And she says which tool would have worked. Naming the fix is the whole
+  // point: a shake on its own says only that it did not work, which is the half
+  // she can already see.
+  //
+  // Asked of a quiet moment and a fresh blow rather than of the four above.
+  // Picking the hammer up ended a phase, a phase ends with its new instruction
+  // spoken a beat later, and a bark is dropped rather than queued while anything
+  // else is talking — that is the rule and not a race. Five blows in, the beat
+  // has long since passed and there is nothing left pending to talk over her.
+  await waitForQuiet(page);
+  await whack(page);
+  const corrected = await readHooks(page);
+  expect(corrected.voice.lineId, 'the hammer in a tree asks for the axe').toBe(
+    'seraphina_need_axe',
+  );
+  expect(corrected.voice.bubble.visible, 'out loud and on screen, as everything is').toBe(true);
+
+  // The axe, on a stone. And the blue button names what it just put in her hand.
   await tap(page, 'KeyX');
-  expect((await readHooks(page)).tools.holding, 'back to the axe').toBe('axe');
+  const switched = await readHooks(page);
+  expect(switched.tools.holding, 'back to the axe').toBe('axe');
+  expect(switched.voice.lineId, 'and she says so').toBe('seraphina_axe');
+  expect(switched.voice.bubble.speaker, 'in her own balloon').toBe('seraphina');
+  expect(
+    switched.player.y - switched.voice.bubble.y,
+    'sitting over her head, where her own words go',
+  ).toBeGreaterThan(0);
 
   await standByRock(page, 'malachite');
   const beforeRock = await readHooks(page);
