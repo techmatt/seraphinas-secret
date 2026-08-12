@@ -1,6 +1,10 @@
 import Phaser from 'phaser';
 import {
   playChopThunk,
+  playFanfare,
+  playGemBreak,
+  playPickup,
+  playRockCrack,
   playSparkleChime,
   playStumpPop,
   playThudChime,
@@ -9,9 +13,16 @@ import {
 } from '../audio/beep';
 import { unlockAudio } from '../audio/context';
 import { DEPTH, GAME_HEIGHT, TILE_SIZE, WORLD_SCALE } from '../config';
+import { itemOf, rocksOf } from '../quest/Quest';
+import { quests } from '../quest/QuestEngine';
+import { session } from '../state/session';
 import { makeButtonDot } from '../ui/ButtonDot';
+import { makeQuestMarker, type QuestMarker } from '../ui/QuestMarker';
+import { makeQuestRow, type QuestRow } from '../ui/QuestRow';
+import { makeShimmer, type Shimmer } from '../ui/shimmer';
 import { makeStickHint, type StickHint } from '../ui/StickHint';
 import { makeToolRow, preloadToolIcons, type ToolRow } from '../ui/ToolRow';
+import { GEM_ICONS } from '../ui/toolIcons';
 import { SpeechBubble, type Speaker } from '../ui/SpeechBubble';
 import { VoiceBank } from '../voice/VoiceBank';
 import {
@@ -23,6 +34,8 @@ import {
 import { SERAPHINA } from '../world/characterSheets';
 import { DebugHitboxes } from '../world/DebugHitboxes';
 import { Doorway } from '../world/Doorway';
+import { GemRock, makeChipEmitter } from '../world/GemRock';
+import { GroundItem } from '../world/GroundItem';
 import { loadMap, spawnOf, type FlourishId, type MapData } from '../world/mapData';
 import { Npc, sheetFor } from '../world/Npc';
 import { makeProp, nudgeProp, type Prop } from '../world/scenery';
@@ -107,6 +120,9 @@ const DOT_LIFT = 58;
 /** What clears a person: their own height, and a bit. */
 const HEAD_GAP = 34;
 
+/** What clears a one-tile thing lying in the grass: its own tile, and a bit. */
+const ITEM_LIFT = TILE_SIZE + 30;
+
 /** What the title screen — or the zone she just left — hands over. */
 export interface RoomSceneData {
   /** The bank the title screen already loaded, so nothing fetches twice. */
@@ -153,11 +169,19 @@ export class RoomScene extends Phaser.Scene {
   private npcs: Npc[] = [];
   private interactables: Interactable[] = [];
 
+  /** What the active quest phase has put out in *this* zone, if anything. */
+  private rocks: GemRock[] = [];
+  private lying: GroundItem | null = null;
+  private shimmers: Shimmer[] = [];
+  private marker: QuestMarker | null = null;
+
   private sparkles!: Phaser.GameObjects.Particles.ParticleEmitter;
   private leaves!: Phaser.GameObjects.Particles.ParticleEmitter;
+  private chips!: Phaser.GameObjects.Particles.ParticleEmitter;
   private prompt!: Phaser.GameObjects.Container;
   private stickHint?: StickHint;
   private toolRow!: ToolRow;
+  private questRow!: QuestRow;
   private bubble!: SpeechBubble;
   private voice!: VoiceBank;
 
@@ -166,6 +190,8 @@ export class RoomScene extends Phaser.Scene {
   private interactKey?: Phaser.Input.Keyboard.Key;
   /** The blue button, on the keyboard. Cycles the held tool. See ButtonDot. */
   private toolKey?: Phaser.Input.Keyboard.Key;
+  /** The yellow button, on the keyboard. Says the job again. See ButtonDot. */
+  private helpKey?: Phaser.Input.Keyboard.Key;
 
   /** Hold this and the collision grid shows. See DebugHitboxes. */
   private hitboxKey?: Phaser.Input.Keyboard.Key;
@@ -173,9 +199,10 @@ export class RoomScene extends Phaser.Scene {
   /** Forced on by a test, so a headless screenshot can hold no key at all. */
   private hitboxesPinned = false;
 
-  /** Previous frame's A- and X-button state, so a held button fires once. */
+  /** Previous frame's A-, X- and Y-button state, so a held button fires once. */
   private padInteractWasDown = false;
   private padToolWasDown = false;
+  private padHelpWasDown = false;
 
   /** One-way latch: the zone is left once. */
   private leaving = false;
@@ -211,10 +238,15 @@ export class RoomScene extends Phaser.Scene {
     this.trees = [];
     this.npcs = [];
     this.interactables = [];
+    this.rocks = [];
+    this.lying = null;
+    this.shimmers = [];
+    this.marker = null;
     this.leaving = false;
     this.doorwaysArmed = false;
     this.padInteractWasDown = false;
     this.padToolWasDown = false;
+    this.padHelpWasDown = false;
     this.stickHint = undefined;
     this.hitboxesPinned = false;
   }
@@ -264,12 +296,24 @@ export class RoomScene extends Phaser.Scene {
     });
     this.sparkles.setDepth(DEPTH.sparkles);
     this.leaves = makeLeafEmitter(this);
+    this.chips = makeChipEmitter(this);
 
     for (const def of map.doorways) this.doorways.push(new Doorway(this, def));
     for (const def of map.props) this.props.push(makeProp(this, this.world, def));
+    // Each tree is built with whatever she already did to it. The map file has
+    // every one of them standing — it is the generator's output, and the
+    // generator has never met her — so without the store the wood grows back
+    // every time she goes indoors.
+    const felled = session.trees(this.zoneId);
     for (const def of map.trees ?? []) {
       this.trees.push(
-        new Tree(this, this.world, def, { leaves: this.leaves, sparkles: this.sparkles }),
+        new Tree(
+          this,
+          this.world,
+          def,
+          { leaves: this.leaves, sparkles: this.sparkles },
+          felled[def.id],
+        ),
       );
     }
 
@@ -281,34 +325,10 @@ export class RoomScene extends Phaser.Scene {
       this.npcs.push(new Npc(this, def));
     }
 
-    // Everything the green button reaches, in one list: the props, the people,
-    // and the doors you press rather than walk through. Nearest wins, and the
-    // winner wears the dot. Trees are not in here — see Interactable and `swing`.
-    this.interactables = [
-      ...this.props.map((prop) => ({
-        id: prop.def.id,
-        x: prop.x,
-        y: prop.y,
-        lift: DOT_LIFT,
-        press: () => this.poke(prop),
-      })),
-      ...this.npcs.map((npc) => ({
-        id: npc.id,
-        x: npc.x,
-        y: npc.y,
-        lift: npc.headHeight + HEAD_GAP,
-        press: () => this.talkTo(npc),
-      })),
-      ...this.doorways
-        .filter((door) => door.def.enter === 'press')
-        .map((door) => ({
-          id: door.def.id,
-          x: door.x,
-          y: door.y,
-          lift: DOT_LIFT,
-          press: () => this.leaveThrough(door),
-        })),
-    ];
+    // Whatever the quest has put out here, and the light on it. Before the
+    // interactable list, because a thing lying in the grass is in it.
+    this.buildQuestObjects();
+    this.refreshInteractables();
 
     const spawn = spawnOf(map, this.arrivedVia);
     const stand = this.world.nearestStanding(spawn.x * WORLD_SCALE, spawn.y * WORLD_SCALE);
@@ -329,7 +349,20 @@ export class RoomScene extends Phaser.Scene {
 
     this.setupInput();
     this.drawHud();
+    this.refreshQuestHud();
     this.arrive();
+
+    // The objective's own twinkle, on one timer for the whole zone rather than
+    // one per thing: there are never more than three of these, and a burst of
+    // four particles a second each is the difference between a glow and
+    // something magic sitting in the grass.
+    this.time.addEvent({
+      delay: 1100,
+      loop: true,
+      callback: () => {
+        for (const shimmer of this.shimmers) this.sparkles.explode(4, shimmer.x, shimmer.y);
+      },
+    });
 
     // The bubble belongs to whoever is talking, which for now is always
     // Seraphina, so it anchors to the player.
@@ -398,6 +431,7 @@ export class RoomScene extends Phaser.Scene {
       this.syncToolHooks();
       return taken;
     };
+    hooks.session = () => session.snapshot();
     hooks.scene = 'room';
     hooks.transitioning = false;
     hooks.ready = true;
@@ -419,6 +453,7 @@ export class RoomScene extends Phaser.Scene {
       this.movePlayer(seconds, pad);
       this.checkDoorways();
       this.handleTools(pad);
+      this.handleHelp(pad);
       this.handleInteract(pad);
     }
     this.player.setDepth(this.player.y);
@@ -441,7 +476,9 @@ export class RoomScene extends Phaser.Scene {
     // Both emitters. "Particles on screen" is one question, and a leaf shed by
     // a tree she just hit is as much of an answer as a sparkle is.
     hooks.aliveParticles =
-      this.sparkles.getAliveParticleCount() + this.leaves.getAliveParticleCount();
+      this.sparkles.getAliveParticleCount() +
+      this.leaves.getAliveParticleCount() +
+      this.chips.getAliveParticleCount();
     hooks.peakParticles = Math.max(hooks.peakParticles, hooks.aliveParticles);
     hooks.voice.lineId = this.bubble.lineId;
     hooks.voice.words = this.bubble.spokenWords;
@@ -574,6 +611,41 @@ export class RoomScene extends Phaser.Scene {
     };
   }
 
+  /**
+   * What the quest thinks is true, and what this zone has put on the ground
+   * because of it.
+   *
+   * Two halves on purpose. The engine's half — which quest, which phase, which
+   * slots are full — is the same everywhere in the world and comes straight off
+   * the store, so a test can walk indoors and check it survived. `objects` is
+   * this zone's half, and it is the only way to ask whether the *picture* agrees
+   * with the bookkeeping.
+   */
+  private syncQuestHooks(): void {
+    hooks.quest = {
+      id: quests.active?.id ?? null,
+      phase: quests.phase?.id ?? null,
+      instruction: quests.instruction,
+      giver: quests.giver,
+      /** Who is wearing a thought bubble right now, or null. */
+      offering: this.npcs.find((npc) => quests.offerFrom(npc.id) !== null)?.id ?? null,
+      marker: this.marker !== null,
+      slots: quests.slots.map((slot) => ({ ...slot })),
+      held: [...quests.held],
+      objects: [
+        ...(this.lying
+          ? [{ id: this.lying.id, x: this.lying.x, y: this.lying.y, broken: false }]
+          : []),
+        ...this.rocks.map((rock) => ({
+          id: rock.id,
+          x: rock.x,
+          y: rock.y,
+          broken: rock.broken,
+        })),
+      ],
+    };
+  }
+
   /** What is in this zone, for a test that wants to walk somewhere. */
   private syncWorldHooks(): void {
     hooks.room = this.zoneId;
@@ -629,6 +701,9 @@ export class RoomScene extends Phaser.Scene {
     // exists so tests can drive the game, and a test that presses "the blue
     // button" is a test that reads like the pad in her hands.
     this.toolKey = keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.X);
+    // And the pad's yellow button, on the key of the same name. Y is help: it
+    // says the current job again, from anywhere, in the voice of whoever asked.
+    this.helpKey = keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.Y);
     this.hitboxKey = keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.B);
 
     // The title screen already unlocked audio; this is only insurance for a
@@ -778,6 +853,37 @@ export class RoomScene extends Phaser.Scene {
     this.syncToolHooks();
   }
 
+  /**
+   * The yellow button: what am I doing again?
+   *
+   * From anywhere, at any distance from the boy who asked. The balloon comes up
+   * over *her* rather than over him, because she is the one remembering — but the
+   * voice is his, because that is whose sentence it is. Which is the pairing the
+   * whole speech system was built for: the balloon says who is talking, and here
+   * that is her, quoting.
+   *
+   * Nothing at all happens without a quest on. A button that answers sometimes is
+   * worse than one that answers never, so the yellow dot is only on screen while
+   * there is something for it to say — see QuestRow.
+   */
+  private handleHelp(pad?: Phaser.Input.Gamepad.Gamepad): void {
+    const padDown = pad?.Y ?? false;
+    const padPressed = padDown && !this.padHelpWasDown;
+    this.padHelpWasDown = padDown;
+
+    const keyPressed = this.helpKey ? Phaser.Input.Keyboard.JustDown(this.helpKey) : false;
+    if (!padPressed && !keyPressed) return;
+
+    const line = quests.instruction;
+    if (!line) return;
+
+    unlockAudio();
+    this.sparkles.explode(10, this.player.x, this.player.y - 60);
+    this.bubble.say(line, this.speaking());
+    hooks.sparkles += 1;
+    this.syncVoiceHooks();
+  }
+
   /** The closest thing within arm's reach, or null. */
   private nearestInteractable(): Interactable | null {
     let best: Interactable | null = null;
@@ -885,7 +991,7 @@ export class RoomScene extends Phaser.Scene {
   private talkTo(npc: Npc): void {
     npc.lookAt(this.player.x, this.player.y);
 
-    const line = npc.say();
+    const line = this.whatTheySay(npc);
     if (!line) return;
 
     this.sparkles.explode(14, npc.x, npc.y - 40);
@@ -893,6 +999,283 @@ export class RoomScene extends Phaser.Scene {
     hooks.sparkles += 1;
     this.syncNpcHooks();
     this.syncVoiceHooks();
+  }
+
+  /**
+   * What comes out of somebody when green is pressed at them.
+   *
+   * Three answers, in order. Somebody with a quest to give says the next line of
+   * the offer, and the last of those *is* taking the job — there is no yes or no
+   * to get wrong, only a boy who keeps talking until she is on an errand.
+   * Somebody who has already given her one says what the job is, every time,
+   * because "ask him again" has to be a thing that works. Everybody else cycles
+   * their own lines, exactly as before.
+   */
+  private whatTheySay(npc: Npc): string | null {
+    const offering = quests.offerFrom(npc.id);
+    if (offering) {
+      const { line, accepted } = quests.nextOfferLine(offering);
+      if (accepted) this.tookTheJob(line);
+      this.syncQuestHooks();
+      return line;
+    }
+
+    if (quests.giver === npc.id && quests.instruction) return quests.instruction;
+    return npc.say();
+  }
+
+  // --- the quest ------------------------------------------------------------
+
+  /**
+   * She has a job. The bubble clears off his head, the world puts out whatever
+   * the first phase is about, and once he has finished the sentence he is in the
+   * middle of, he tells her where to start.
+   */
+  private tookTheJob(offerLine: string): void {
+    playFanfare();
+    this.marker?.destroy();
+    this.marker = null;
+    this.sparkles.explode(60, this.player.x, this.player.y - 40);
+    hooks.sparkles += 1;
+
+    this.buildQuestObjects();
+    this.refreshInteractables();
+    this.refreshQuestHud();
+    this.sayInstructionAfter(offerLine);
+  }
+
+  /**
+   * Say the current phase's instruction once `after` has finished being spoken.
+   *
+   * Chained on the line's own length rather than on a guessed delay: the offer
+   * runs to six seconds, and an instruction laid over the top of it would be two
+   * sentences at once — which for a child who is being read to is no sentences
+   * at all.
+   */
+  private sayInstructionAfter(after: string): void {
+    const spoken = this.voice.get(after)?.duration ?? 0;
+    this.time.delayedCall((spoken + 0.9) * 1000, () => {
+      // She may have walked through a door in the six seconds he was talking.
+      if (this.leaving || !this.scene.isActive()) return;
+      const line = quests.instruction;
+      if (!line) return;
+      this.bubble.say(line, this.speaking());
+      this.syncVoiceHooks();
+    });
+  }
+
+  /**
+   * Everything this phase wants standing in this zone, and the light on it.
+   *
+   * Called on every zone build and on every phase change, and it is the only
+   * thing that puts a quest object on screen — so "the stones appear when he asks
+   * for them" and "the stones are still there when she comes back out of the
+   * house" are one piece of code rather than two that have to agree.
+   */
+  private buildQuestObjects(): void {
+    this.clearQuestObjects();
+
+    const phase = quests.phase;
+    if (!phase) return;
+
+    const item = itemOf(phase);
+    if (item && item.zone === this.zoneId && quests.itemWaiting) {
+      this.lying = new GroundItem(this, item.id, item);
+      this.shimmers.push(makeShimmer(this, this.lying.x, this.lying.y - TILE_SIZE / 2, 0xfff3b0));
+    }
+
+    for (const spot of rocksOf(phase)) {
+      if (spot.zone !== this.zoneId) continue;
+      const rock = new GemRock(this, spot, this.chips, this.sparkles);
+      this.rocks.push(rock);
+      // A cracked one is remembered as cracked and comes back cracked, which is
+      // to say it does not come back at all. It is still built, so that "which
+      // stones are out there" is one list and not two.
+      if (!quests.rockWhole(spot.id)) rock.restoreBroken();
+      else this.shimmers.push(makeShimmer(this, rock.x, rock.midY, GEM_ICONS[spot.id].tint));
+    }
+  }
+
+  private clearQuestObjects(): void {
+    for (const shimmer of this.shimmers) shimmer.destroy();
+    this.shimmers = [];
+    this.lying?.destroy();
+    this.lying = null;
+    // The rocks' own sprites go with the scene; only the list has to be dropped.
+    this.rocks = [];
+  }
+
+  /** The row of slots, the yellow dot, and the bubble over the boy next door. */
+  private refreshQuestHud(): void {
+    this.questRow.show(quests.slots);
+
+    const wants = this.npcs.find((npc) => quests.offerFrom(npc.id) !== null);
+    if (wants && !this.marker) {
+      this.marker = makeQuestMarker(this, wants.x, wants.y, wants.headHeight + HEAD_GAP + 26);
+    } else if (!wants && this.marker) {
+      this.marker.destroy();
+      this.marker = null;
+    }
+    this.syncQuestHooks();
+  }
+
+  /**
+   * Everything the green button reaches, in one list: the props, the people, the
+   * doors you press rather than walk through, and anything the quest has left
+   * lying about. Nearest wins, and the winner wears the dot. Trees and gem rocks
+   * are not in here — see Interactable and `swing`.
+   *
+   * Rebuilt rather than built once, because the last of those four comes and goes
+   * while the zone stands still.
+   */
+  private refreshInteractables(): void {
+    this.interactables = [
+      ...this.props.map((prop) => ({
+        id: prop.def.id,
+        x: prop.x,
+        y: prop.y,
+        lift: DOT_LIFT,
+        press: () => this.poke(prop),
+      })),
+      ...this.npcs.map((npc) => ({
+        id: npc.id,
+        x: npc.x,
+        y: npc.y,
+        lift: npc.headHeight + HEAD_GAP,
+        press: () => this.talkTo(npc),
+      })),
+      ...this.doorways
+        .filter((door) => door.def.enter === 'press')
+        .map((door) => ({
+          id: door.def.id,
+          x: door.x,
+          y: door.y,
+          lift: DOT_LIFT,
+          press: () => this.leaveThrough(door),
+        })),
+      ...(this.lying
+        ? [
+            {
+              id: this.lying.id,
+              x: this.lying.x,
+              y: this.lying.y,
+              // A prop's `y` is its middle and a thing lying in the grass has
+              // its `y` at its foot, so the prop lift would put the dot on top
+              // of the very thing it is pointing at — asked of the object, the
+              // same way a person's is. See `Interactable.lift`.
+              lift: ITEM_LIFT,
+              press: () => this.pickUp(),
+            },
+          ]
+        : []),
+    ];
+
+    hooks.interactables = this.interactables.map(({ id, x, y }) => ({ id, x, y }));
+  }
+
+  /**
+   * Bend down and pick the thing up. It goes into the first empty box on the row
+   * *and* into her hand.
+   *
+   * Auto-equipping is the whole reason the quest flows: she is four, and a tool
+   * she has to go and find a second button for is a tool she does not have. The
+   * blue button gets its practice the first time she wants the axe back, which is
+   * a thing she will want and can therefore be trusted to work out.
+   */
+  private pickUp(): void {
+    const item = this.lying;
+    if (!item) return;
+
+    item.collect();
+    this.lying = null;
+    this.refreshInteractables();
+
+    toolBelt.give(item.id);
+    toolBelt.hold(item.id);
+    session.grant(item.id);
+    this.toolRow.refresh();
+    this.toolRow.bounce(toolBelt.heldSlot);
+    this.syncToolHooks();
+
+    playPickup();
+    this.sparkles.explode(48, item.x, item.y - TILE_SIZE / 2);
+    hooks.sparkles += 1;
+
+    const { complete } = quests.finish(item.id, false);
+    if (complete) this.nextPhase();
+    else this.syncQuestHooks();
+  }
+
+  /**
+   * A phase is over. The celebration, then the new job.
+   *
+   * Generous on purpose, and the same size every time: from where she is sitting
+   * finding the hammer and cracking the last stone are the same event — a thing
+   * she was told to do, done.
+   */
+  private nextPhase(): void {
+    playFanfare();
+    this.sparkles.explode(90, this.player.x, this.player.y - 50);
+    this.cameras.main.shake(220, 0.006);
+    hooks.sparkles += 1;
+
+    quests.advance();
+    this.buildQuestObjects();
+    this.refreshInteractables();
+    this.refreshQuestHud();
+
+    const line = quests.instruction;
+    if (!line) return;
+    // A beat, so the fanfare is not talked over.
+    this.time.delayedCall(700, () => {
+      if (this.leaving || !this.scene.isActive()) return;
+      this.bubble.say(line, this.speaking());
+      this.syncVoiceHooks();
+    });
+  }
+
+  /** The stone comes open, and what was in it flies to its box on the row. */
+  private takeGem(rock: GemRock): void {
+    const id = rock.id;
+    const { complete } = quests.finish(id);
+    this.syncQuestHooks();
+
+    const icon = GEM_ICONS[id];
+    const slot = this.questRow.slotAt(id);
+    const camera = this.cameras.main;
+
+    if (!slot || !this.textures.exists(icon.file)) {
+      this.refreshQuestHud();
+      if (complete) this.nextPhase();
+      return;
+    }
+
+    // Thrown across the screen rather than through the world: the row it is
+    // aimed at is welded to the camera, so the gem has to be too, or it lands
+    // wherever the village happens to have scrolled to.
+    const flying = this.add
+      .image(rock.x - camera.scrollX, rock.midY - camera.scrollY, icon.file, icon.slot)
+      .setScrollFactor(0)
+      .setScale(WORLD_SCALE)
+      .setDepth(DEPTH.hud + 1);
+
+    this.tweens.add({
+      targets: flying,
+      x: slot.x,
+      y: slot.y,
+      scale: 2,
+      angle: 340,
+      duration: 520,
+      ease: 'Cubic.easeIn',
+      onComplete: () => {
+        flying.destroy();
+        if (!this.scene.isActive()) return;
+        this.refreshQuestHud();
+        this.questRow.land(id);
+        playSparkleChime();
+        if (complete) this.nextPhase();
+      },
+    });
   }
 
   private poke(prop: Prop): void {
@@ -929,22 +1312,28 @@ export class RoomScene extends Phaser.Scene {
    * mid-swing does not take the blow away, and walking into range does not
    * conjure one.
    *
-   * Everything that happens to the tree is the tree's business; `landBlow` picks
-   * the noise and shakes the camera by how big a thing just happened.
+   * Everything that happens to the thing hit is that thing's business; the two
+   * `land` methods pick the noise and shake the camera by how big a thing just
+   * happened.
    *
-   * Without the axe in hand nothing happens at all, which today cannot occur:
-   * the axe is welded into slot one. The check is here because the day a quest
-   * hands her a hammer is the day "the green button chops" stops being true, and
-   * a hammer swung with the axe's animation would be the game drawing a lie.
+   * **The wrong tool still swings and still connects.** A hammer in a tree and
+   * an axe on a stone both land a real blow that does no damage — the thing
+   * wobbles, sheds what it sheds, and is exactly as it was. That is not a
+   * punishment and not a hint: everything in this world answers when it is hit,
+   * and a swing that produced silence would read as a game that had stopped
+   * working. See CLAUDE.md, "No fail states".
    */
   private swing(): void {
-    if (!toolBelt.holding('axe')) return;
+    const tool = toolBelt.held;
+    if (tool !== 'axe' && tool !== 'hammer') return;
 
-    const tree = this.nearestTree();
+    const target = this.nearestTarget();
     const swung = this.player.chop(
-      tree ? this.directionTo(tree.x, tree.y) : this.player.facing,
+      tool === 'axe' ? 'chop' : 'hammer',
+      target ? this.directionTo(target.x, target.y) : this.player.facing,
       () => {
-        if (tree) this.landBlow(tree);
+        if (target instanceof Tree) this.landOnTree(target, tool === 'axe');
+        else if (target) this.landOnRock(target, tool === 'hammer');
       },
       () => this.syncPlayerHooks(),
     );
@@ -953,39 +1342,52 @@ export class RoomScene extends Phaser.Scene {
     hooks.swings += 1;
     // A whiff answers quietly. The blow has its own noise and it lands a frame
     // and a half from now, so a whoosh under it would only muddy it.
-    if (!tree) playWhoosh();
+    if (!target) playWhoosh();
   }
 
   /**
-   * The tree the swing would connect with, or null for a whiff. Same reach and
-   * same nearest-wins rule as the dot, so "close enough to press" and "close
-   * enough to chop" are one distance and not two.
+   * What the swing would connect with, or null for a whiff.
+   *
+   * Trees and gem rocks in one pool, because from where she is standing they are
+   * the same kind of thing — something you hit — and picking the nearer of two
+   * pools separately would let her swing at a tree four tiles away while standing
+   * on top of a stone. Same reach and same nearest-wins rule as the dot, so
+   * "close enough to press" and "close enough to hit" are one distance.
+   *
+   * Which *tool* she is holding is deliberately not part of this. Aiming that
+   * skipped the stones while she had the axe out would mean the axe swung at
+   * nothing over a stone she is standing next to, and "nothing happened" is the
+   * one answer this game may never give.
    */
-  private nearestTree(): Tree | null {
-    let best: Tree | null = null;
+  private nearestTarget(): Tree | GemRock | null {
+    const standing: (Tree | GemRock)[] = [
+      ...this.trees.filter((tree) => tree.state !== 'gone'),
+      ...this.rocks.filter((rock) => !rock.broken),
+    ];
+
+    let best: Tree | GemRock | null = null;
     let bestDistance = INTERACT_RADIUS;
 
-    for (const tree of this.trees) {
-      if (tree.state === 'gone') continue;
+    for (const thing of standing) {
       const distance = Phaser.Math.Distance.Between(
         this.player.x,
         this.player.y,
-        tree.x,
-        tree.y,
+        thing.x,
+        thing.y,
       );
       if (distance <= bestDistance) {
         bestDistance = distance;
-        best = tree;
+        best = thing;
       }
     }
 
     return best;
   }
 
-  /** The moment the axe is in the wood. */
-  private landBlow(tree: Tree): void {
+  /** The moment a tool is in the wood. `bites` is false for anything but the axe. */
+  private landOnTree(tree: Tree, bites: boolean): void {
     const before = tree.state;
-    const what = tree.whack();
+    const what = tree.whack(bites);
     if (!what) return;
 
     hooks.whacks += 1;
@@ -995,7 +1397,7 @@ export class RoomScene extends Phaser.Scene {
       // count of its own: an unchoppable tree is always on its first blow, and
       // that is exactly what it should keep sounding like.
       playChopThunk(before === 'stump' ? 1 : 0);
-      this.cameras.main.shake(110, tree.choppable ? 0.004 : 0.0025);
+      this.cameras.main.shake(110, bites && tree.choppable ? 0.004 : 0.0025);
     } else if (what === 'fell') {
       playTreeCrash();
       this.cameras.main.shake(360, 0.011);
@@ -1008,7 +1410,31 @@ export class RoomScene extends Phaser.Scene {
       this.syncWorldHooks();
     }
 
+    // Written down on every blow, not only on the ones that change its shape, so
+    // a tree she hit twice and walked away from is still two blows in when she
+    // comes back through the door.
+    session.rememberTree(this.zoneId, tree.def.id, tree.memory);
     this.syncTreeHooks();
+  }
+
+  /** The moment a tool is on the stone. `cracks` is false for anything but the hammer. */
+  private landOnRock(rock: GemRock, cracks: boolean): void {
+    const what = rock.whack(cracks);
+    if (!what) return;
+
+    hooks.whacks += 1;
+
+    if (what === 'shake') {
+      playRockCrack(0);
+      this.cameras.main.shake(110, cracks ? 0.004 : 0.0025);
+      this.syncQuestHooks();
+      return;
+    }
+
+    playGemBreak();
+    this.cameras.main.shake(300, 0.009);
+    hooks.sparkles += 1;
+    this.takeGem(rock);
   }
 
   /** Which of the four ways she is facing points at a thing. */
@@ -1036,6 +1462,9 @@ export class RoomScene extends Phaser.Scene {
   private drawHud(): void {
     // What she is carrying, bottom-left, with the empty boxes drawn.
     this.toolRow = makeToolRow(this, toolBelt);
+    // And what she is collecting, along from it. Hidden until a phase wants
+    // something; see QuestRow.
+    this.questRow = makeQuestRow(this);
 
     // The zone used to caption itself "Walk: left stick or arrow keys". She
     // cannot read it, so it is a picture now — and it leaves once she walks.

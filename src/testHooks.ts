@@ -8,6 +8,7 @@
  */
 
 import { getAudioContext } from './audio/context';
+import type { SessionData } from './state/session';
 
 /** Anything on screen a test might want to walk to, in world space. */
 export interface Marker {
@@ -28,6 +29,37 @@ export interface NpcMarker extends Marker {
   facing: 'down' | 'up' | 'left' | 'right';
   /** Everything they can say, in the order repeated presses will say it. */
   lines: string[];
+}
+
+/**
+ * The quest, as everything outside the quest engine sees it.
+ *
+ * Two halves, and the split is the useful part. Everything down to `held` comes
+ * off the engine and the session store, so it is the same answer in every zone —
+ * which is how "she went indoors and came out again and is still halfway through"
+ * becomes a thing a test can assert rather than a thing a person has to watch.
+ * `objects` is what *this* zone has actually put on the ground because of it, and
+ * it is the only way to catch the bookkeeping and the picture disagreeing.
+ */
+export interface QuestHooks {
+  /** Which quest is on, or null. There is never more than one. */
+  id: string | null;
+  /** Which phase of it, by the quest's own phase id. */
+  phase: string | null;
+  /** The line the yellow button replays, and what the giver says if asked. */
+  instruction: string | null;
+  /** Whose voice that is: the npc who handed the job out. */
+  giver: string | null;
+  /** Who is wearing a thought bubble in this zone, or null once it is taken. */
+  offering: string | null;
+  /** Whether the bubble is actually built and on screen. */
+  marker: boolean;
+  /** The quest row, left to right. Empty when the phase wants nothing. */
+  slots: { id: string; filled: boolean }[];
+  /** Quest items in her pocket, in the order she found them. */
+  held: string[];
+  /** What this phase has standing in this zone right now. */
+  objects: { id: string; x: number; y: number; broken: boolean }[];
 }
 
 export interface DoorwayMarker extends Marker {
@@ -165,6 +197,18 @@ export interface TestHooks {
   giveTool: (tool: string) => number | null;
   /** Take one back. Returns false for the axe, whoever asks. */
   takeTool: (tool: string) => boolean;
+  /** Where she is in the one quest that can be running. See QuestHooks. */
+  quest: QuestHooks;
+  /**
+   * The session store, copied out.
+   *
+   * Read-only by construction rather than by promise: it hands back a deep copy,
+   * so a test can look at the thing the whole game is remembering and cannot
+   * accidentally become part of it. A function rather than a field because it is
+   * a snapshot of something that changes, and a field would be a snapshot of
+   * whenever the last frame happened to run.
+   */
+  session: () => SessionData;
   /**
    * How many swings she has started, and how many blows have landed.
    *
@@ -323,6 +367,18 @@ export const hooks: TestHooks = {
   tools: { slots: [], held: 0, holding: null },
   giveTool: () => null,
   takeTool: () => false,
+  quest: {
+    id: null,
+    phase: null,
+    instruction: null,
+    giver: null,
+    offering: null,
+    marker: false,
+    slots: [],
+    held: [],
+    objects: [],
+  },
+  session: () => ({ run: { quest: null, items: [], granted: [] }, world: {} }),
   swings: 0,
   whacks: 0,
   treeGaps: 0,
