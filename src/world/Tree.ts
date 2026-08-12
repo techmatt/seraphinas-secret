@@ -67,9 +67,16 @@ export interface TreeFootprint {
   cells: MapTree['cells'];
 }
 
+/** What is left of a tree, as something the session store can hold. */
+export interface TreeMemory {
+  state: TreeState;
+  /** Blows landed since it last changed shape. */
+  landed: number;
+}
+
 export class Tree {
   private sprite: WorldSprite | null;
-  private landed = 0;
+  private blows = 0;
   private what: TreeState = 'standing';
 
   /**
@@ -84,8 +91,52 @@ export class Tree {
     private readonly world: TileWorld,
     readonly def: MapTree,
     private readonly juice: TreeJuice,
+    /**
+     * What she already did to this one, from the session store.
+     *
+     * A zone is rebuilt from the generated map file every time she walks into
+     * it, and that file has every tree standing — so without this, going indoors
+     * and coming out again grows the wood back. Restoring is deliberately silent:
+     * no fall, no pop, no leaves. She is not felling it again, she is finding it
+     * the way she left it.
+     */
+    was?: TreeMemory,
   ) {
     this.sprite = world.addSprite(def.key, def.x, def.y);
+    if (was) this.restore(was);
+  }
+
+  private restore(was: TreeMemory): void {
+    this.blows = was.landed;
+    if (was.state === 'standing') return;
+
+    // Told to stop fading it first: an occluder whose image has been destroyed
+    // is a null dereference once a frame for the rest of the zone.
+    if (this.sprite) {
+      this.world.forget(this.sprite);
+      this.sprite.destroy();
+    }
+    this.sprite = null;
+    this.what = was.state;
+
+    if (was.state === 'stump') {
+      // Straight to full size. `raiseStump` grows it out of the mess the tree
+      // left, and there is no mess here — this stump has been standing since
+      // before she went indoors.
+      this.sprite = this.world.addSprite('stump', this.def.cells.x * TILE, this.def.cells.y * TILE);
+      this.sprite?.setOrigin(0, 1).setY(this.sprite.y + this.sprite.displayHeight);
+      return;
+    }
+
+    // Gone. The map file's collision has the trunk's tiles solid again, so the
+    // hole she made has to be made again — this is the same call `clear` makes,
+    // and it is why `clears` is written down at build time.
+    this.world.clear(this.def.clears);
+  }
+
+  /** What to write down about it, so it can be found this way again. */
+  get memory(): TreeMemory {
+    return { state: this.what, landed: this.blows };
   }
 
   /** Where the green dot sits and what she has to stand near: the trunk. */
@@ -132,26 +183,32 @@ export class Tree {
    * One blow. Says what it turned into, so the scene can pick the noise and the
    * camera shake without knowing anything about how many it takes.
    *
+   * `damage` is false for the wrong tool — a hammer, which cracks stone and does
+   * nothing to wood. It still shakes and still sheds leaves, because everything
+   * in this world answers when it is hit, and it never advances: a wrong choice
+   * is a mildly funny nothing, never a step backwards. See CLAUDE.md, "No fail
+   * states".
+   *
    * Returns `null` when there is nothing to hit — it is already gone, or it is
    * still falling over from the last one.
    */
-  whack(): Whack | null {
+  whack(damage = true): Whack | null {
     if (this.what === 'gone' || this.falling) return null;
 
-    if (!this.choppable) {
+    if (!this.choppable || !damage) {
       this.shudder(0);
       return 'shake';
     }
 
     const needed = this.what === 'standing' ? WHACKS_TO_FELL : WHACKS_TO_CLEAR;
-    this.landed++;
+    this.blows++;
 
-    if (this.landed < needed) {
-      this.shudder(this.landed - 1);
+    if (this.blows < needed) {
+      this.shudder(this.blows - 1);
       return 'shake';
     }
 
-    this.landed = 0;
+    this.blows = 0;
     if (this.what === 'standing') {
       this.fell();
       return 'fell';
