@@ -25,6 +25,14 @@
  * Nothing in here is filtered against `KEEP_CLEAR` the way an inland scatter is.
  * The boundary is what everything else gets out of the way of, so it is placed
  * by hand and `assertRoadsClear` is what catches a road run into it.
+ *
+ * **Nothing in this file is choppable, including the stand at the cliff's foot
+ * she can walk among.** The rule is the module, not the coordinate: a tree
+ * placed by the file whose job is holding the world in stays standing, and a
+ * boundary that can be reasoned about tree by tree is a boundary somebody will
+ * eventually reason wrongly about. She still gets the shake and the leaves off
+ * every one of them — the west wall is the first place she will ever learn that
+ * some trees are too big, and it teaches her without a word or a buzzer.
  */
 
 import {

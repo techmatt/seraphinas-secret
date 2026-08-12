@@ -255,6 +255,47 @@ export interface BuiltSprite {
   y: number;
 }
 
+/**
+ * A tree, which is a sprite the game is allowed to change its mind about.
+ *
+ * Trees come out of `sprites` and into their own list because they are the one
+ * thing in the world with a life: she can walk up to one, hit it, knock it down
+ * and take its tile back. Everything the game needs to run that lifecycle
+ * without re-deriving it is resolved here, at build time, by the same code that
+ * decided where the trunk went in the first place.
+ */
+export interface BuiltTree {
+  /** Stable within a zone: placement order. */
+  id: string;
+  /** Catalog image key. */
+  key: string;
+  /** Top-left of the sprite, in pack pixels. */
+  x: number;
+  y: number;
+  /**
+   * Middle of the trunk's tile, in pack pixels — where she walks up to and where
+   * the green dot appears. The sprite's own middle would be the middle of a
+   * canopy, which is four tiles up in the air.
+   */
+  ax: number;
+  ay: number;
+  /** She may fell this one. See `chop` on a Placement. */
+  chop?: boolean;
+  /** The tiles the trunk makes solid, and where the stump then stands. */
+  cells: TileRect;
+  /**
+   * Of those, the ones felling this tree actually gives back: cells nothing else
+   * in the world is also blocking.
+   *
+   * Almost always all of them — scatters are spaced so trunks cannot share a
+   * tile. It is written down rather than assumed because the alternative is a
+   * fence with a hole in it the day two footprints do overlap, and "which cells
+   * were only ever solid because of this tree" is a question the generator can
+   * answer exactly and the game cannot answer at all.
+   */
+  clears: Cell[];
+}
+
 export interface BuiltMarker {
   id: string;
   /** Centre, in pack pixels. */
@@ -310,9 +351,14 @@ export interface BuiltMap {
   overlay?: number[];
   /** Ground tiles that cycle — moving water, mostly. */
   tileAnims?: BuiltTileAnim[];
-  /** '1' where she cannot stand, row-major, one character per tile. */
+  /**
+   * '1' where she cannot stand, row-major, one character per tile — with every
+   * tree still standing. The game mutates its own copy as she fells them.
+   */
   blocked: string;
   sprites: BuiltSprite[];
+  /** Every tree, choppable or not. Not in `sprites`: the game places these. */
+  trees: BuiltTree[];
   spawns: Record<string, BuiltSpawn>;
   doorways: BuiltDoorway[];
   props: BuiltProp[];

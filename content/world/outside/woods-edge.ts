@@ -19,6 +19,15 @@ import { campsite } from './prefabs.js';
 
 const SEED = 20_260_809;
 
+/**
+ * The wood itself, and every trunk in it is hers.
+ *
+ * This is the one big stand of trees she can walk into from all sides, which is
+ * what makes it the right place to learn that an axe does something. The wall of
+ * trunks at the west edge is a different scatter in `perimeter.ts` and stays
+ * standing — see `chop` in shapes.ts for why that is a property of where a tree
+ * is rather than of what it is.
+ */
 export const WOOD_TREES = scatter({
   region: WOODS,
   images: [
@@ -30,6 +39,7 @@ export const WOOD_TREES = scatter({
   seed: SEED,
   avoid: KEEP_CLEAR_INLAND,
   cellsOf,
+  choppable: true,
 });
 
 export const UNDERGROWTH = scatter({

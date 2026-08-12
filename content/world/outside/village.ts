@@ -124,7 +124,11 @@ export const VILLAGE_PROPS = [
   { id: 'well', image: 'well', x: 28, y: 28, line: 'dad_sparkle' },
 ];
 
-/** A handful of proper trees, to break the skyline between the buildings. */
+/**
+ * A handful of proper trees, to break the skyline between the buildings. Hers
+ * to fell: they stand in the middle of the village with the fence and the cliff
+ * a long way off, so the one she is standing under is never load-bearing.
+ */
 export const VILLAGE_TREES = scatter({
   region: union(rect(21, 16, 30, 14), rect(21, 35, 30, 11)),
   images: ['oakBig', 'oakBig2', 'oakMed', 'fruitBig', 'birchBig'],
@@ -134,6 +138,7 @@ export const VILLAGE_TREES = scatter({
   seed: SEED,
   avoid: KEEP_CLEAR_INLAND,
   cellsOf,
+  choppable: true,
 });
 
 /**

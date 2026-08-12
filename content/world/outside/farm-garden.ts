@@ -9,7 +9,7 @@
  * something she can see happen.
  */
 
-import { scatter, type Placement } from '../../../tools/world/shapes.js';
+import { choppable, scatter, type Placement } from '../../../tools/world/shapes.js';
 import { BUILDINGS, FARM } from './plan.js';
 import { cellsOf, clearOfRoads, KEEP_CLEAR_INLAND } from './roads.js';
 import {
@@ -50,16 +50,23 @@ export const YARD: Placement[] = [
  * The orchard: fruit trees on a staggered grid down the south of the quarter.
  * Planted by rule and then filtered, so the row that runs into the farm lane
  * simply has a gap in it rather than a tree standing in the road.
+ *
+ * Choppable, hay excepted. `clearOfRoads` has already dropped anything whose
+ * trunk would land in the boundary band, so what is left is a planted orchard
+ * standing well inside the fence — and an orchard you cannot thin is a wall
+ * with apples on it.
  */
 export const ORCHARD: Placement[] = [
-  ...clearOfRoads(
-    Array.from({ length: 4 }, (_, row) =>
-      Array.from({ length: 5 }, (_, col) => ({
-        image: col % 2 ? 'fruitBig' : 'oakMed',
-        x: 52 + col * 3.5 + (row % 2) * 1.5,
-        y: 35 + row * 3,
-      })),
-    ).flat(),
+  ...choppable(
+    clearOfRoads(
+      Array.from({ length: 4 }, (_, row) =>
+        Array.from({ length: 5 }, (_, col) => ({
+          image: col % 2 ? 'fruitBig' : 'oakMed',
+          x: 52 + col * 3.5 + (row % 2) * 1.5,
+          y: 35 + row * 3,
+        })),
+      ).flat(),
+    ),
   ),
   { image: 'hayBale', x: 61, y: 44 },
   { image: 'haySmall', x: 63.4, y: 44.2 },

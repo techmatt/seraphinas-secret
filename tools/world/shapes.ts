@@ -244,6 +244,25 @@ export interface Placement {
   /** Top-left of the sprite, in tiles. May be fractional. */
   x: number;
   y: number;
+  /**
+   * She may fell this one.
+   *
+   * Only meaningful on a tree — see `tree` in the catalog, which is where "this
+   * picture is a tree" is decided. This is the other half of the pair and it is
+   * per placement on purpose: whether a tree can come down is a fact about
+   * *where it is standing*, not about what species it is. The oak in the wood
+   * comes down; the identical oak holding the west edge of the world does not.
+   *
+   * Absent means no, which is the safe default: `assertWalledIn` re-runs the
+   * boundary check with every one of these felled, so marking one is a claim the
+   * build has to agree with.
+   */
+  chop?: boolean;
+}
+
+/** The same placements, hers to cut down. See `chop` on a Placement. */
+export function choppable(placements: readonly Placement[]): Placement[] {
+  return placements.map((p) => ({ ...p, chop: true }));
 }
 
 export interface ScatterOptions {
@@ -277,6 +296,12 @@ export interface ScatterOptions {
   /** Keep this many tiles clear around each placement. */
   spacing?: number;
   /**
+   * Everything this scatter puts down is hers to fell. Only trees ever act on
+   * it — a bush marked this way is simply a bush — so a mixed scatter of trunks
+   * and undergrowth can be marked in one word.
+   */
+  choppable?: boolean;
+  /**
    * Random offset in tiles, so a scatter is not visibly on the grid. Ignored in
    * effect for anything solid: a solid thing is snapped to its own footprint
    * when it is placed, so all a jitter does there is decide which tile it lands
@@ -298,6 +323,7 @@ export function scatter({
   cellsOf,
   spacing = 0,
   jitter = 0,
+  choppable = false,
 }: ScatterOptions): Placement[] {
   const random = rng(seed);
   const taken = new Cells();
@@ -321,9 +347,10 @@ export function scatter({
     // to its own footprint anyway, so a wobble would only ever move the picture
     // and not the thing she walks into.
     const solid = cellsOf?.(image, x, y);
-    const at = solid
+    const at: Placement = solid
       ? { image, x, y }
       : { image, x: x + (jitter ? wobbleX : 0), y: y + (jitter ? wobbleY : 0) };
+    if (choppable) at.chop = true;
 
     if (avoid && solid) {
       const clash = rect(solid.x, solid.y, solid.w, solid.h).some(([cx, cy]) => avoid.has(cx, cy));

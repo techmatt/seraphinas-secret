@@ -45,6 +45,7 @@ import type {
   BuiltSprite,
   BuiltTileAnim,
   BuiltTileset,
+  BuiltTree,
   TerrainKind,
   ZoneLayout,
 } from './types.js';
@@ -347,25 +348,37 @@ function buildZone(zone: ZoneLayout, sheets: Map<string, Sheet>): BuiltMap {
 
   const blocked = new Uint8Array(n);
   /**
-   * The half of the collision she can *see*: walls, water, and the tiles under
-   * things that were drawn. `zone.block` is deliberately not in here — that is
-   * the invisible edge, and telling the two apart is the whole basis of the
-   * boundary gate below.
+   * The half of the collision she can *see*, counted rather than flagged: walls,
+   * water, and the tiles under things that were drawn, with a tally of how many
+   * of them are standing on each cell. `zone.block` is deliberately not in here
+   * — that is the invisible edge, and telling the two apart is the whole basis
+   * of the boundary gate below.
+   *
+   * A tally and not a bit because two questions below need to tell "solid" from
+   * "solid, and here is exactly what is making it so": which cells a felled tree
+   * hands back, and whether the boundary still holds once every choppable tree
+   * in the world is gone.
    */
-  const scenery = new Uint8Array(n);
-  const blockRect = (x: number, y: number, w: number, h: number) => {
+  const blockers = new Uint16Array(n);
+  /** How many of each cell's blockers are trees she is allowed to fell. */
+  const choppers = new Uint16Array(n);
+  const blockRect = (x: number, y: number, w: number, h: number, chop = false) => {
     for (let j = 0; j < h; j++) {
       for (let i = 0; i < w; i++) {
-        if (inside(x + i, y + j)) {
-          blocked[at(x + i, y + j)] = 1;
-          scenery[at(x + i, y + j)] = 1;
-        }
+        if (!inside(x + i, y + j)) continue;
+        const i2 = at(x + i, y + j);
+        blocked[i2] = 1;
+        blockers[i2]++;
+        if (chop) choppers[i2]++;
       }
     }
   };
 
   for (let i = 0; i < n; i++) {
-    if (wall[i] !== null || terrain[i] === 'water') blocked[i] = scenery[i] = 1;
+    if (wall[i] !== null || terrain[i] === 'water') {
+      blocked[i] = 1;
+      blockers[i]++;
+    }
   }
   for (const [x, y] of zone.block ?? []) if (inside(x, y)) blocked[at(x, y)] = 1;
 
@@ -396,18 +409,64 @@ function buildZone(zone: ZoneLayout, sheets: Map<string, Sheet>): BuiltMap {
    * decision, taken once in `footing.ts` — a sprite drawn from one rule and a
    * hitbox from another is exactly how the wood came to block bare grass.
    */
-  const place = (def: ImageDef, tileX: number, tileY: number) => {
+  const place = (def: ImageDef, tileX: number, tileY: number, chop = false) => {
     const spot = footing(def, tileX, tileY);
-    if (spot.cells) blockRect(spot.cells.x, spot.cells.y, spot.cells.w, spot.cells.h);
+    if (spot.cells) blockRect(spot.cells.x, spot.cells.y, spot.cells.w, spot.cells.h, chop);
     return spot;
   };
 
   const sprites: BuiltSprite[] = [];
+  /**
+   * Trees are put down exactly like anything else and then handed to the game
+   * separately, because the game is the only thing that can take one away. A
+   * tree the catalog does not know is a tree — or one drawn with no footprint —
+   * stays an ordinary sprite: there would be nothing to fell and nothing to
+   * hand back.
+   */
+  const trees: BuiltTree[] = [];
   for (const placement of zone.place) {
     const def = useImage(placement.image);
-    const spot = place(def, placement.x, placement.y);
-    sprites.push({ key: placement.image, x: spot.x, y: spot.y });
+    const chop = def.tree === true && placement.chop === true;
+    const spot = place(def, placement.x, placement.y, chop);
+
+    if (!def.tree || !spot.cells) {
+      sprites.push({ key: placement.image, x: spot.x, y: spot.y });
+      continue;
+    }
+
+    trees.push({
+      id: `tree_${trees.length}`,
+      key: placement.image,
+      x: spot.x,
+      y: spot.y,
+      ax: Math.round((spot.cells.x + spot.cells.w / 2) * TILE),
+      ay: Math.round((spot.cells.y + spot.cells.h / 2) * TILE),
+      ...(chop ? { chop: true } : {}),
+      cells: spot.cells,
+      // Filled in below: which cells are only solid because of this tree cannot
+      // be known until everything else in the zone has been put down.
+      clears: [],
+    });
   }
+
+  // What each tree is single-handedly holding. A cell with two blockers on it
+  // stays solid whichever of them goes, so it is not this tree's to give back.
+  for (const tree of trees) {
+    if (!tree.chop) continue;
+    const { x, y, w, h } = tree.cells;
+    for (let j = 0; j < h; j++) {
+      for (let i = 0; i < w; i++) {
+        if (inside(x + i, y + j) && blockers[at(x + i, y + j)] === 1) {
+          tree.clears.push([x + i, y + j]);
+        }
+      }
+    }
+  }
+
+  // What a felled tree leaves behind. Registered whenever the zone has anything
+  // to fell, because the game places these itself and cannot ask for a picture
+  // the map file never mentioned.
+  if (trees.some((t) => t.chop)) useImage('stump');
 
   const props: BuiltProp[] = zone.props.map((prop) => {
     const def = useImage(prop.image);
@@ -450,7 +509,7 @@ function buildZone(zone: ZoneLayout, sheets: Map<string, Sheet>): BuiltMap {
 
   assertRoadsClear(zone, terrain, blocked, cols);
   assertReachable(zone, blocked, cols, rows);
-  assertWalledIn(zone, blocked, scenery, cols, rows);
+  assertWalledIn(zone, blocked, blockers, choppers, cols, rows);
 
   const drawn = (sheet: Sheet) => {
     const owns = (gid: number) => gid >= sheet.firstgid && gid < sheet.firstgid + sheet.total;
@@ -477,6 +536,7 @@ function buildZone(zone: ZoneLayout, sheets: Map<string, Sheet>): BuiltMap {
     ...(tileAnims.length ? { tileAnims } : {}),
     blocked: Array.from(blocked, (b) => (b ? '1' : '0')).join(''),
     sprites,
+    trees,
     spawns,
     doorways,
     props,
@@ -602,16 +662,25 @@ function assertReachable(
  *    satisfies it whatever the world looks like, which is exactly the boundary
  *    this rule was written to replace.
  *
+ *  - **Without `zone.block`, and with every choppable tree felled.** She has an
+ *    axe. A boundary that holds only while the wood in front of it is standing
+ *    is a boundary with a timer on it, and the timer is a four-year-old with a
+ *    green button — so "she can never chop her way out of the map" is settled
+ *    here rather than trusted to whoever last marked a scatter choppable. A cell
+ *    counts as open in this pass when *every* thing making it solid is a tree
+ *    she may fell, which is the most generous reading of what an axe can do.
+ *
  * `sealed.soft` is the one exemption and it is spent by name, not inferred: the
  * woods gap is closed with undergrowth she can walk into, on purpose, and the
  * map's own edge is what stops her there. Those cells count as solid in the
- * second pass, so declaring one is a visible line in the layout rather than a
- * hole that opens quietly.
+ * second and third passes, so declaring one is a visible line in the layout
+ * rather than a hole that opens quietly.
  */
 function assertWalledIn(
   zone: ZoneLayout,
   blocked: Uint8Array,
-  scenery: Uint8Array,
+  blockers: Uint16Array,
+  choppers: Uint16Array,
   cols: number,
   rows: number,
 ): void {
@@ -641,35 +710,58 @@ function assertWalledIn(
 
   complain('everything solid', leaks(flood(zone, blocked, cols, rows)));
 
-  const withSoft = Uint8Array.from(scenery);
-  for (const [x, y] of zone.sealed.soft ?? []) {
-    if (x >= 0 && y >= 0 && x < cols && y < rows) withSoft[y * cols + x] = 1;
-  }
-  complain('only what is drawn', leaks(flood(zone, withSoft, cols, rows)));
+  /** What is drawn, plus the cells the layout declared soft by name. */
+  const drawn = (standing: (i: number) => boolean) => {
+    const grid = new Uint8Array(cols * rows);
+    for (let i = 0; i < grid.length; i++) grid[i] = standing(i) ? 1 : 0;
+    for (const [x, y] of zone.sealed?.soft ?? []) {
+      if (x >= 0 && y >= 0 && x < cols && y < rows) grid[y * cols + x] = 1;
+    }
+    return grid;
+  };
+
+  complain('only what is drawn', leaks(flood(zone, drawn((i) => blockers[i]! > 0), cols, rows)));
+  complain(
+    'only what is drawn, with every choppable tree felled',
+    leaks(flood(zone, drawn((i) => blockers[i]! > choppers[i]!), cols, rows)),
+  );
 }
 
 // --- main -------------------------------------------------------------------
 
+/**
+ * `--check` builds every zone and runs every gate, and writes nothing.
+ *
+ * Same code path, same asserts, no side effects — so a test can ask "does the
+ * world still hold together" without a passing run leaving the repository
+ * dirty, and a person can ask the same question before committing a layout.
+ */
 async function main(): Promise<void> {
+  const check = process.argv.includes('--check');
   const sheets = await loadSheets();
-  await mkdir(OUT_DIR, { recursive: true });
+  if (!check) await mkdir(OUT_DIR, { recursive: true });
 
   for (const zone of ZONES) {
     const map = buildZone(zone, sheets);
     const file = path.join(OUT_DIR, `${zone.id}.json`);
-    await writeFile(file, `${JSON.stringify(map)}\n`);
+    if (!check) await writeFile(file, `${JSON.stringify(map)}\n`);
 
     const solid = [...map.blocked].filter((c) => c === '1').length;
     const moving = map.images.filter((i) => i.frames).length;
+    const choppable = map.trees.filter((t) => t.chop).length;
     console.log(
       `world: ${zone.id} — ${map.cols}x${map.rows} tiles, ` +
         `${map.tilesets.length} tilesets, ${map.images.length} images (${moving} animated), ` +
         `${map.sprites.length} sprites, ${map.props.length} props, ` +
+        `${map.trees.length} trees (${choppable} choppable), ` +
         `${map.overlay?.filter((g) => g >= 0).length ?? 0} overlaid, ` +
         `${map.tileAnims?.length ?? 0} moving tiles, ` +
-        `${solid}/${map.cols * map.rows} solid → ${file}`,
+        `${solid}/${map.cols * map.rows} solid ` +
+        (check ? '— checked, not written' : `→ ${file}`),
     );
   }
+
+  if (check) console.log('world: every zone builds and every gate holds.');
 }
 
 main().catch((error: unknown) => {
