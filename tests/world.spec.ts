@@ -6,6 +6,7 @@ import {
   snap,
   standAt,
   standByProp,
+  tap,
   walk,
   walkThroughDoorway,
   walkToLandmark,
@@ -219,7 +220,7 @@ test('the Mystic Woods can be reached on foot', { tag: '@slow' }, async ({ page 
 
   // And the wood has something in it worth having walked to.
   await walkToProp(page, 'woods_toadstool');
-  await page.keyboard.press('KeyZ');
+  await tap(page, 'KeyZ');
   const poked = await readHooks(page);
   expect(poked.sparkles, 'the toadstool takes a press').toBe(1);
   expect(poked.voice.lineId, 'and says something').toBe('seraphina_munchy');
@@ -238,7 +239,7 @@ test('a neighbour’s door knocks, and does not open', async ({ page }) => {
   // A facade is the one thing in the game allowed to answer with no words: the
   // design law is that text must speak, and a knock has no text.
   await walkToProp(page, 'joey_door');
-  await page.keyboard.press('KeyZ');
+  await tap(page, 'KeyZ');
 
   const knocked = await readHooks(page);
   expect(knocked.sparkles, 'Joey’s door reacts').toBe(1);
@@ -256,7 +257,7 @@ test('the house props sparkle and speak', async ({ page }) => {
   // a poked prop sparkles and speaks. Getting to it is the front door's test and
   // the wood's, both of which walk.
   await standByProp(page, 'bed');
-  await page.keyboard.press('KeyZ');
+  await tap(page, 'KeyZ');
   const bed = await readHooks(page);
   expect(bed.sparkles, 'the bed takes a press').toBe(1);
   // Design law: nothing appears on screen without a voice behind it.
@@ -264,7 +265,7 @@ test('the house props sparkle and speak', async ({ page }) => {
   expect(bed.voice.words.length, 'with words to highlight').toBeGreaterThan(0);
 
   await standByProp(page, 'wardrobe');
-  await page.keyboard.press('KeyZ');
+  await tap(page, 'KeyZ');
   const wardrobe = await readHooks(page);
   expect(wardrobe.sparkles, 'so does the wardrobe').toBe(2);
   expect(wardrobe.voice.lineId).toBe('seraphina_wardrobe');
@@ -313,7 +314,7 @@ test('going in is a press, and it is a flourish rather than a cut', async ({ pag
   ).toBeLessThanOrEqual(start.interactRadius);
 
   const watching = watchTransition(page);
-  await page.keyboard.press('KeyZ');
+  await tap(page, 'KeyZ');
   const mid = await watching;
 
   expect(mid.transitioning, 'the press opened the door').toBe(true);

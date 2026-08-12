@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { bootGame, freeze, readHooks, snap, walk, walkToProp } from './harness';
+import { bootGame, freeze, readHooks, snap, tap, walk, walkToProp } from './harness';
 
 test('boots, renders a canvas, and walks on arrow keys', async ({ page }) => {
   const { errors } = await bootGame(page);
@@ -36,7 +36,7 @@ test('walking up to the well and pressing Z fires the sparkle burst', async ({ p
   // never a letter — this is the frame that proves it.
   await snap(page, '05-prompt.png');
 
-  await page.keyboard.press('KeyZ');
+  await tap(page, 'KeyZ');
 
   // Let the burst spread, then freeze it. A screenshot round trip outlives the
   // particles, so without the pause the shot is of an empty room.

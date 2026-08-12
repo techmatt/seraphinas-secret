@@ -627,7 +627,7 @@ export async function walkThroughDoorway(page: Page, id?: string) {
     `doorway ${id ?? '[first]'}`,
   );
 
-  if (press && !(await readHooks(page)).transitioning) await page.keyboard.press('KeyZ');
+  if (press && !(await readHooks(page)).transitioning) await tap(page, 'KeyZ');
 
   await page.waitForFunction(
     (before) => {
