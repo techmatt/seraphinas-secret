@@ -10,6 +10,7 @@ import {
   walk,
   walkThroughDoorway,
   walkToLandmark,
+  walkToPoint,
   walkToProp,
   type Hooks,
 } from './harness';
@@ -245,6 +246,46 @@ test('a neighbour’s door knocks, and does not open', async ({ page }) => {
   expect(knocked.sparkles, 'Joey’s door reacts').toBe(1);
   expect(knocked.voice.lineId, 'but says nothing — there is no text to speak').toBeNull();
   expect(knocked.room, 'and it is not a way in').toBe('outside');
+
+  expect(errors, 'no uncaught page errors').toEqual([]);
+});
+
+/**
+ * The half of "buildings collide at the base only" that a picture cannot settle.
+ * A hitbox has no picture, so the screenshot of Joey's house looks exactly the
+ * same whether his roof is solid or not — walking round the back of it is what
+ * tells the two apart.
+ */
+test('there is a way round the back of a neighbour’s house', async ({ page }) => {
+  const { errors } = await bootGame(page);
+
+  const start = await readHooks(page);
+  const tile = start.world.tile;
+
+  // Joey's door, and the grass four tiles behind it. Every building used to
+  // block a rectangle the size of its own picture — roof, eaves and a column of
+  // bare grass down each side — so this cell was inside his house and there was
+  // nowhere behind anything in the village to stand.
+  const door = start.interactables.find((p) => p.id === 'joey_door')!;
+  const behind = { x: door.x, y: door.y - 4 * tile };
+
+  expect(isBlocked(start, behind.x, behind.y), 'the back of his house is grass').toBe(false);
+  expect(
+    isBlocked(start, behind.x, behind.y + 2 * tile),
+    'and the foot of his front wall is still a wall',
+  ).toBe(true);
+
+  // Stood on the road and walked from there: the claim is that the space can be
+  // reached, so the way into it is hers to find.
+  await standAt(page, 'facades');
+  await walkToPoint(page, behind, tile);
+
+  const round = await readHooks(page);
+  expect(round.room, 'she walked round it rather than out of the world').toBe('outside');
+  expect(
+    round.player.y,
+    'and ended up north of the wall, with his house between her and the road',
+  ).toBeLessThan(behind.y + 2 * tile);
 
   expect(errors, 'no uncaught page errors').toEqual([]);
 });

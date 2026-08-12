@@ -637,6 +637,24 @@ export async function standByTree(page: Page, id: string) {
   );
 }
 
+/**
+ * Walk to a world-space point, over the same planned route a landmark gets.
+ *
+ * For the places worth walking to that nothing in the map data has a name for.
+ * A landmark is a framing for the screenshot tour and the list of them is
+ * asserted whole, so "the strip of grass behind Joey's house" does not want to
+ * be one — but "can she actually get there" is still a question only walking
+ * answers.
+ */
+export async function walkToPoint(page: Page, to: { x: number; y: number }, within = 90) {
+  await travel(
+    page,
+    () => to,
+    (hooks) => Math.hypot(to.x - hooks.player.x, to.y - hooks.player.y) <= within,
+    `the point ${Math.round(to.x)},${Math.round(to.y)}`,
+  );
+}
+
 /** Walk to a named place in the map data — "the woods", "the facade row". */
 export async function walkToLandmark(page: Page, id: string, within = 90) {
   const pick = (hooks: Snapshot) => {

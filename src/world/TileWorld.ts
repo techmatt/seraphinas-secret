@@ -15,7 +15,7 @@
 
 import Phaser from 'phaser';
 import { DEPTH, TILE_SIZE, WORLD_SCALE } from '../config';
-import type { MapData } from './mapData';
+import type { MapData, MapImage } from './mapData';
 
 /**
  * Her collision box, in pack pixels, measured from where her feet touch the
@@ -31,7 +31,12 @@ const BODY_HEIGHT = 5 * WORLD_SCALE;
  */
 const OCCLUDER_TILES = 3;
 
-/** How much of a tree is left when she is standing behind it. */
+/**
+ * How much of a tree — or a house — is left when she is standing behind it.
+ * Buildings collide at the base only, so walking round the back of one is
+ * something she can do, and the same treatment the wood gets is what keeps her
+ * on screen while she does it.
+ */
 const OCCLUDER_ALPHA = 0.42;
 
 /** Per-frame approach to the target alpha. Fast enough to feel instant. */
@@ -53,8 +58,8 @@ interface Occluder {
   left: number;
   right: number;
   top: number;
-  bottom: number;
-  depth: number;
+  /** Where the thing stands — see `baseLine`. Below this she is in front of it. */
+  base: number;
 }
 
 export class TileWorld {
@@ -154,11 +159,17 @@ export class TileWorld {
    * to hide her goes see-through while she is behind it. Only tall sprites are
    * candidates, and only their own rectangle is tested, so this is a short scan
    * of cheap comparisons rather than anything the renderer has to think about.
+   *
+   * "Behind it" is the same question the draw order asks — is her base line
+   * above this thing's — so it is asked of the same number, and only once. It
+   * used to be asked of the bottom of the *picture*, which is a tile lower than
+   * the foot of a building and a tile and a half lower than the foot of a tree,
+   * and that gap is why she could stand on her own doorstep and watch her house
+   * go see-through.
    */
   revealBehind(x: number, y: number): void {
     for (const o of this.occluders) {
-      const hiding =
-        o.depth > y && x > o.left && x < o.right && y > o.top && y < o.bottom;
+      const hiding = o.base > y && x > o.left && x < o.right && y > o.top;
       const want = hiding ? OCCLUDER_ALPHA : 1;
       const alpha = o.image.alpha;
       if (Math.abs(alpha - want) < 0.01) {
@@ -385,8 +396,31 @@ export class TileWorld {
   }
 
   /**
-   * One catalog image, standing on the map. Depth is the bottom of the sprite,
-   * so the whole world and the player sort in one shared space.
+   * Where a picture *stands*, in world pixels: the foot of the tiles it makes
+   * solid, or the bottom of the picture when it makes nothing solid.
+   *
+   * The one number the whole world sorts on, hers included — her own depth is
+   * her feet. The pack does not draw its things sitting on the bottom edge of
+   * their slots: a house has an empty tile row under it for the step, a big oak
+   * has a tile and a half of shadow under the trunk. Sorting on the slot instead
+   * of the feet put a band under every tall thing in the world where she was
+   * standing in front of it and drawn behind it — and, because the fade asks the
+   * same question, where the thing she was in front of faded out of her way.
+   *
+   * The footprint is the honest answer because it is the one that was measured:
+   * `footing.ts` snapped the sprite so that its solid rectangle lands on whole
+   * tiles under the part of it that touches the ground, and `world:footings`
+   * checks each of those against the pixels it claims to describe.
+   */
+  private baseLine(image: MapImage, y: number, height: number): number {
+    const blocks = image.blocks;
+    if (!blocks) return y + height;
+    return y + (blocks.y + blocks.h) * this.map.tile * WORLD_SCALE;
+  }
+
+  /**
+   * One catalog image, standing on the map. Depth is the line it stands on, so
+   * the whole world and the player sort in one shared space.
    */
   addSprite(key: string, packX: number, packY: number): WorldSprite | null {
     const image = this.map.images.find((i) => i.key === key);
@@ -414,20 +448,14 @@ export class TileWorld {
     // A rug is drawn lying on the floor, so it sorts below everything that
     // stands on one — including her. Sorted against nothing: two rugs are never
     // laid overlapping, and if they were, the layout said so.
+    const base = this.baseLine(image, y, height);
     sprite
       .setOrigin(0, 0)
       .setScale(WORLD_SCALE)
-      .setDepth(image.flat ? DEPTH.floorPiece : y + height);
+      .setDepth(image.flat ? DEPTH.floorPiece : base);
 
     if (!image.flat && image.h >= OCCLUDER_TILES * this.map.tile) {
-      this.occluders.push({
-        image: sprite,
-        left: x,
-        right: x + width,
-        top: y,
-        bottom: y + height,
-        depth: y + height,
-      });
+      this.occluders.push({ image: sprite, left: x, right: x + width, top: y, base });
     }
 
     return sprite;
