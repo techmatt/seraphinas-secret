@@ -87,6 +87,7 @@ export type Hooks = {
     anim: string;
     flipped: boolean;
     artLoaded: boolean;
+    frames: Record<string, number>;
   };
   camera: { x: number; y: number; width: number; height: number };
   world: {
@@ -98,6 +99,7 @@ export type Hooks = {
     blocked: string;
   };
   interactables: { id: string; x: number; y: number }[];
+  promptDot: boolean;
   trees: {
     id: string;
     x: number;

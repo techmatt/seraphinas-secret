@@ -64,7 +64,7 @@ const MAX_STEP = TILE_SIZE / 4;
 let walkHintDone = false;
 
 /**
- * Something the green dot can appear over.
+ * Something the green button does something to.
  *
  * A prop and a press-to-enter door are the same thing from where she is
  * standing: get near it, a green dot appears, press green, something happens.
@@ -78,6 +78,21 @@ interface Interactable {
   /** Where she walks up to, in world pixels. */
   x: number;
   y: number;
+  /**
+   * Whether the green dot appears over it.
+   *
+   * The dot is a *selection*: it says "this is the one thing here the button is
+   * about", which is a question a chest, a well or a front door genuinely
+   * raises. A tree does not. There are two hundred of them, she walks through
+   * them constantly, and swinging an axe at whichever one she is nearest is
+   * what the button does out there whether or not anything was pointed at — so
+   * a dot drifting from trunk to trunk as she walks would be an answer to a
+   * question nobody asked, on every step of every wood.
+   *
+   * She still swings at the nearest one, which is why a tree is an Interactable
+   * at all and not a special case somewhere else.
+   */
+  dot: boolean;
   press: () => void;
 }
 
@@ -242,18 +257,20 @@ export class RoomScene extends Phaser.Scene {
       );
     }
 
-    // Everything the green dot can appear over, in one list: the props, the
-    // doors you press rather than walk through, and every tree in the zone.
+    // Everything the green button reaches, in one list: the props, the doors
+    // you press rather than walk through, and every tree in the zone.
     //
     // Trees are in here rather than beside it because "the nearest thing wins"
     // has to be one question with one answer — a wood where the dot is over the
     // toadstool and the press hits the spruce behind it would be the game
-    // lying about what the button does.
+    // lying about what the button does. Only the dot is theirs to skip; see
+    // Interactable.
     this.interactables = [
       ...this.props.map((prop) => ({
         id: prop.def.id,
         x: prop.x,
         y: prop.y,
+        dot: true,
         press: () => this.poke(prop),
       })),
       ...this.doorways
@@ -262,12 +279,14 @@ export class RoomScene extends Phaser.Scene {
           id: door.def.id,
           x: door.x,
           y: door.y,
+          dot: true,
           press: () => this.leaveThrough(door),
         })),
       ...this.trees.map((tree) => ({
         id: tree.def.id,
         x: tree.x,
         y: tree.y,
+        dot: false,
         press: () => this.swingAt(tree),
       })),
     ];
@@ -388,6 +407,9 @@ export class RoomScene extends Phaser.Scene {
     this.world.revealBehind(this.player.x, this.player.y);
     this.updateHitboxes();
     this.bubble.tick();
+    // Read off the dot itself rather than written where it is decided: a
+    // doorway hides it without going through handleInteract at all.
+    hooks.promptDot = this.prompt.visible;
 
     syncAudioHook();
     this.syncPlayerHooks();
@@ -460,6 +482,7 @@ export class RoomScene extends Phaser.Scene {
     hooks.player.facing = this.player.facing;
     hooks.player.anim = this.player.animKey;
     hooks.player.flipped = this.player.flipped;
+    hooks.player.frames = this.player.frames;
     hooks.player.artLoaded =
       characterArtLoaded(this, SERAPHINA) && TileWorld.artLoaded(this, this.world.map);
   }
@@ -647,8 +670,11 @@ export class RoomScene extends Phaser.Scene {
 
     const near = this.nearestInteractable();
     // Mid-swing the dot goes, so the thing she is hitting does not also look
-    // like a thing she has not pressed yet.
-    this.prompt.setVisible(near !== null && !this.player.chopping);
+    // like a thing she has not pressed yet. A tree never shows one at all —
+    // see Interactable — and because the nearest wins, a tree being nearest
+    // takes the dot off the shed behind it too. That is the honest answer: the
+    // button is about the tree.
+    this.prompt.setVisible(near !== null && near.dot && !this.player.chopping);
     if (near) this.prompt.setPosition(near.x, near.y - 58);
 
     if ((padPressed || keyPressed) && near) near.press();

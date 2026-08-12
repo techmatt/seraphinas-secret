@@ -173,6 +173,27 @@ export class Character extends Phaser.GameObjects.Container {
     return this.facingNow === 'left';
   }
 
+  /**
+   * Which frame of its own sheet each layer is drawing right now, keyed by
+   * texture key, and only for the layers actually on screen.
+   *
+   * The paper doll is the one place in the game where "the animation is
+   * playing" and "the picture is changing" can come apart: seven sprites share
+   * one animation name, and a layer that misses its play call sits frozen on
+   * whatever it drew last while the other six run. Nothing but a test wants
+   * this, but nothing else can see it either — the animation key says `chop`
+   * throughout either way.
+   */
+  get frames(): Record<string, number> {
+    const drawn: Record<string, number> = {};
+    for (let i = 0; i < this.layers.length; i++) {
+      const sprite = this.layers[i]!;
+      if (!sprite.visible) continue;
+      drawn[this.sheet.layers[i]!.key] = Number(sprite.frame.name);
+    }
+    return drawn;
+  }
+
   // --- driving it -----------------------------------------------------------
 
   face(direction: Direction): void {
@@ -244,8 +265,17 @@ export class Character extends Phaser.GameObjects.Container {
       // which is the difference between a visible bug and a silent one.
       if (layer.rows) sprite.setVisible(has);
       // Turning around mid-stride must not restart the walk, or she moonwalks
-      // on every change of direction.
-      if (sprite.anims.getName() === key) continue;
+      // on every change of direction — but only while it is still running.
+      //
+      // A finished animation under the same key has to be played again, and the
+      // axe is the layer that proves it: the swing is the only thing it draws,
+      // so between swings it keeps the swing's key while the body's moves to
+      // idle and back. Without the second half of this test, every swing after
+      // the first left the axe frozen on the last frame of the one before it,
+      // hanging in the air while she chopped — and the animation key said
+      // `chop` throughout, which is why it was invisible to everything except
+      // looking at it.
+      if (sprite.anims.getName() === key && sprite.anims.isPlaying) continue;
       if (has) sprite.play(key);
     }
   }

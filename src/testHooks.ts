@@ -73,6 +73,12 @@ export interface TestHooks {
    * world's. The art is a side-loaded, gitignored asset pack, so "the pipeline
    * ran" is something the suite has to be able to fail on: an animation key
    * plays perfectly well over Phaser's missing-texture square.
+   *
+   * `frames` is which frame of its own sheet each visible paper-doll layer is
+   * drawing, keyed by texture key. `anim` says what she is doing; this says
+   * whether the picture is actually moving while she does it, which for a stack
+   * of seven sprites sharing one animation name is a different question — see
+   * `Character.frames`.
    */
   player: {
     x: number;
@@ -81,6 +87,7 @@ export interface TestHooks {
     anim: string;
     flipped: boolean;
     artLoaded: boolean;
+    frames: Record<string, number>;
   };
   /**
    * The camera's top-left in world space, and how much of the world it shows.
@@ -108,14 +115,23 @@ export interface TestHooks {
     blocked: string;
   };
   /**
-   * Everything the green dot appears over: this zone's pokeable props, any door
+   * Everything the green button reaches: this zone's pokeable props, any door
    * that is entered with a press rather than walked through, and every tree.
    *
    * Trees are in here because the game's rule is "the nearest one wins", and a
    * harness steering by a list the game does not use would be steering by a
    * different rule. What each tree currently *is* lives in `trees` below.
+   *
+   * Not the same list as "what the dot appears over" — a tree is reachable and
+   * dotless. `promptDot` is what says whether the dot is actually on screen.
    */
   interactables: Marker[];
+  /**
+   * Whether the green proximity dot is showing. It marks a *selection* — the
+   * one thing here the button is about — so props and press-doors raise it and
+   * trees deliberately do not.
+   */
+  promptDot: boolean;
   /**
    * Every tree in the zone, and what is left of it.
    *
@@ -257,10 +273,19 @@ export const hooks: TestHooks = {
   room: null,
   transitioning: false,
   audio: 'none',
-  player: { x: 0, y: 0, facing: 'down', anim: 'idle-down', flipped: false, artLoaded: false },
+  player: {
+    x: 0,
+    y: 0,
+    facing: 'down',
+    anim: 'idle-down',
+    flipped: false,
+    artLoaded: false,
+    frames: {},
+  },
   camera: { x: 0, y: 0, width: 0, height: 0 },
   world: { width: 0, height: 0, tile: 0, cols: 0, rows: 0, blocked: '' },
   interactables: [],
+  promptDot: false,
   trees: [],
   tools: { slots: [], held: 0, holding: null },
   giveTool: () => null,

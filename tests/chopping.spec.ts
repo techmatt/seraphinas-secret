@@ -7,6 +7,7 @@ import {
   isBlocked,
   readHooks,
   snap,
+  standByProp,
   standByTree,
   tap,
   walk,
@@ -53,6 +54,61 @@ async function whack(page: Page) {
 
 async function chop(page: Page, times: number) {
   for (let i = 0; i < times; i++) await whack(page);
+}
+
+/**
+ * Every distinct frame each visible layer draws across one whole swing.
+ *
+ * Sampled inside the page, once per rendered frame. The swing is half a second
+ * of six frames and a round trip to this page is most of a frame, so a sampler
+ * living in node would be reading three or four points off it and calling the
+ * gaps evidence. It starts collecting before the press and stops when the swing
+ * does, so the window is the swing itself rather than a guess at how long one
+ * takes on a machine rendering this slowly.
+ *
+ * Retried, because a press can still be swallowed — see `whack` above.
+ */
+async function framesAcrossASwing(page: Page): Promise<Record<string, number[]>> {
+  for (let attempt = 0; attempt < 4; attempt++) {
+    await page.waitForFunction(
+      () => !(window as unknown as { __seraphina: Hooks }).__seraphina.player.anim.startsWith('chop'),
+      undefined,
+      { timeout: 20_000 },
+    );
+
+    const sampling = page.evaluate((capMs) => {
+      return new Promise<Record<string, number[]>>((resolve) => {
+        const h = (window as unknown as { __seraphina: Hooks }).__seraphina;
+        const seen: Record<string, Set<number>> = {};
+        const deadline = performance.now() + capMs;
+        let swinging = false;
+
+        const tick = () => {
+          const now = h.player.anim.startsWith('chop');
+          if (now) {
+            swinging = true;
+            for (const [layer, frame] of Object.entries(h.player.frames)) {
+              (seen[layer] ??= new Set<number>()).add(frame);
+            }
+          }
+          // Done when the swing she was started for has finished, or when it
+          // never began — a swallowed press is the caller's problem, not a hang.
+          if ((swinging && !now) || performance.now() > deadline) {
+            resolve(Object.fromEntries(Object.entries(seen).map(([k, v]) => [k, [...v]])));
+            return;
+          }
+          requestAnimationFrame(tick);
+        };
+        requestAnimationFrame(tick);
+      });
+    }, 2_500);
+
+    await tap(page, 'KeyZ');
+    const drawn = await sampling;
+    if (Object.keys(drawn).length > 0) return drawn;
+  }
+
+  throw new Error('she never swung');
 }
 
 /** Her tile, and a tree's. Everything below is about whether they can be equal. */
@@ -259,6 +315,87 @@ test('the blue button cycles the held tool, and the axe never leaves slot one', 
   const end = await readHooks(page);
   expect(end.tools.slots).toEqual(['axe', null, null, null]);
   expect(end.tools.held, 'and the light never sits on an empty box').toBe(0);
+
+  expect(errors, 'no uncaught page errors').toEqual([]);
+});
+
+/**
+ * The dot is a selection, and a tree is not one.
+ *
+ * She walks through two hundred trees; a dot hopping from trunk to trunk beside
+ * her would be answering a question nobody asked, on every step of every wood.
+ * The button still swings at the nearest one — which is the half of this worth
+ * asserting, because "no dot" would be very easy to deliver by taking the tree
+ * off the button as well.
+ */
+test('a tree takes the green button without taking the green dot', async ({ page }) => {
+  const { errors } = await bootGame(page);
+
+  // The well first, so this says the dot still works rather than only that it
+  // is missing here.
+  await standByProp(page, 'well');
+  expect((await readHooks(page)).promptDot, 'the well asks to be pressed').toBe(true);
+
+  const choppable = pickTree(await readHooks(page), true);
+  await standByTree(page, choppable.id);
+  const atChoppable = await readHooks(page);
+  expect(atChoppable.promptDot, 'a tree she can fell does not').toBe(false);
+  await snap(page, '53-tree-no-dot.png');
+
+  // And it is still hers to swing at.
+  await whack(page);
+  expect(
+    (await readHooks(page)).whacks,
+    'the green button still puts the axe in it',
+  ).toBeGreaterThan(atChoppable.whacks);
+
+  // The unchoppable ones too — they are a different flag in the layout, and the
+  // dot was not theirs to keep either.
+  const fixed = pickTree(await readHooks(page), false);
+  await standByTree(page, fixed.id);
+  expect((await readHooks(page)).promptDot, 'nor does one she cannot').toBe(false);
+
+  expect(errors, 'no uncaught page errors').toEqual([]);
+});
+
+/**
+ * Every swing animates — the second one as much as the first.
+ *
+ * She is a stack of seven sprites playing one animation between them, and the
+ * axe is the only one of the seven that draws nothing outside the swing. So it
+ * is the only one whose animation name does not change between swings, and the
+ * only one a "do not restart what is already playing" guard can freeze on the
+ * last frame of the previous swing. From the outside that is an axe that hangs
+ * in the air while she chops, on every swing after the first, and the hooks say
+ * `chop-down` throughout either way.
+ *
+ * Three swings at an unchoppable tree: it never changes state, so all three are
+ * the same swing in the same direction at the same target, which is exactly the
+ * repeat the guard used to swallow.
+ */
+test('every swing animates, not just the first', async ({ page }) => {
+  const { errors } = await bootGame(page);
+
+  const start = await readHooks(page);
+  const target = pickTree(start, false);
+  await standByTree(page, target.id);
+
+  const swings = [
+    await framesAcrossASwing(page),
+    await framesAcrossASwing(page),
+    await framesAcrossASwing(page),
+  ];
+
+  for (let i = 0; i < swings.length; i++) {
+    const swing = swings[i]!;
+    expect(Object.keys(swing), `swing ${i + 1}: the axe is in her hands`).toContain('seraphina-axe');
+    for (const [layer, frames] of Object.entries(swing)) {
+      expect(
+        frames.length,
+        `swing ${i + 1}: ${layer} drew frames ${frames.join(',')} — a swing is six of them`,
+      ).toBeGreaterThanOrEqual(3);
+    }
+  }
 
   expect(errors, 'no uncaught page errors').toEqual([]);
 });
