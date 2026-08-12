@@ -44,6 +44,12 @@ async function photograph(page: Page, at: { x: number; y: number }, file: string
  * press — walking up to somebody with no collision would otherwise put her
  * inside him, where "over him" and "over her" are the same picture and the test
  * would pass whatever the code did.
+ *
+ * What he *says* is the quest's business now, not the map's: he is the one
+ * person in the village with a job to hand out, and green at him is the offer
+ * rather than his own two lines. So the line here is read off the quest hooks,
+ * and the cycle-and-wrap claim has moved down to Hazel, who is still somebody
+ * with nothing to ask for. See `quest.spec` for the offer itself.
  */
 test('Sneak has a green dot, and the balloon is his', async ({ page }) => {
   const { errors } = await bootGame(page);
@@ -68,7 +74,9 @@ test('Sneak has a green dot, and the balloon is his', async ({ page }) => {
   await tap(page, 'KeyZ');
 
   const talking = await readHooks(page);
-  expect(talking.voice.lineId, 'he says the first of his lines').toBe(him.lines[0]);
+  expect(talking.voice.lineId, 'he says the first line of the job he is offering').toBe(
+    'sneak_quest_offer',
+  );
   expect(talking.voice.words.length, 'with words to light up').toBeGreaterThan(0);
   expect(talking.voice.bubble.visible, 'and a balloon to put them in').toBe(true);
   expect(talking.voice.bubble.speaker, 'which is his').toBe('sneak');
@@ -93,16 +101,6 @@ test('Sneak has a green dot, and the balloon is his', async ({ page }) => {
 
   await snap(page, '60-sneak-bubble.png');
 
-  // Pressing again is the next thing he has to say, and it wraps for ever.
-  // There is no end to a conversation and nothing to get wrong.
-  await tap(page, 'KeyZ');
-  const again = await readHooks(page);
-  expect(again.voice.lineId, 'pressing again says his second line').toBe(him.lines[1]);
-  expect(him.lines[1], 'which is a different line').not.toBe(him.lines[0]);
-
-  await tap(page, 'KeyZ');
-  expect((await readHooks(page)).voice.lineId, 'and then it wraps').toBe(him.lines[0]);
-
   expect(errors, 'no uncaught page errors').toEqual([]);
 });
 
@@ -110,6 +108,11 @@ test('Sneak has a green dot, and the balloon is his', async ({ page }) => {
  * Hazel is the same machinery with a different child in it — which is the point
  * of asserting on her at all. A person is data now: a sheet, a spot and a list
  * of lines, so the second one has to work without a line of code of her own.
+ *
+ * She is also the one who still *cycles*. Pressing green again is the next thing
+ * somebody has to say and it wraps for ever: there is no end to a conversation
+ * and nothing in one to get wrong. That claim used to be made about Sneak, who
+ * has a job to hand out now and answers to a different rule.
  */
 test('Hazel speaks too, in her own voice and from her own spot', async ({ page }) => {
   const { errors } = await bootGame(page);
@@ -129,6 +132,15 @@ test('Hazel speaks too, in her own voice and from her own spot', async ({ page }
   expect(Math.abs(talking.voice.bubble.x - her.x)).toBeLessThan(40);
 
   await snap(page, '61-hazel-bubble.png');
+
+  await tap(page, 'KeyZ');
+  const again = await readHooks(page);
+  expect(again.voice.lineId, 'pressing again says her second line').toBe(her.lines[1]);
+  expect(her.lines[1], 'which is a different line').not.toBe(her.lines[0]);
+
+  await tap(page, 'KeyZ');
+  expect((await readHooks(page)).voice.lineId, 'and then it wraps').toBe(her.lines[0]);
+
   expect(errors, 'no uncaught page errors').toEqual([]);
 });
 

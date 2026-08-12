@@ -117,6 +117,21 @@ export type Hooks = {
   tools: { slots: (string | null)[]; held: number; holding: string | null };
   giveTool: (tool: string) => number | null;
   takeTool: (tool: string) => boolean;
+  quest: {
+    id: string | null;
+    phase: string | null;
+    instruction: string | null;
+    giver: string | null;
+    offering: string | null;
+    marker: boolean;
+    slots: { id: string; filled: boolean }[];
+    held: string[];
+    objects: { id: string; x: number; y: number; broken: boolean }[];
+  };
+  session: () => {
+    run: { quest: { id: string; phase: string; done: string[] } | null; items: string[]; granted: string[] };
+    world: Record<string, { trees: Record<string, { state: string; landed: number }> }>;
+  };
   swings: number;
   whacks: number;
   treeGaps: number;
@@ -148,10 +163,22 @@ export type Hooks = {
 export const readHooks = (page: Page) =>
   page.evaluate(() => {
     const h = (window as unknown as { __seraphina: Hooks }).__seraphina;
-    // Functions do not survive the serialisation back to node; drop them.
-    const { pause, teleport, overview, debugHitboxes, giveTool, takeTool, voice, ...rest } = h;
+    // Functions do not survive the serialisation back to node; drop them — and
+    // call the one whose whole job is to be called, so the store comes back as
+    // data alongside everything else.
+    const {
+      pause,
+      teleport,
+      overview,
+      debugHitboxes,
+      giveTool,
+      takeTool,
+      session,
+      voice,
+      ...rest
+    } = h;
     const { say, scrub, timings, ...voiceRest } = voice;
-    return { ...rest, voice: voiceRest };
+    return { ...rest, voice: voiceRest, session: session() };
   });
 
 export type Snapshot = Awaited<ReturnType<typeof readHooks>>;
@@ -634,6 +661,48 @@ export async function standByTree(page: Page, id: string) {
       return hooks.interactables.every((other) => away(other) > hooks.interactRadius);
     },
     `tree ${id}`,
+  );
+}
+
+/**
+ * Stand her within swinging distance of one of the quest's gem rocks, with
+ * nothing else in reach of her.
+ *
+ * `standByTree`'s twin, and for the same reason: a rock is not an interactable —
+ * the tool in her hand is what green does when *nothing* is in reach — so "close
+ * enough to crack this stone" means both near it and clear of everything that
+ * would take the press instead. It also has to be the nearest thing she could
+ * hit, because the swing picks the nearest of the trees and the stones together.
+ */
+export async function standByRock(page: Page, id: string) {
+  const pick = (hooks: Snapshot) => {
+    const rock = hooks.quest.objects.find((o) => o.id === id);
+    if (!rock) throw new Error(`no quest object ${id} in ${hooks.room}`);
+    return rock;
+  };
+
+  const rock = pick(await readHooks(page));
+  await page.evaluate(
+    ([x, y]) => (window as unknown as { __seraphina: Hooks }).__seraphina.teleport(x!, y!),
+    [rock.x, rock.y],
+  );
+  await framesPass(page, 4, 200);
+
+  await travel(
+    page,
+    pick,
+    (hooks) => {
+      const here = pick(hooks);
+      const away = (m: { x: number; y: number }) =>
+        Math.hypot(m.x - hooks.player.x, m.y - hooks.player.y);
+      if (away(here) > hooks.interactRadius * 0.9) return false;
+      if (hooks.interactables.some((other) => away(other) <= hooks.interactRadius)) return false;
+      // And nearer than any trunk, or the swing goes into the wood instead.
+      return hooks.trees
+        .filter((tree) => tree.state !== 'gone')
+        .every((tree) => away(tree) > away(here));
+    },
+    `gem rock ${id}`,
   );
 }
 
