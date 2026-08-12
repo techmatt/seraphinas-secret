@@ -60,6 +60,16 @@ export interface QuestHooks {
   held: string[];
   /** What this phase has standing in this zone right now. */
   objects: { id: string; x: number; y: number; broken: boolean }[];
+  /** Whether this zone has the ritual's circle drawn on its floor. */
+  circle: boolean;
+  /**
+   * Whether she is standing in it — which is exactly the question "does the
+   * spell own the face buttons right now", and the reason it is worth a hook of
+   * its own: the rule is a place, and a test has to be able to be in it.
+   */
+  inCircle: boolean;
+  /** The colour he is asking for, or null when the sequence is finished. */
+  step: string | null;
 }
 
 export interface DoorwayMarker extends Marker {
@@ -256,6 +266,19 @@ export interface TestHooks {
   fps: number;
   /** How many times the juicy interaction has fired. */
   sparkles: number;
+  /**
+   * Wrong buttons pressed inside the spell circle.
+   *
+   * Counted rather than inferred, because the claim a wrong press makes is a
+   * negative one — nothing moved — and a test that only checked the state was
+   * unchanged would pass just as well against a button that did nothing at all.
+   */
+  ritualMisses: number;
+  /**
+   * Where the faeries are, or empty before they exist. Read every frame, so
+   * "they came with her through the door" is a thing the suite can settle.
+   */
+  faeries: { x: number; y: number }[];
   /** Particles currently alive. */
   aliveParticles: number;
   /**
@@ -377,6 +400,9 @@ export const hooks: TestHooks = {
     slots: [],
     held: [],
     objects: [],
+    circle: false,
+    inCircle: false,
+    step: null,
   },
   session: () => ({ run: { quest: null, items: [], granted: [], faeries: false }, world: {} }),
   swings: 0,
@@ -389,6 +415,8 @@ export const hooks: TestHooks = {
   debugHitboxes: () => undefined,
   fps: 0,
   sparkles: 0,
+  ritualMisses: 0,
+  faeries: [],
   aliveParticles: 0,
   peakParticles: 0,
   pause: () => undefined,

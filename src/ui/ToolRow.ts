@@ -60,6 +60,8 @@ export interface ToolRow {
   refresh: () => void;
   /** "Yes, that is the button, and no, there is nothing else yet." */
   bounce: (slot: number) => void;
+  /** Where a box is on screen, so something can be thrown at it — or from it. */
+  slotAt: (slot: number) => { x: number; y: number } | null;
 }
 
 /** Queue the icon sheets. Call from a scene's preload, like any other art. */
@@ -170,6 +172,11 @@ export function makeToolRow(scene: Phaser.Scene, belt: ToolBelt): ToolRow {
     scene.time.delayedCall(90, () => icon.clearTint());
   };
 
+  const slotAt = (slot: number) => {
+    const box = boxes[slot];
+    return box ? { x: box.container.x, y: box.container.y } : null;
+  };
+
   refresh();
-  return { container, refresh, bounce };
+  return { container, refresh, bounce, slotAt };
 }

@@ -103,6 +103,9 @@ export interface QuestGuest {
  *  - **fetch** — one thing on the ground; the green button picks it up.
  *  - **collect** — several things to break open; any order (Matt), and each one
  *    fills its own slot on the quest row.
+ *  - **travel** — go somewhere. It ends the moment she is standing in the zone
+ *    it names, which is a thing the scene notices on its way up rather than
+ *    anything she has to do when she gets there.
  *  - **ritual** — a fixed order of coloured buttons, pressed at one spot in the
  *    world. The one goal that takes the face buttons over, and only while she is
  *    standing inside `site`.
@@ -111,6 +114,7 @@ export interface QuestGuest {
 export type PhaseGoal =
   | { kind: 'fetch'; item: QuestItem }
   | { kind: 'collect'; rocks: QuestRock[] }
+  | { kind: 'travel'; zone: string }
   | { kind: 'ritual'; site: RitualSite; steps: RitualStep[] }
   | { kind: 'park' };
 

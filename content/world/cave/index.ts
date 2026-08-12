@@ -152,14 +152,16 @@ export const CAVE: ZoneLayout = {
   ],
   props: [
     // The one thing in here worth pressing, and she calls every fire Sparky.
-    // `at` is said out loud rather than left to the default middle-of-the-sprite,
-    // because where she stands to press the fire is also where the ritual
-    // decides she is at it — see RITUAL in src/quest/quests.ts.
+    // The logs block their own tile — see `campfire` in the catalog — so she
+    // walks round the fire rather than standing in it, which is also what keeps
+    // the middle of the ritual's circle clear.
     {
       id: 'cave_campfire',
       image: 'campfire',
       x: FIRE.x - 0.5,
       y: FIRE.y - 2,
+      // Over the flame rather than the middle of a two-tile picture, so the
+      // green dot is on the fire and not on the smoke above it.
       at: { x: FIRE.x, y: FIRE.y - 0.6 },
       line: 'seraphina_sparky',
     },

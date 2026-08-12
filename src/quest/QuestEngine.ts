@@ -275,6 +275,21 @@ export class QuestEngine {
     return null;
   }
 
+  /**
+   * She has walked into a zone. Advances a phase that was waiting for exactly
+   * that, and says whether it did — the scene puts the quest-giver's line in
+   * somebody's mouth on the strength of it.
+   *
+   * Asked on every zone build, including the ones she walks into for no reason
+   * at all, which is why it has to be cheap and has to be a no-op nearly always.
+   */
+  arrive(zone: string): boolean {
+    const goal = this.phase?.goal;
+    if (goal?.kind !== 'travel' || goal.zone !== zone) return false;
+    this.advance();
+    return true;
+  }
+
   /** Move on. Returns the phase she is now in, or null at the end of the list. */
   advance(): QuestPhase | null {
     const quest = this.active;

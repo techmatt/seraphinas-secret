@@ -79,15 +79,15 @@ export const FAERIE_QUEST: Quest = {
     },
     {
       /**
-       * The walk to the cave. Nothing to collect and nothing to hit — the phase
-       * ends when she is standing in the chamber, which is a thing the scene
-       * notices rather than a thing a goal can describe. The hammer stays in her
-       * belt throughout, because a tool taken back before the quest is over is a
-       * tool that vanished.
+       * The walk to the cave. Nothing to collect and nothing to hit: it ends
+       * the moment she is standing in the chamber, which is the whole of what a
+       * four-year-old was asked to do. The hammer stays in her belt throughout,
+       * because a tool taken back before the quest is over is a tool that
+       * vanished.
        */
       id: 'meetAtCave',
       instruction: 'sneak_quest_cave',
-      goal: { kind: 'park' },
+      goal: { kind: 'travel', zone: 'cave' },
     },
     {
       /**

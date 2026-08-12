@@ -43,6 +43,13 @@ export const DEPTH = {
   /** ...y-sorted world objects live here, at their own base y... */
   /** The hitbox overlay: over everything in the world, under everything in the UI. */
   debug: 80_000,
+  /**
+   * The faeries: over every standing thing, so a barrel never eats one — and
+   * under the green dot, the balloon and the row along the bottom, so three
+   * lights bobbing round her head can never be what hides the thing she is
+   * being asked to press.
+   */
+  faeries: 85_000,
   prompt: 90_000,
   sparkles: 95_000,
   speech: 100_000,

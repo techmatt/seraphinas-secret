@@ -215,6 +215,60 @@ export function playFanfare(): void {
 }
 
 /**
+ * A wrong button in the circle: the fire spits, and nothing else happens.
+ *
+ * Deliberately *not* a buzzer, and deliberately not sad. It is a short scatter
+ * of noise with a little upward flick on the end of it, which is the sound of a
+ * firework that did not go off — the sound of a thing that was funny. See
+ * CLAUDE.md, "No fail states".
+ */
+export function playFizzle(): void {
+  playNoise(0.22, 900, 2600, 0.1);
+  playNotes([
+    { freq: 330, at: 0.04, dur: 0.08, peak: 0.12 },
+    { freq: 294, at: 0.12, dur: 0.1, peak: 0.1 },
+  ]);
+}
+
+/**
+ * The giggle that goes with it: three little rising notes, quiet and quick.
+ *
+ * A stand-in for two children laughing, out of the same oscillator as everything
+ * else in this file. It is here rather than in the voice pipeline because a
+ * giggle is not a *word* — nothing lights up when it plays, so it is a sound
+ * effect, and putting it through the reading machinery would have been a line
+ * with no text.
+ */
+export function playGiggle(): void {
+  playNotes([
+    { freq: 880, at: 0, dur: 0.09, peak: 0.11 },
+    { freq: 1046.5, at: 0.09, dur: 0.09, peak: 0.12 },
+    { freq: 1174.7, at: 0.17, dur: 0.13, peak: 0.1 },
+    { freq: 987.8, at: 0.28, dur: 0.12, peak: 0.08 },
+  ]);
+}
+
+/**
+ * The summoning. The longest and biggest noise in the game by some way: a swell
+ * underneath, a rising run over the top of it, and a chord that stays.
+ *
+ * The fanfare is what a phase gets. This is what the whole quest gets, once, and
+ * it is meant to be obviously more than anything she has heard so far.
+ */
+export function playSummon(): void {
+  playNoise(1.1, 300, 3600, 0.12);
+  const run = [523.3, 659.3, 784, 987.8, 1174.7, 1318.5, 1568];
+  playNotes([
+    ...run.map((freq, i) => ({ freq, at: i * 0.085, dur: 0.3, peak: 0.16 })),
+    // And the chord it lands on, held.
+    { freq: 1046.5, at: 0.72, dur: 1.1, peak: 0.2 },
+    { freq: 1318.5, at: 0.74, dur: 1.1, peak: 0.17 },
+    { freq: 1568, at: 0.76, dur: 1.2, peak: 0.15 },
+    { freq: 2093, at: 0.8, dur: 1.2, peak: 0.11 },
+  ]);
+}
+
+/**
  * The doorway's run of notes, played quickly — the sound of going somewhere.
  * The order is the caller's, so a flourish can rise on the way in and fall on
  * the way out; see world/transition.ts.

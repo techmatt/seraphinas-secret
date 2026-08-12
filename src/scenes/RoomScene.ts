@@ -2,21 +2,24 @@ import Phaser from 'phaser';
 import {
   playChopThunk,
   playFanfare,
+  playFizzle,
   playGemBreak,
+  playGiggle,
   playPickup,
   playRockCrack,
   playSparkleChime,
   playStumpPop,
+  playSummon,
   playThudChime,
   playTreeCrash,
   playWhoosh,
 } from '../audio/beep';
 import { unlockAudio } from '../audio/context';
-import { DEPTH, GAME_HEIGHT, TILE_SIZE, WORLD_SCALE } from '../config';
-import { itemOf, rocksOf } from '../quest/Quest';
+import { DEPTH, GAME_HEIGHT, TILE, TILE_SIZE, WORLD_SCALE } from '../config';
+import { itemOf, rocksOf, type RitualStep } from '../quest/Quest';
 import { quests } from '../quest/QuestEngine';
 import { session } from '../state/session';
-import { makeButtonDot } from '../ui/ButtonDot';
+import { makeButtonDot, padColor, type PadColorName } from '../ui/ButtonDot';
 import { makeQuestMarker, type QuestMarker } from '../ui/QuestMarker';
 import { makeQuestRow, type QuestRow } from '../ui/QuestRow';
 import { makeShimmer, type Shimmer } from '../ui/shimmer';
@@ -35,10 +38,12 @@ import {
 import { SERAPHINA } from '../world/characterSheets';
 import { DebugHitboxes } from '../world/DebugHitboxes';
 import { Doorway } from '../world/Doorway';
+import { Faeries } from '../world/Faeries';
 import { GemRock, makeChipEmitter } from '../world/GemRock';
 import { GroundItem } from '../world/GroundItem';
-import { loadMap, spawnOf, type FlourishId, type MapData } from '../world/mapData';
+import { loadMap, spawnOf, type FlourishId, type MapData, type MapNpc } from '../world/mapData';
 import { Npc, sheetFor } from '../world/Npc';
+import { SpellCircle } from '../world/SpellCircle';
 import { makeProp, nudgeProp, type Prop } from '../world/scenery';
 import { TileWorld } from '../world/TileWorld';
 import { toolBelt, type ToolId } from '../world/ToolBelt';
@@ -124,6 +129,13 @@ const HEAD_GAP = 34;
 /** What clears a one-tile thing lying in the grass: its own tile, and a bit. */
 const ITEM_LIFT = TILE_SIZE + 30;
 
+/**
+ * How long the celebration at the end of the quest runs before the next thing
+ * anybody says. Long, on purpose: the summoning is the biggest moment in the
+ * game and the first sentence over the top of it would take the size off it.
+ */
+const SUMMONING_BEAT = 1200;
+
 /** What the title screen — or the zone she just left — hands over. */
 export interface RoomSceneData {
   /** The bank the title screen already loaded, so nothing fetches twice. */
@@ -175,6 +187,15 @@ export class RoomScene extends Phaser.Scene {
   private lying: GroundItem | null = null;
   private shimmers: Shimmer[] = [];
   private marker: QuestMarker | null = null;
+  private circle: SpellCircle | null = null;
+  /** True while she is standing inside it — which is while it owns the buttons. */
+  private inCircle = false;
+
+  /**
+   * Three lights that came out of a fire and are not going home. Built from one
+   * flag in the session store, so they cross every doorway with her. See Faeries.
+   */
+  private faeries: Faeries | null = null;
 
   private sparkles!: Phaser.GameObjects.Particles.ParticleEmitter;
   private leaves!: Phaser.GameObjects.Particles.ParticleEmitter;
@@ -197,6 +218,11 @@ export class RoomScene extends Phaser.Scene {
   private toolKeys: Phaser.Input.Keyboard.Key[] = [];
   /** The yellow button, on the keyboard. Says the job again. See ButtonDot. */
   private helpKeys: Phaser.Input.Keyboard.Key[] = [];
+  /**
+   * The red button, on the keyboard. It does nothing at all outside the spell
+   * circle — see `handleRitual`, and `setupInput` for why it is not the B key.
+   */
+  private redKeys: Phaser.Input.Keyboard.Key[] = [];
 
   /** Hold this and the collision grid shows. See DebugHitboxes. */
   private hitboxKey?: Phaser.Input.Keyboard.Key;
@@ -204,10 +230,22 @@ export class RoomScene extends Phaser.Scene {
   /** Forced on by a test, so a headless screenshot can hold no key at all. */
   private hitboxesPinned = false;
 
-  /** Previous frame's A-, X- and Y-button state, so a held button fires once. */
-  private padInteractWasDown = false;
-  private padToolWasDown = false;
-  private padHelpWasDown = false;
+  /**
+   * Last frame's state of each face button, so a held one fires once.
+   *
+   * All four are read every frame, in one place, whatever is going on — see
+   * `readButtons`. They used to be read inside the three handlers, which was
+   * fine while every button had exactly one meaning; the ritual gives three of
+   * them a second one, and a button whose edge is only *looked at* by the
+   * handler that happens to be running is a button that fires again the moment
+   * the other handler takes over.
+   */
+  private padWasDown: Record<'a' | 'b' | 'x' | 'y', boolean> = {
+    a: false,
+    b: false,
+    x: false,
+    y: false,
+  };
 
   /** One-way latch: the zone is left once. */
   private leaving = false;
@@ -247,11 +285,12 @@ export class RoomScene extends Phaser.Scene {
     this.lying = null;
     this.shimmers = [];
     this.marker = null;
+    this.circle = null;
+    this.inCircle = false;
+    this.faeries = null;
     this.leaving = false;
     this.doorwaysArmed = false;
-    this.padInteractWasDown = false;
-    this.padToolWasDown = false;
-    this.padHelpWasDown = false;
+    this.padWasDown = { a: false, b: false, x: false, y: false };
     this.stickHint = undefined;
     this.hitboxesPinned = false;
   }
@@ -262,6 +301,8 @@ export class RoomScene extends Phaser.Scene {
     // Everybody standing in this zone, queued alongside her. Their sheets are
     // hers with different files in the slots, so this is the same call.
     for (const npc of this.mapData?.npcs ?? []) preloadCharacter(this, sheetFor(npc.sheet));
+    // And anybody the quest has moved here, who is in nobody's map file.
+    for (const guest of quests.guests(this.zoneId)) preloadCharacter(this, sheetFor(guest.sheet));
     preloadToolIcons(this);
     if (this.mapData) TileWorld.preload(this, this.mapData);
   }
@@ -283,6 +324,14 @@ export class RoomScene extends Phaser.Scene {
     }
 
     const map = this.mapData;
+
+    // Walking in here may itself be the thing the quest was waiting for. Asked
+    // before anything is built, so the whole zone is built for the phase she is
+    // actually in rather than for the one she was in on the far side of the
+    // door — the circle on the floor is a phase's furniture, and a room that put
+    // it out one frame late would flicker.
+    const arrivedOn = quests.arrive(this.zoneId);
+
     this.cameras.main.setBackgroundColor(map.backdrop);
     this.world = new TileWorld(this, map);
 
@@ -304,7 +353,11 @@ export class RoomScene extends Phaser.Scene {
     this.chips = makeChipEmitter(this);
 
     for (const def of map.doorways) this.doorways.push(new Doorway(this, def));
-    for (const def of map.props) this.props.push(makeProp(this, this.world, def));
+    for (const def of map.props) {
+      const prop = makeProp(this, this.world, def);
+      this.props.push(prop);
+      this.addSmoke(prop);
+    }
     // Each tree is built with whatever she already did to it. The map file has
     // every one of them standing — it is the generator's output, and the
     // generator has never met her — so without the store the wood grows back
@@ -325,9 +378,32 @@ export class RoomScene extends Phaser.Scene {
     // People, before the interactable list is built, because they are in it.
     // Their animations are registered per sheet and the call is idempotent, so a
     // zone with two children drawn off the same stack pays for one.
+    //
+    // Anybody the quest has taken somewhere else is left out — they are standing
+    // in the cave, not on their own doorstep, and a person in two places at once
+    // is worse than a person missing from one. See `gather` on a Quest.
     for (const def of map.npcs ?? []) {
+      if (quests.away(def.id)) continue;
       registerCharacterAnims(this, sheetFor(def.sheet));
       this.npcs.push(new Npc(this, def));
+    }
+    // ...and anybody it has brought here instead. They are ordinary people from
+    // this point on: the green button, the balloon and the jostle do not know
+    // the difference, because there is none.
+    for (const guest of quests.guests(this.zoneId)) {
+      registerCharacterAnims(this, sheetFor(guest.sheet));
+      this.npcs.push(
+        new Npc(this, {
+          id: guest.id,
+          sheet: guest.sheet,
+          // A guest is written in tiles, the way a quest writes everything; a
+          // map npc arrives in pack pixels, having been through the generator.
+          x: guest.x * TILE,
+          y: guest.y * TILE,
+          facing: guest.facing,
+          lines: [...guest.lines],
+        } satisfies MapNpc),
+      );
     }
 
     // Whatever the quest has put out here, and the light on it. Before the
@@ -352,10 +428,22 @@ export class RoomScene extends Phaser.Scene {
       this.trees.map((tree) => tree.footprint),
     );
 
+    // Three lights that are not going home. One flag in the store, so they are
+    // rebuilt beside her in whatever zone she walks into next.
+    if (session.faeries) this.faeries = new Faeries(this, this.player.x, this.player.y);
+
     this.setupInput();
     this.drawHud();
     this.refreshQuestHud();
     this.arrive();
+    // He is standing here waiting for her, so he says so — after the doorway's
+    // flourish has landed, because two things at once is one thing missed.
+    if (arrivedOn) {
+      this.time.delayedCall(700, () => {
+        if (this.leaving || !this.scene.isActive()) return;
+        this.sayFrom(quests.giver, quests.phase?.instruction ?? null);
+      });
+    }
 
     // The objective's own twinkle, on one timer for the whole zone rather than
     // one per thing: there are never more than three of these, and a burst of
@@ -450,6 +538,10 @@ export class RoomScene extends Phaser.Scene {
     const seconds = Math.min(delta, 250) / 1000;
     const pad = this.input.gamepad?.getPad(0);
 
+    // Every button, every frame, in one place — even while she is being carried
+    // through a doorway. See `padWasDown`.
+    const button = this.readButtons(pad);
+
     if (!this.leaving) {
       // She steers through the swing. There is no moment in this game where the
       // stick does nothing: the blow was aimed when the swing started and moving
@@ -457,10 +549,21 @@ export class RoomScene extends Phaser.Scene {
       // nothing and buys back the only half-second the game ever took off her.
       this.movePlayer(seconds, pad);
       this.checkDoorways();
-      this.handleTools(pad);
-      this.handleHelp(pad);
-      this.handleInteract(pad);
+      this.watchTheCircle();
+
+      // Inside the circle the spell has the face buttons and nothing else does.
+      // Everywhere else — which is everywhere in the world but one ring on one
+      // floor — blue is still the tool and green is still what is in front of
+      // her. Yellow is untouched either way: "say it again" is the one thing
+      // that has to work in the middle of a sequence.
+      if (this.inCircle) this.handleRitual(button);
+      else {
+        this.handleTools(button.blue);
+        this.handleInteract(button.green);
+      }
+      this.handleHelp(button.yellow);
     }
+    this.faeries?.update(delta, this.player.x, this.player.y);
     this.player.setDepth(this.player.y);
     this.world.revealBehind(this.player.x, this.player.y);
     this.updateHitboxes();
@@ -488,6 +591,10 @@ export class RoomScene extends Phaser.Scene {
     hooks.voice.lineId = this.bubble.lineId;
     hooks.voice.words = this.bubble.spokenWords;
     hooks.voice.highlighted = this.bubble.highlightedIndex;
+    // Where the three of them are, or an empty list when they have not been
+    // summoned. The only honest way to ask "are they still with her" after a
+    // doorway, which is the whole claim they exist to make.
+    hooks.faeries = this.faeries?.positions ?? [];
     this.syncBubbleHooks();
   }
 
@@ -653,6 +760,16 @@ export class RoomScene extends Phaser.Scene {
       marker: this.marker !== null,
       slots: quests.slots.map((slot) => ({ ...slot })),
       held: [...quests.held],
+      /**
+       * The ritual, from the outside. `circle` is whether the ring is actually
+       * on the floor of this zone, `inCircle` whether she is standing in it —
+       * which is the same thing as "who owns the face buttons" — and `step` the
+       * colour he is asking for. Three questions a test cannot otherwise ask
+       * without reading pixels.
+       */
+      circle: this.circle !== null,
+      inCircle: this.inCircle,
+      step: quests.step?.id ?? null,
       objects: [
         ...(this.lying
           ? [{ id: this.lying.id, x: this.lying.x, y: this.lying.y, broken: false }]
@@ -727,6 +844,13 @@ export class RoomScene extends Phaser.Scene {
     this.interactKeys = this.addKeys(keyboard, ['Z', 'K']);
     this.toolKeys = this.addKeys(keyboard, ['X', 'J']);
     this.helpKeys = this.addKeys(keyboard, ['Y', 'I']);
+    // The red button. `L` is the diamond's right-hand key, where B sits on the
+    // pad. The test key is **C, not B**, and that is the one place the naming
+    // breaks: B has been the hitbox overlay since long before anything in this
+    // game asked for a red button, holding it is documented in CLAUDE.md, and
+    // the overlay is worth more than the letter. Nothing outside the spell
+    // circle listens to either of these.
+    this.redKeys = this.addKeys(keyboard, ['C', 'L']);
     this.hitboxKey = keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.B);
 
     // The title screen already unlocked audio; this is only insurance for a
@@ -756,6 +880,47 @@ export class RoomScene extends Phaser.Scene {
       if (Phaser.Input.Keyboard.JustDown(key)) pressed = true;
     }
     return pressed;
+  }
+
+  /**
+   * Did this face button go down this frame, on the pad?
+   *
+   * Called exactly once per button per frame, from `readButtons` and nowhere
+   * else, because it is what remembers whether the button was down last time.
+   */
+  private padPressed(pad: Phaser.Input.Gamepad.Gamepad | undefined, face: 'a' | 'b' | 'x' | 'y'): boolean {
+    const down =
+      (face === 'a' ? pad?.A : face === 'b' ? pad?.B : face === 'x' ? pad?.X : pad?.Y) ?? false;
+    const pressed = down && !this.padWasDown[face];
+    this.padWasDown[face] = down;
+    return pressed;
+  }
+
+  /**
+   * The four face buttons, by the only name that means anything to her.
+   *
+   * Every one of them is read every frame whatever is happening, and the pad
+   * half and the keyboard half are both asked before either answer is used —
+   * `JustDown` clears the flag it reads, so a short-circuit here would leave a
+   * key latched and fire it a frame later under whatever took over next.
+   */
+  private readButtons(pad?: Phaser.Input.Gamepad.Gamepad): Record<PadColorName, boolean> {
+    const padGreen = this.padPressed(pad, 'a');
+    const padRed = this.padPressed(pad, 'b');
+    const padBlue = this.padPressed(pad, 'x');
+    const padYellow = this.padPressed(pad, 'y');
+
+    const keyGreen = this.justPressed(this.interactKeys);
+    const keyRed = this.justPressed(this.redKeys);
+    const keyBlue = this.justPressed(this.toolKeys);
+    const keyYellow = this.justPressed(this.helpKeys);
+
+    return {
+      green: padGreen || keyGreen,
+      red: padRed || keyRed,
+      blue: padBlue || keyBlue,
+      yellow: padYellow || keyYellow,
+    };
   }
 
   /** Left stick if it is pushed, arrow keys / WASD otherwise. */
@@ -853,18 +1018,12 @@ export class RoomScene extends Phaser.Scene {
     }
   }
 
-  private handleInteract(pad?: Phaser.Input.Gamepad.Gamepad): void {
-    const padDown = pad?.A ?? false;
-    const padPressed = padDown && !this.padInteractWasDown;
-    this.padInteractWasDown = padDown;
-
-    const keyPressed = this.justPressed(this.interactKeys);
-
+  private handleInteract(pressed: boolean): void {
     const near = this.nearestInteractable();
     this.prompt.setVisible(near !== null);
     if (near) this.prompt.setPosition(near.x, near.y - near.lift);
 
-    if (!padPressed && !keyPressed) return;
+    if (!pressed) return;
 
     // The dot is a promise, so it is kept first: whatever is under it is what
     // green does. Only when there is nothing under it does the button fall
@@ -882,13 +1041,8 @@ export class RoomScene extends Phaser.Scene {
    * the button has to have been worth pressing before the hammer arrives or she
    * will never have found out it is there.
    */
-  private handleTools(pad?: Phaser.Input.Gamepad.Gamepad): void {
-    const padDown = pad?.X ?? false;
-    const padPressed = padDown && !this.padToolWasDown;
-    this.padToolWasDown = padDown;
-
-    const keyPressed = this.justPressed(this.toolKeys);
-    if (!padPressed && !keyPressed) return;
+  private handleTools(pressed: boolean): void {
+    if (!pressed) return;
 
     if (toolBelt.cycle()) {
       playSparkleChime();
@@ -916,13 +1070,8 @@ export class RoomScene extends Phaser.Scene {
    * worse than one that answers never, so the yellow dot is only on screen while
    * there is something for it to say — see QuestRow.
    */
-  private handleHelp(pad?: Phaser.Input.Gamepad.Gamepad): void {
-    const padDown = pad?.Y ?? false;
-    const padPressed = padDown && !this.padHelpWasDown;
-    this.padHelpWasDown = padDown;
-
-    const keyPressed = this.justPressed(this.helpKeys);
-    if (!padPressed && !keyPressed) return;
+  private handleHelp(pressed: boolean): void {
+    if (!pressed) return;
 
     const line = quests.instruction;
     if (!line) return;
@@ -1040,6 +1189,7 @@ export class RoomScene extends Phaser.Scene {
    */
   private talkTo(npc: Npc): void {
     npc.lookAt(this.player.x, this.player.y);
+    this.faeries?.cheer();
 
     const line = this.whatTheySay(npc);
     if (!line) return;
@@ -1155,6 +1305,20 @@ export class RoomScene extends Phaser.Scene {
       if (!quests.rockWhole(spot.id)) rock.restoreBroken();
       else this.shimmers.push(makeShimmer(this, rock.x, rock.midY, GEM_ICONS[spot.id].tint));
     }
+
+    // And the ring on the floor, which is the edge of a rule as much as it is a
+    // picture: inside it the face buttons are the spell's. Drawn at exactly the
+    // radius the quest data gives, so what she can see and what the buttons do
+    // are one number. See SpellCircle.
+    const site = quests.site;
+    if (site && site.zone === this.zoneId) {
+      this.circle = new SpellCircle(
+        this,
+        site.x * TILE_SIZE,
+        site.y * TILE_SIZE,
+        site.r * TILE_SIZE,
+      );
+    }
   }
 
   private clearQuestObjects(): void {
@@ -1162,6 +1326,9 @@ export class RoomScene extends Phaser.Scene {
     this.shimmers = [];
     this.lying?.destroy();
     this.lying = null;
+    this.circle?.destroy();
+    this.circle = null;
+    this.inCircle = false;
     // The rocks' own sprites go with the scene; only the list has to be dropped.
     this.rocks = [];
   }
@@ -1305,6 +1472,261 @@ export class RoomScene extends Phaser.Scene {
     });
   }
 
+  // --- the ritual ------------------------------------------------------------
+
+  /**
+   * Is she standing in the circle? Asked every frame, because the answer is what
+   * decides who owns the face buttons.
+   *
+   * The first time it is yes, the spell starts: he asks for the first colour.
+   * Every time after that it is just a light coming on — she may walk out and
+   * back in as often as she likes and the sequence holds its place, because the
+   * place is in the session store and not in this scene. It is not a timing
+   * challenge and there is nothing here to lose.
+   */
+  private watchTheCircle(): void {
+    const circle = this.circle;
+    if (!circle) {
+      this.inCircle = false;
+      return;
+    }
+
+    const inside = circle.contains(this.player.x, this.player.y) && quests.step !== null;
+    circle.setLive(inside);
+    if (inside === this.inCircle) return;
+    this.inCircle = inside;
+    if (!inside) return;
+
+    // First arrival at the fire. `reachFire` is what makes that a fact about the
+    // quest rather than about this visit, so the yellow button starts answering
+    // with the colour he wants instead of "stand by the fire".
+    if (quests.reachFire()) {
+      playSparkleChime();
+      this.sparkles.explode(24, circle.x, circle.y);
+      hooks.sparkles += 1;
+    }
+    this.sayFrom(quests.giver, quests.step?.press ?? null);
+    this.syncQuestHooks();
+  }
+
+  /**
+   * The face buttons, while the spell has them.
+   *
+   * Green, red and blue are the spell's and nothing else's — no green dot, no
+   * tool switching, no swing. Only here, only during this phase; two steps out
+   * of the ring and every one of them means what it always meant. Yellow is
+   * never taken, because "say it again" is exactly the thing a four-year-old
+   * needs most in the middle of a sequence of three.
+   */
+  private handleRitual(button: Record<PadColorName, boolean>): void {
+    // Whatever the green button would have opened, it is not opening it now.
+    this.prompt.setVisible(false);
+
+    const color = button.red ? 'red' : button.green ? 'green' : button.blue ? 'blue' : null;
+    if (!color) return;
+
+    unlockAudio();
+    const answer = quests.press(color);
+    if (!answer) return;
+    if (answer.hit) this.ritualHit(answer.step, answer.complete);
+    else this.ritualMiss(answer.step);
+  }
+
+  /**
+   * The right button. The mark on the floor lights, and the stone that colour
+   * belongs to leaves the row and goes into the fire.
+   *
+   * It flies from its own box along the bottom of the screen, which is where she
+   * has just watched a dot light up — so the two halves of "that was the red one"
+   * are one movement rather than two separate pieces of good news.
+   */
+  private ritualHit(step: RitualStep, complete: boolean): void {
+    const circle = this.circle;
+    if (!circle) return;
+
+    playSparkleChime();
+    const index = quests.slots.findIndex((slot) => slot.id === step.id);
+    circle.light(index, padColor(step.id));
+    this.refreshQuestHud();
+    this.questRow.land(step.id);
+
+    const icon = GEM_ICONS[step.gem];
+    const from = this.questRow.slotAt(step.id);
+    const camera = this.cameras.main;
+    const landed = () => {
+      if (!this.scene.isActive()) return;
+      this.sparkles.explode(70, circle.x, circle.y);
+      this.cameras.main.shake(180, 0.005);
+      hooks.sparkles += 1;
+      if (complete) this.summon();
+      else this.sayFrom(quests.giver, quests.step?.press ?? null);
+    };
+
+    if (!from || !this.textures.exists(icon.file)) {
+      landed();
+      return;
+    }
+
+    // Welded to the camera for the same reason the gems flying the other way
+    // are: the row it leaves is fixed to the screen, so the fire has to be
+    // measured in screen space too or the stone lands where the cave used to be.
+    const flying = this.add
+      .image(from.x, from.y, icon.file, icon.slot)
+      .setScrollFactor(0)
+      .setScale(2)
+      .setDepth(DEPTH.hud + 1);
+
+    this.tweens.add({
+      targets: flying,
+      x: circle.x - camera.scrollX,
+      y: circle.y - camera.scrollY,
+      scale: WORLD_SCALE * 0.6,
+      angle: 380,
+      duration: 480,
+      ease: 'Cubic.easeIn',
+      onComplete: () => {
+        flying.destroy();
+        landed();
+      },
+    });
+  }
+
+  /**
+   * The wrong button. The fire spits, everybody laughs, and he says which one it
+   * was again.
+   *
+   * Nothing else happens — no step lost, no stone back out of the fire, no
+   * starting again. There is no wrong answer in this game, only an answer that
+   * was funny; see CLAUDE.md, "No fail states". `retry` names the colour rather
+   * than saying "no", because what she needs is the thing to go and do.
+   */
+  private ritualMiss(step: RitualStep): void {
+    const circle = this.circle;
+    playFizzle();
+    playGiggle();
+    if (circle) this.sparkles.explode(16, circle.x, circle.y - TILE_SIZE / 2);
+    this.cameras.main.shake(120, 0.003);
+    hooks.sparkles += 1;
+    hooks.ritualMisses += 1;
+    this.sayFrom(quests.giver, step.retry);
+  }
+
+  /**
+   * The third stone goes in, and three faeries come out of the fire.
+   *
+   * The biggest thing that has ever happened in this game, and everything in it
+   * is turned up: the longest noise, the widest burst, the hardest shake, and a
+   * circle that stays lit afterwards because a spell that worked should look
+   * like one. The quest is over at this instant — the phase moves, the hammer
+   * goes back — and the three lines that follow are the celebration talking over
+   * the top of a state that is already settled.
+   */
+  private summon(): void {
+    const circle = this.circle;
+    const at = circle ?? { x: this.player.x, y: this.player.y };
+
+    playSummon();
+    circle?.blaze();
+    this.sparkles.explode(160, at.x, at.y);
+    this.cameras.main.shake(520, 0.012);
+    hooks.sparkles += 1;
+
+    // Out of the fire, and not going home. From here on they are the session's,
+    // not this zone's.
+    session.summonFaeries();
+    this.faeries?.destroy();
+    this.faeries = new Faeries(this, at.x, at.y);
+
+    // The quest is done. The hammer was lent, so it goes back — with a poof on
+    // its own box, because a tool that simply was not there any more would be a
+    // thing she lost rather than a thing she gave back.
+    quests.advance();
+    this.revokeTool('hammer');
+    this.refreshQuestHud();
+    this.refreshInteractables();
+    this.syncQuestHooks();
+
+    // "Faeries. Real faeries!", then Hazel, then the thank-you — each one after
+    // the last has finished, on its own measured length. Three sentences at once
+    // is no sentences at all.
+    this.time.delayedCall(SUMMONING_BEAT, () => {
+      if (!this.scene.isActive() || this.leaving) return;
+      this.sayFrom('sneak', 'sneak_faeries_real');
+      this.sayNext('sneak_faeries_real', 'hazel', 'hazel_pretty', () => {
+        this.sayNext('hazel_pretty', 'sneak', 'sneak_thanks');
+      });
+    });
+  }
+
+  /**
+   * Take back a tool a quest lent her, with a sparkle-poof on its box.
+   *
+   * The belt puts the light back on the axe by itself — see `ToolBelt.take` — so
+   * if she was holding the hammer she is holding the axe by the time this
+   * returns, which is the only sensible place for it to have gone.
+   */
+  private revokeTool(tool: ToolId): void {
+    const slot = toolBelt.slots.indexOf(tool);
+    if (slot < 0) return;
+
+    const box = this.toolRow.slotAt(slot);
+    if (box) {
+      // Fixed to the screen, like the row it is over.
+      const poof = this.add
+        .particles(box.x, box.y, 'spark', {
+          speed: { min: 60, max: 190 },
+          angle: { min: 0, max: 360 },
+          scale: { start: 1, end: 0 },
+          alpha: { start: 1, end: 0 },
+          lifespan: { min: 300, max: 700 },
+          blendMode: 'ADD',
+          tint: [0xfff3b0, 0xd9b8ff, 0xffffff],
+          emitting: false,
+        })
+        .setScrollFactor(0)
+        .setDepth(DEPTH.hud + 2);
+      poof.explode(34);
+      this.time.delayedCall(900, () => poof.destroy());
+    }
+
+    toolBelt.take(tool);
+    session.ungrant(tool);
+    this.toolRow.refresh();
+    this.toolRow.bounce(toolBelt.heldSlot);
+    this.syncToolHooks();
+  }
+
+  /**
+   * Somebody in this zone says a line, out of their own mouth.
+   *
+   * Falls back to her own balloon if whoever it is has walked off or was never
+   * here — a line with nobody to say it is still a line she needs to hear, and
+   * silence is the one answer this game may not give.
+   */
+  private sayFrom(npcId: string | null, line: string | null): void {
+    if (!line) return;
+    unlockAudio();
+    const who = npcId ? this.npcs.find((npc) => npc.id === npcId) : undefined;
+    if (who) {
+      who.lookAt(this.player.x, this.player.y);
+      this.bubble.say(line, { id: who.id, x: who.x, y: who.y });
+      this.syncNpcHooks();
+    } else {
+      this.bubble.say(line, this.speaking());
+    }
+    this.syncVoiceHooks();
+  }
+
+  /** The same, once `after` has finished being spoken. See `sayInstructionAfter`. */
+  private sayNext(after: string, npcId: string, line: string, then?: () => void): void {
+    const spoken = this.voice.get(after)?.duration ?? 0;
+    this.time.delayedCall((spoken + 0.5) * 1000, () => {
+      if (this.leaving || !this.scene.isActive()) return;
+      this.sayFrom(npcId, line);
+      then?.();
+    });
+  }
+
   /** The stone comes open, and what was in it flies to its box on the row. */
   private takeGem(rock: GemRock): void {
     const id = rock.id;
@@ -1353,8 +1775,36 @@ export class RoomScene extends Phaser.Scene {
     });
   }
 
+  /**
+   * Smoke off a campfire, wherever one is standing.
+   *
+   * Keyed off the picture rather than off the zone, so the fire in the wood and
+   * the fire in the cave get the same treatment without either being named here
+   * — the same idea as `glow` on a catalog image, one layer up. Thin, slow and
+   * grey: a fire that puffed would be a bonfire, and this is a campfire.
+   */
+  private addSmoke(prop: Prop): void {
+    if (prop.def.key !== 'campfire' || !prop.sprite) return;
+
+    this.add
+      .particles(prop.x, prop.y - TILE_SIZE * 0.7, 'spark', {
+        x: { min: -6, max: 6 },
+        speedY: { min: -34, max: -16 },
+        speedX: { min: -10, max: 10 },
+        scale: { start: 0.45, end: 1.5 },
+        alpha: { start: 0.3, end: 0 },
+        lifespan: { min: 1500, max: 2800 },
+        frequency: 320,
+        tint: [0x9c8f8a, 0x6f6560, 0xb9aca6],
+      })
+      // Above the flame it comes off, and below anything standing in front of
+      // it: smoke is not something she can walk behind.
+      .setDepth(prop.y + 1);
+  }
+
   private poke(prop: Prop): void {
     nudgeProp(this, prop);
+    this.faeries?.cheer();
 
     // A facade door is the one thing in the game allowed to answer with no
     // words. It gets a knock and a shove; everything else gets the full burst.

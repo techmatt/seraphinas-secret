@@ -599,6 +599,11 @@ export const IMAGES: Record<string, ImageDef> = {
   campfire: {
     file: `${A}/${ANIM}/Other_Animations/Campfire_Anim.png`,
     x: 0, y: 0, w: 16, h: 32, frames: 8,
+    // The ring of logs, and only that: she walks behind the flame and stops at
+    // the fire itself. It blocked nothing until the cave was built around one,
+    // and a four-year-old standing *inside* a campfire with it drawn behind her
+    // is the picture that settled it.
+    blocks: { x: 0, y: 1, w: 1, h: 1 },
   },
   chest: {
     file: `${A}/Buildings/House_Decor/Chest_Anim.png`, x: 0, y: 0, w: 16, h: 16, frames: 6, fps: 6,

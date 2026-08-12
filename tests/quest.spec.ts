@@ -3,6 +3,7 @@ import {
   bootGame,
   isBlocked,
   readHooks,
+  standAt,
   standByProp,
   standByRock,
   standByTree,
@@ -87,6 +88,23 @@ async function acceptQuest(page: Page) {
     await tap(page, 'KeyZ');
   }
   throw new Error('he never handed the job over');
+}
+
+/**
+ * Press one of the ritual's buttons and wait for him to ask for the next one.
+ *
+ * Waiting on the step rather than on a stopwatch, for the usual reason: the
+ * stone's flight into the fire is the thing between a press and the next
+ * instruction, and how long a tween takes on a page running at fifteen frames a
+ * second is not something a test may guess at.
+ */
+async function ritualPress(page: Page, key: string, becomes: string) {
+  await tap(page, key);
+  await page.waitForFunction(
+    (want) => (window as unknown as { __seraphina: Hooks }).__seraphina.quest.step === want,
+    becomes,
+    { timeout: 20_000 },
+  );
 }
 
 /** Walk up to the hammer and pick it up. */
@@ -244,6 +262,122 @@ test('the faerie quest, from the offer to the cave', async ({ page }) => {
     null,
     null,
   ]);
+
+  // --- and the rest of it: the cave, the ritual, the faeries ----------------
+  //
+  // Teleported to the cave mouth rather than walked up the mountain path. That
+  // the world is crossable on foot is `world.spec`'s claim and it costs a minute
+  // to make; this test is about what happens at the far end of the walk.
+  await standByProp(page, 'outside_to_cave');
+  expect(await walkThroughDoorway(page, 'outside_to_cave'), 'in through the mouth').toBe('cave');
+
+  const arrived = await readHooks(page);
+  expect(arrived.quest.phase, 'walking in is the whole of what that phase wanted').toBe('ritual');
+  expect(
+    arrived.npcs.map((n) => n.id).sort(),
+    'and the two of them went on ahead — they are in here, not out there',
+  ).toEqual(['hazel', 'sneak']);
+  expect(arrived.quest.circle, 'there is a circle on the floor').toBe(true);
+  expect(arrived.quest.inCircle, 'and she has not reached it yet').toBe(false);
+  expect(
+    arrived.quest.slots.map((s) => s.id),
+    'the row re-arms as three buttons, in the order he asks for them',
+  ).toEqual(['red', 'green', 'blue']);
+  expect(
+    arrived.quest.slots.every((s) => s.kind === 'button' && !s.filled),
+    'every one of them a coloured dot, and every one of them empty',
+  ).toBe(true);
+
+  // Into the circle. `cave_fire` is the layout's own name for the spot in front
+  // of the fire, two tiles inside a ring two and a half across — so standing at
+  // it is standing in the ring, which is the same moment the face buttons
+  // change hands.
+  await standAt(page, 'cave_fire');
+  await page.waitForFunction(
+    () => (window as unknown as { __seraphina: Hooks }).__seraphina.quest.inCircle,
+    undefined,
+    { timeout: 20_000 },
+  );
+  const atFire = await readHooks(page);
+  expect(atFire.quest.step, 'red is the first of the three').toBe('red');
+  expect(atFire.voice.lineId, 'and he asks for it out loud').toBe('sneak_press_red');
+  expect(atFire.voice.bubble.speaker, 'out of his own mouth').toBe('sneak');
+
+  // The wrong button, on purpose. It has to be a whole press of a real button
+  // that does something — not silence — and it has to cost her nothing.
+  await tap(page, 'KeyZ');
+  await page.waitForFunction(
+    () => (window as unknown as { __seraphina: Hooks }).__seraphina.ritualMisses > 0,
+    undefined,
+    { timeout: 20_000 },
+  );
+  const missed = await readHooks(page);
+  expect(missed.quest.step, 'green when he said red: still red').toBe('red');
+  expect(
+    missed.quest.slots.every((s) => !s.filled),
+    'nothing filled in, nothing lost',
+  ).toBe(true);
+  expect(missed.quest.held.sort(), 'and all three stones still hers').toEqual([
+    'malachite',
+    'ruby',
+    'sapphire',
+  ]);
+  expect(missed.voice.lineId, 'he names the colour again, and never says no').toBe('sneak_try_red');
+
+  // Red, green, blue. `KeyC` is the red button — see setupInput for why the B
+  // key could not be.
+  await ritualPress(page, 'KeyC', 'green');
+  const oneIn = await readHooks(page);
+  expect(
+    oneIn.quest.slots.find((s) => s.id === 'red')?.filled,
+    'the red dot fills in',
+  ).toBe(true);
+  expect(oneIn.quest.held.sort(), 'and the ruby is in the fire, not in her pocket').toEqual([
+    'malachite',
+    'sapphire',
+  ]);
+
+  await ritualPress(page, 'KeyZ', 'blue');
+  await tap(page, 'KeyX');
+  await page.waitForFunction(
+    () => (window as unknown as { __seraphina: Hooks }).__seraphina.quest.phase === 'done',
+    undefined,
+    { timeout: 20_000 },
+  );
+
+  const summoned = await readHooks(page);
+  expect(summoned.quest.instruction, 'nothing left for him to ask for').toBeNull();
+  expect(summoned.quest.held, 'all three stones went into the fire').toEqual([]);
+  expect(summoned.faeries.length, 'and three faeries came out of it').toBe(3);
+  expect(summoned.session.run.faeries, 'which the store now knows about').toBe(true);
+  expect(summoned.tools.slots, 'the hammer was lent, and it goes back').toEqual([
+    'axe',
+    null,
+    null,
+    null,
+  ]);
+  expect(summoned.tools.holding, 'so she is holding her own axe again').toBe('axe');
+  expect(summoned.session.run.granted, 'and the store has let go of it too').toEqual([]);
+
+  // Out of the cave. The faeries are a session flag, not a zone's furniture.
+  expect(await walkThroughDoorway(page), 'back out under the sky').toBe('outside');
+  const after = await readHooks(page);
+  expect(after.faeries.length, 'and all three came through the door with her').toBe(3);
+  expect(
+    after.npcs.map((n) => n.id).sort(),
+    'while Sneak and Hazel are back at their own spots',
+  ).toEqual(['hazel', 'sneak']);
+  expect(after.quest.circle, 'the cave keeps the circle; the village never had one').toBe(false);
+
+  // And he has his own two lines back — the first thing he has been able to say
+  // for himself since he handed the job out.
+  await standNear(page, 'sneak', { y: 72 });
+  await tap(page, 'KeyZ');
+  const chatting = await readHooks(page);
+  expect(
+    ['sneak_faeries', 'sneak_secrets'],
+    'his idle chatter, which the quest has been standing on all afternoon',
+  ).toContain(chatting.voice.lineId);
 
   expect(errors, 'no uncaught page errors').toEqual([]);
 });

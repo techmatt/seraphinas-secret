@@ -8,8 +8,8 @@
  * costs minutes per test, and `world.spec.ts` already proves on foot that the
  * places connect. Nothing here asserts anything a screenshot cannot show.
  *
- * Both are `@slow`, and this file is the reason that tag exists: eighteen
- * framings between them, two assertions, and an output nothing reads until
+ * All three are `@slow`, and this file is the reason that tag exists: twenty-one
+ * framings between them, six assertions, and an output nothing reads until
  * somebody writes a report. `npm run test:slow` is what regenerates them.
  */
 
@@ -49,6 +49,40 @@ test('the exterior, landmark by landmark', { tag: '@slow' }, async ({ page }) =>
   const seen = await readHooks(page);
   expect(seen.room, 'still outside after the tour').toBe('outside');
   expect(seen.player.artLoaded, 'every texture the world asked for arrived').toBe(true);
+
+  expect(errors, 'no uncaught page errors').toEqual([]);
+});
+
+/**
+ * The third zone, which is one room and is photographed like one.
+ *
+ * A tour of its own rather than two more stops on the exterior's, because it is
+ * on the far side of a door: the exterior tour teleports between landmarks and
+ * cannot leave the zone it is in. Nothing about the ritual is in here — the
+ * circle, the coloured dots and the faeries all need a quest three phases in,
+ * and `quest.spec` is where that is driven and asserted. This is the empty room.
+ */
+test('the Secret Cave, empty', { tag: '@slow' }, async ({ page }) => {
+  const { errors } = await bootGame(page);
+  // Stood at the mouth before pressing it. The mountain path is most of the
+  // width of the map from her own front door and walking it takes twenty
+  // seconds — which is `world.spec`'s business, not a picture's.
+  await standAt(page, 'cave');
+  await walkThroughDoorway(page, 'outside_to_cave');
+
+  await standAt(page, 'cave_fire');
+  await snap(page, '40-cave-fire.png');
+  await standAt(page, 'cave_chamber');
+  await snap(page, '41-cave-chamber.png');
+
+  // And the whole chamber, which at twenty tiles by eleven is very nearly what
+  // is already on screen — the point of the wide shot here is the frame of wall
+  // round it, not the floor.
+  await fromAbove(page, () => snap(page, '42-cave.png'));
+
+  const seen = await readHooks(page);
+  expect(seen.room, 'behind the mouth in the cliff is its own zone').toBe('cave');
+  expect(seen.player.artLoaded).toBe(true);
 
   expect(errors, 'no uncaught page errors').toEqual([]);
 });
