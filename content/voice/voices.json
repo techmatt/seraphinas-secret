@@ -10,10 +10,15 @@
       "rate": "-10%",
       "pitch": "-15Hz"
     },
-    "sister": {
+    "hazel": {
       "voice": "en-US-AnaNeural",
       "rate": "+6%",
       "pitch": "+40Hz"
+    },
+    "sneak": {
+      "voice": "en-US-AnaNeural",
+      "rate": "+4%",
+      "pitch": "-35Hz"
     }
   }
 }

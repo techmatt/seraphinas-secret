@@ -63,7 +63,10 @@ export const FURNITURE: Placement[] = [
 export const PROPS: PropLayout[] = [
   // Head to the wall, foot in the room — the one piece of furniture in the
   // house that is allowed to stand out into the floor.
-  { id: 'bed', image: 'bed', x: 2, y: STANDS + 1, line: 'dad_bedtime' },
+  // Hers, and it speaks in her voice. A prop with no owner standing next to it
+  // says what *she* would say about it — Dad telling her it is bedtime made the
+  // bed sound like somebody else's idea, in a room that is entirely hers.
+  { id: 'bed', image: 'bed', x: 2, y: STANDS + 1, line: 'seraphina_bed' },
   { id: 'wardrobe', image: 'wardrobe', x: 6, y: STANDS, at: { x: 7, y: 18.6 }, line: 'seraphina_wardrobe' },
 ];
 

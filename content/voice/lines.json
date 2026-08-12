@@ -41,17 +41,49 @@
   },
   {
     "id": "sister_book",
-    "speaker": "sister",
+    "speaker": "hazel",
     "text": "Read me a book!"
   },
   {
     "id": "sister_again",
-    "speaker": "sister",
+    "speaker": "hazel",
     "text": "Again! Again!"
   },
   {
     "id": "seraphina_wardrobe",
     "speaker": "seraphina",
     "text": "Wardrobe"
+  },
+  {
+    "id": "seraphina_bed",
+    "speaker": "seraphina",
+    "text": "My cozy bed!",
+    "note": "The bed used to be Dad telling her it was bedtime. A prop with no owner speaks in her voice — dad_bedtime is kept below for the day Dad is a person standing in the room."
+  },
+  {
+    "id": "sneak_faeries",
+    "speaker": "sneak",
+    "text": "My spell book says faeries are REAL. I'm going to prove it!",
+    "say": "My spell book says faeries are real. I'm going to prove it!",
+    "note": "Shown in capitals and spoken as a word: edge-tts reads a short run of capitals as letters, and 'R E A L' is not what he means. The say/text split keeps the emphasis on screen without spelling it aloud."
+  },
+  {
+    "id": "sneak_secrets",
+    "speaker": "sneak",
+    "text": "Shhh! This book is full of secrets.",
+    "say": "Shhh, this book is full of secrets.",
+    "note": "Comma, not a bang: edge-tts puts a full second of silence after a mid-line '!', which on screen is a second with no word lit. Same fix as seraphina_hello."
+  },
+  {
+    "id": "hazel_play",
+    "speaker": "hazel",
+    "text": "Hi Seraphina! Wanna play?",
+    "say": "Hi Seraphina, wanna play?",
+    "note": "The mid-line '!' silence again."
+  },
+  {
+    "id": "hazel_pebble",
+    "speaker": "hazel",
+    "text": "I found a shiny pebble!"
   }
 ]

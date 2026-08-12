@@ -261,7 +261,7 @@ test('the house props sparkle and speak', async ({ page }) => {
   const bed = await readHooks(page);
   expect(bed.sparkles, 'the bed takes a press').toBe(1);
   // Design law: nothing appears on screen without a voice behind it.
-  expect(bed.voice.lineId, 'and says something').toBe('dad_bedtime');
+  expect(bed.voice.lineId, 'and says something').toBe('seraphina_bed');
   expect(bed.voice.words.length, 'with words to highlight').toBeGreaterThan(0);
 
   await standByProp(page, 'wardrobe');
