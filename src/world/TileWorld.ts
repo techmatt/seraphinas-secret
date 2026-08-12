@@ -15,6 +15,7 @@
 
 import Phaser from 'phaser';
 import { DEPTH, TILE_SIZE, WORLD_SCALE } from '../config';
+import { makeGlow } from '../ui/ButtonDot';
 import type { MapData, MapImage } from './mapData';
 
 /**
@@ -444,6 +445,33 @@ export class TileWorld {
       sprite = this.scene.add.image(x, y, image.file, image.key);
     }
     this.placed++;
+
+    // Anything the catalog measured as a light gets its pool put down first, on
+    // the floor layer, so the thing throwing it is drawn over its own light —
+    // the same arrangement a talking prop's glow and the quest shimmer have.
+    // Centred on the middle of the picture rather than its corner, because what
+    // gives off the light is the flame and not the bracket under it.
+    if (image.glow) {
+      const light = makeGlow(
+        this.scene,
+        x + width / 2,
+        y + height / 2,
+        image.glow.radius * WORLD_SCALE,
+        image.glow.color,
+        0.55,
+      ).setDepth(DEPTH.doorLight);
+      // A flame is never quite still, and a pool of light that is reads as a
+      // sticker. Slow enough that it is felt rather than watched.
+      this.scene.tweens.add({
+        targets: light,
+        scale: { from: light.scale * 0.88, to: light.scale * 1.12 },
+        alpha: { from: 0.42, to: 0.68 },
+        duration: 1300 + (this.placed % 5) * 140,
+        yoyo: true,
+        repeat: -1,
+        ease: 'Sine.easeInOut',
+      });
+    }
 
     // A rug is drawn lying on the floor, so it sorts below everything that
     // stands on one — including her. Sorted against nothing: two rugs are never

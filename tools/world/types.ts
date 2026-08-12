@@ -266,6 +266,12 @@ export interface BuiltImage {
    * made it so, and the whole point of holding B is being able to see which.
    */
   blocks?: TileRect;
+  /**
+   * This picture is a light. The catalog's own measurement, passed through: a
+   * colour and a radius in pack pixels, which the game turns into a soft pool
+   * behind the sprite. See `glow` in `catalog.ts`.
+   */
+  glow?: { color: number; radius: number };
 }
 
 /**

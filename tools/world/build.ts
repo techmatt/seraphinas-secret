@@ -269,8 +269,11 @@ function buildZone(zone: ZoneLayout, sheets: Map<string, Sheet>): BuiltMap {
 
       const pattern = floor[i];
       if (pattern !== null) {
-        const { bx, by } = FLOOR_PATTERNS[pattern]!;
-        ground[i] = gidOf(sheets, 'floor', bx * 2 + (x & 1), by * 2 + (y & 1));
+        // A 2x2 kit picks its quarter off the cell's parity; a one-tile floor
+        // is the same tile wherever it lands. See FloorDef.
+        const { tileset, col, row, size } = FLOOR_PATTERNS[pattern]!;
+        const step = size === 2 ? 1 : 0;
+        ground[i] = gidOf(sheets, tileset, col + (x & step), row + (y & step));
         continue;
       }
 
@@ -400,6 +403,7 @@ function buildZone(zone: ZoneLayout, sheets: Map<string, Sheet>): BuiltMap {
         ...(def.frames && def.frames > 1 ? { frames: def.frames, fps: def.fps ?? 8 } : {}),
         ...(def.flat ? { flat: true } : {}),
         ...(def.blocks ? { blocks: def.blocks } : {}),
+        ...(def.glow ? { glow: def.glow } : {}),
       });
     }
     return def;

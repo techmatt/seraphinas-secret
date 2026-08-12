@@ -35,7 +35,10 @@ test('the world she wakes up in', async ({ page }) => {
 
   const start = await readHooks(page);
   expect(start.room, 'the title screen opens onto the exterior').toBe('outside');
-  expect(start.doorways.map((d) => d.to), 'her front door leads into the house').toEqual(['house']);
+  expect(
+    start.doorways.map((d) => d.to).sort(),
+    'two ways out of the exterior: her own front door, and the cave in the cliff',
+  ).toEqual(['cave', 'house']);
   expect(start.sparkles, 'nothing has sparkled yet').toBe(0);
 
   // The point of the rebuild: it does not fit on one screen any more.

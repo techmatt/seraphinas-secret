@@ -15,9 +15,9 @@
  * last prompt deferred — and the translation it needed has gone with it.
  */
 
-export type ZoneId = 'outside' | 'house';
+export type ZoneId = 'outside' | 'house' | 'cave';
 
-export const ZONE_IDS: readonly ZoneId[] = ['outside', 'house'];
+export const ZONE_IDS: readonly ZoneId[] = ['outside', 'house', 'cave'];
 
 /** Where the title screen opens the door onto. */
 export const STARTING_ZONE: ZoneId = 'outside';

@@ -94,10 +94,15 @@ const CAVE_COLS = new Set(
  * and the shadow at the foot. The lip and the face are solid; the shadow is the
  * row she walks along with the rock at her shoulder.
  *
- * The cave's three columns get the lip and nothing else. Its own picture is the
- * two courses of boulder with a mine cut through them and a step at the bottom,
- * so it lands exactly where the face and the shadow would have — which is what
+ * The cave's three columns get the lip and the mine's own picture instead: two
+ * courses of boulder with a mouth cut through them and a step at the bottom, so
+ * it lands exactly where the face and the shadow would have — which is what
  * makes it read as cut *into* the cliff rather than parked in front of it.
+ *
+ * The mouth is placed here rather than as a facade prop, which is what it was
+ * until the chamber behind it existed. A facade is a building she knocks on; the
+ * cave opens now, so what she presses is a doorway — see `index.ts` — and all
+ * that is left of it out here is the picture and the rock it is cut into.
  */
 export const CLIFF: Placement[] = (() => {
   const out: Placement[] = [];
@@ -107,6 +112,7 @@ export const CLIFF: Placement[] = (() => {
     out.push(plantAt('cliffFace', x, CLIFF_LIP + 1));
     out.push({ image: 'cliffShadow', x, y: CLIFF_FOOT });
   }
+  out.push({ image: 'caveMouth', x: BUILDINGS.cave.x, y: BUILDINGS.cave.y });
   return out;
 })();
 

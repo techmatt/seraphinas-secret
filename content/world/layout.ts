@@ -15,11 +15,13 @@
  *   outside/  plan, roads, prefabs, perimeter, woods-edge, village,
  *             farm-garden, pond
  *   house/    shell, kitchen, living-room, bedroom, playroom
+ *   cave/     one chamber, and small enough to be one file
  */
 
 import type { ZoneLayout } from '../../tools/world/types.js';
 
+import { CAVE } from './cave/index.js';
 import { HOUSE } from './house/index.js';
 import { OUTSIDE } from './outside/index.js';
 
-export const ZONES: ZoneLayout[] = [OUTSIDE, HOUSE];
+export const ZONES: ZoneLayout[] = [OUTSIDE, HOUSE, CAVE];

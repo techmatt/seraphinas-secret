@@ -13,6 +13,7 @@ import type { ZoneLayout } from '../../../tools/world/types.js';
 
 import {
   BUILDINGS,
+  CLIFF_FOOT,
   COLS,
   FACADES,
   LANDMARKS,
@@ -122,6 +123,26 @@ export const OUTSIDE: ZoneLayout = {
       enter: 'press',
       flourish: 'sparkle',
       tint: 0xffd98a,
+      facing: 'down',
+    },
+    {
+      id: 'outside_to_cave',
+      // Across the mouth cut into the cliff, starting on the first row her feet
+      // can reach — the step at the top of the mountain path.
+      x: BUILDINGS.cave.x + 0.5,
+      y: CLIFF_FOOT,
+      w: 2,
+      h: 1.6,
+      to: 'cave',
+      toSpawn: 'from_outside',
+      // A press, like every other way *into* somewhere. The mouth is at the top
+      // of a path she has to mean to walk up, and falling into it on the way
+      // past is exactly the thing this convention exists to stop.
+      enter: 'press',
+      flourish: 'sparkle',
+      // Cooler and stranger than a front door's warm amber: this one is magic,
+      // and a four-year-old can tell two lights apart long before two words.
+      tint: 0xc9a4ff,
       facing: 'down',
     },
   ],

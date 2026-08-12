@@ -56,6 +56,11 @@ export interface MapImage {
    * overlay can show *which* sprite made a cell solid, which a bitmap cannot.
    */
   blocks?: { x: number; y: number; w: number; h: number };
+  /**
+   * This picture is a light: a soft pool of `color` goes behind it, `radius`
+   * pack pixels across. Measured in the catalog, drawn by TileWorld.
+   */
+  glow?: { color: number; radius: number };
 }
 
 /** A ground tile that cycles: one global tile id per frame. */

@@ -237,13 +237,18 @@ export const BUILDINGS = {
  */
 export const CLEARING = { x: 6, y: 38 } as const;
 
-/** The neighbours and the cave: knocked on, never opened. */
+/**
+ * The neighbours: knocked on, never opened.
+ *
+ * The cave used to be one of these. It opens now — it is the second enterable
+ * place in the world — so its picture is placed with the cliff it is cut into
+ * (see `perimeter.ts`) and what she presses is a doorway rather than a prop.
+ */
 export const FACADES: { id: string; plan: BuildingPlan }[] = [
   { id: 'joey_door', plan: BUILDINGS.joey },
   { id: 'scar_door', plan: BUILDINGS.scar },
   { id: 'shed_door', plan: BUILDINGS.shed },
   { id: 'hall_door', plan: BUILDINGS.hall },
-  { id: 'cave_mouth', plan: BUILDINGS.cave },
 ];
 
 // --- where a screenshot is taken from ---------------------------------------
@@ -291,6 +296,12 @@ export const LANDMARKS: { id: string; x: number; y: number }[] = [
 export const SPAWNS = {
   start: { x: 32.8, y: 31.6, facing: 'down' },
   from_house: { x: 32.8, y: 31.6, facing: 'down' },
+  /**
+   * Back out of the cave, onto the step at the top of the mountain path. A row
+   * below the mouth's own trigger, so she is standing clear of the door she has
+   * just come out of rather than being bounced straight back in.
+   */
+  from_cave: { x: BUILDINGS.cave.door.x, y: CLIFF_FOOT + 1.6, facing: 'down' },
 } as const;
 
 /** Standing room she must have, whatever else a module wants to plant. */

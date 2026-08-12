@@ -57,6 +57,12 @@ export const TILESETS: Record<string, TilesetDef> = {
   floor: { key: 'floor', file: `${A}/Buildings/Houses_Interiors/Wood_Floor_Tiles.png` },
   wall: { key: 'wall', file: `${A}/Buildings/Houses_Interiors/Interior_Walls.png` },
   trim: { key: 'trim', file: `${A}/Buildings/Houses_Interiors/Wood_Wall_Fillers.png` },
+  // One tile, and every pixel of it the same warm brown. The cave sheet's other
+  // floors are a 3x5 autotile block of cobble carved into exactly this colour —
+  // laid out upside down from the block `blob.ts` reads, so only the flat middle
+  // is catalogued. It is the one dark ground in the pack, and a chamber with a
+  // fire in it wants dark ground far more than it wants texture.
+  caveFloor: { key: 'caveFloor', file: `${A}/Tiles/Cave/Cave_Floor_Middle.png` },
 };
 
 /**
@@ -131,31 +137,59 @@ export interface OverlayDef {
 export const OVERLAYS: Record<string, OverlayDef> = {};
 
 /**
- * Interior floors come in 2x2 patterns, so a floor is addressed by which
- * pattern it is and the cell's parity picks the quarter. Block coordinates are
- * in units of 2 tiles, counting from the top-left of `Wood_Floor_Tiles.png`.
+ * A floor she walks on indoors: which sheet it is cut from, where, and how big
+ * the repeat is.
+ *
+ * Nearly all of them come off `Wood_Floor_Tiles.png`, which lays its materials
+ * out as 2x2 patterns — so a cell's parity picks the quarter, and `block()`
+ * below writes one down in the units that sheet is actually drawn in. `size: 1`
+ * is the other kind: one tile repeated, which is what a floor off any other
+ * sheet is, because no other sheet in the pack is a pattern kit.
  *
  * One of these per room, which is the rule the reference interior is built to.
  * A second one inside a room is allowed only where it says what a corner is
  * *for* — the checkerboard under a kitchen's working end marks it out the way a
  * wall would, without being a wall she has to walk round.
  */
-export const FLOOR_PATTERNS: Record<string, { bx: number; by: number }> = {
-  planks: { bx: 1, by: 1 },
-  boards: { bx: 0, by: 1 },
-  herringbone: { bx: 2, by: 1 },
-  parquet: { bx: 0, by: 3 },
-  brick: { bx: 1, by: 0 },
+export interface FloorDef {
+  tileset: string;
+  /** Top-left tile of the pattern, in tiles from the sheet's own corner. */
+  col: number;
+  row: number;
+  /** Tiles across and down before it repeats. */
+  size: 1 | 2;
+}
+
+/** One 2x2 block of `Wood_Floor_Tiles.png`, in that sheet's own block units. */
+const block = (bx: number, by: number): FloorDef => ({
+  tileset: 'floor',
+  col: bx * 2,
+  row: by * 2,
+  size: 2,
+});
+
+export const FLOOR_PATTERNS: Record<string, FloorDef> = {
+  planks: block(1, 1),
+  boards: block(0, 1),
+  herringbone: block(2, 1),
+  parquet: block(0, 3),
+  brick: block(1, 0),
   /** Warm criss-crossed boards — the widest-grained of the woods. */
-  weave: { bx: 3, by: 1 },
+  weave: block(3, 1),
   /** Cool blue tiles. Reads as "a different room" from across the house. */
-  tile: { bx: 0, by: 2 },
+  tile: block(0, 2),
   /** Blue-grey brick, for a floor that should feel swept rather than scrubbed. */
-  slate: { bx: 2, by: 2 },
+  slate: block(2, 2),
   /** Black and cream diamonds: the working end of a kitchen. */
-  diamond: { bx: 3, by: 2 },
+  diamond: block(3, 2),
   /** Black and cream squares — the same idea, laid straight. */
-  check: { bx: 3, by: 3 },
+  check: block(3, 3),
+  /**
+   * Bare rock. The one floor in the game that is not somebody's floorboards —
+   * flat, warm and dark, so a chamber lit by one fire reads as underground
+   * rather than as a cellar with the light on.
+   */
+  cavern: { tileset: 'caveFloor', col: 0, row: 0, size: 1 },
 };
 
 /**
@@ -304,6 +338,19 @@ export interface ImageDef {
    * nothing to leave behind and nothing to give back.
    */
   tree?: boolean;
+  /**
+   * This picture is a light: put a soft pool of it behind the sprite.
+   *
+   * A fact about the picture rather than about where it was placed, the same way
+   * `tree` is — a torch is a torch in a cave and in a courtyard. `color` is what
+   * it throws and `radius` is how far, in *pack pixels*, so it scales with the
+   * world like everything else measured here.
+   *
+   * Only ever set on something drawn as a flame. A prop that talks already gets
+   * a glow of its own from `makeProp` — that one is a promise of a voice, and
+   * marking a talking prop here as well would be the same light twice.
+   */
+  glow?: { color: number; radius: number };
 }
 
 /**
@@ -477,6 +524,16 @@ export const IMAGES: Record<string, ImageDef> = {
     blocks: { x: 0, y: 0, w: 1, h: 1 },
   },
 
+  // --- underground -------------------------------------------------------
+  // Three 16x16 patches of darker rock on `Cave_Floor_Decoration.png`, drawn on
+  // the same brown as `Cave_Floor_Middle.png` and fully opaque — so they lie on
+  // the cavern floor without a seam and break up what is otherwise twenty tiles
+  // of one flat colour. Flat, because they *are* the floor: nothing may ever be
+  // sorted against a stain.
+  caveStain: caveFloorDecor(0),
+  caveStain2: caveFloorDecor(1),
+  caveStain3: caveFloorDecor(2),
+
   // --- ground dressing ---------------------------------------------------
   // 16x16 cells of Outdoor_Decor.png, indexed (column, row) from its top-left.
   flowerBlue: decor(0, 0),
@@ -555,6 +612,11 @@ export const IMAGES: Record<string, ImageDef> = {
     file: `${A}/${ANIM}/Other_Animations/Torch_Anim.png`,
     x: 0, y: 0, w: 16, h: 32, frames: 8,
     blocks: { x: 0, y: 1, w: 1, h: 1 },
+    // Four of these on a cave wall are most of what makes the room warm rather
+    // than a grey box. Two tiles of light, which reaches the floor and stops
+    // well short of the next torch along, so a wall of them reads as several
+    // lights and not as one wash.
+    glow: { color: 0xffbe63, radius: 34 },
   },
   // Bunting over a street: eight 32x32 frames of it stirring in the wind.
   bunting: {
@@ -837,6 +899,15 @@ export const IMAGES: Record<string, ImageDef> = {
   rugRoundGreen: carpetRound(2),
   door: { file: `${A}/Buildings/House_Decor/Doors.png`, x: 0, y: 0, w: 16, h: 32 },
 };
+
+/** One of the three worn patches across `Cave_Floor_Decoration.png`. */
+function caveFloorDecor(index: number): ImageDef {
+  return {
+    file: `${A}/Tiles/Cave/Cave_Floor_Decoration.png`,
+    x: index * TILE, y: 0, w: TILE, h: TILE,
+    flat: true,
+  };
+}
 
 /** One of the four light conditions in `windows.png`, 32 pixels apart. */
 function window_(band: number): ImageDef {
