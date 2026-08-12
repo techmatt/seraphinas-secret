@@ -501,6 +501,296 @@
         }
       ],
       "duration": 1.595
+    },
+    {
+      "id": "sneak_quest_offer",
+      "speaker": "sneak",
+      "text": "My spell book has a faerie spell! We need three magic stones.",
+      "audio": "voice/sneak_quest_offer.mp3",
+      "words": [
+        {
+          "word": "My",
+          "start": 0.098,
+          "end": 0.326
+        },
+        {
+          "word": "spell",
+          "start": 0.338,
+          "end": 0.735
+        },
+        {
+          "word": "book",
+          "start": 0.747,
+          "end": 1.012
+        },
+        {
+          "word": "has",
+          "start": 1.024,
+          "end": 1.252
+        },
+        {
+          "word": "a",
+          "start": 1.264,
+          "end": 1.336
+        },
+        {
+          "word": "faerie",
+          "start": 1.348,
+          "end": 1.733
+        },
+        {
+          "word": "spell!",
+          "start": 1.745,
+          "end": 2.237
+        },
+        {
+          "word": "We",
+          "start": 3.065,
+          "end": 3.257
+        },
+        {
+          "word": "need",
+          "start": 3.269,
+          "end": 3.594
+        },
+        {
+          "word": "three",
+          "start": 3.606,
+          "end": 3.966
+        },
+        {
+          "word": "magic",
+          "start": 3.978,
+          "end": 4.459
+        },
+        {
+          "word": "stones.",
+          "start": 4.471,
+          "end": 5.108
+        }
+      ],
+      "duration": 5.108
+    },
+    {
+      "id": "sneak_quest_stones",
+      "speaker": "sneak",
+      "text": "A ruby, a sapphire, and a malachite! You'll need a hammer to crack them.",
+      "audio": "voice/sneak_quest_stones.mp3",
+      "words": [
+        {
+          "word": "A",
+          "start": 0.099,
+          "end": 0.219
+        },
+        {
+          "word": "ruby,",
+          "start": 0.231,
+          "end": 0.7
+        },
+        {
+          "word": "a",
+          "start": 0.988,
+          "end": 1.049
+        },
+        {
+          "word": "sapphire,",
+          "start": 1.061,
+          "end": 1.77
+        },
+        {
+          "word": "and",
+          "start": 2.046,
+          "end": 2.178
+        },
+        {
+          "word": "a",
+          "start": 2.19,
+          "end": 2.226
+        },
+        {
+          "word": "malachite!",
+          "start": 2.238,
+          "end": 2.96
+        },
+        {
+          "word": "You'll",
+          "start": 3.786,
+          "end": 4.002
+        },
+        {
+          "word": "need",
+          "start": 4.014,
+          "end": 4.231
+        },
+        {
+          "word": "a",
+          "start": 4.243,
+          "end": 4.291
+        },
+        {
+          "word": "hammer",
+          "start": 4.303,
+          "end": 4.76
+        },
+        {
+          "word": "to",
+          "start": 4.772,
+          "end": 4.904
+        },
+        {
+          "word": "crack",
+          "start": 4.916,
+          "end": 5.301
+        },
+        {
+          "word": "them.",
+          "start": 5.313,
+          "end": 5.637
+        }
+      ],
+      "duration": 5.637
+    },
+    {
+      "id": "sneak_quest_hammer",
+      "speaker": "sneak",
+      "text": "I saw a hammer near the well!",
+      "audio": "voice/sneak_quest_hammer.mp3",
+      "words": [
+        {
+          "word": "I",
+          "start": 0.098,
+          "end": 0.278
+        },
+        {
+          "word": "saw",
+          "start": 0.29,
+          "end": 0.615
+        },
+        {
+          "word": "a",
+          "start": 0.627,
+          "end": 0.675
+        },
+        {
+          "word": "hammer",
+          "start": 0.687,
+          "end": 1.144
+        },
+        {
+          "word": "near",
+          "start": 1.156,
+          "end": 1.408
+        },
+        {
+          "word": "the",
+          "start": 1.42,
+          "end": 1.528
+        },
+        {
+          "word": "well!",
+          "start": 1.54,
+          "end": 1.925
+        }
+      ],
+      "duration": 1.925
+    },
+    {
+      "id": "sneak_quest_crack",
+      "speaker": "sneak",
+      "text": "Crack the stones with your hammer!",
+      "audio": "voice/sneak_quest_crack.mp3",
+      "words": [
+        {
+          "word": "Crack",
+          "start": 0.098,
+          "end": 0.495
+        },
+        {
+          "word": "the",
+          "start": 0.507,
+          "end": 0.615
+        },
+        {
+          "word": "stones",
+          "start": 0.627,
+          "end": 1.132
+        },
+        {
+          "word": "with",
+          "start": 1.144,
+          "end": 1.3
+        },
+        {
+          "word": "your",
+          "start": 1.312,
+          "end": 1.468
+        },
+        {
+          "word": "hammer!",
+          "start": 1.48,
+          "end": 1.985
+        }
+      ],
+      "duration": 1.985
+    },
+    {
+      "id": "sneak_quest_cave",
+      "speaker": "sneak",
+      "text": "We have them all! Meet me at the Secret Cave.",
+      "audio": "voice/sneak_quest_cave.mp3",
+      "words": [
+        {
+          "word": "We",
+          "start": 0.098,
+          "end": 0.302
+        },
+        {
+          "word": "have",
+          "start": 0.314,
+          "end": 0.603
+        },
+        {
+          "word": "them",
+          "start": 0.615,
+          "end": 0.795
+        },
+        {
+          "word": "all!",
+          "start": 0.807,
+          "end": 1.156
+        },
+        {
+          "word": "Meet",
+          "start": 1.983,
+          "end": 2.296
+        },
+        {
+          "word": "me",
+          "start": 2.308,
+          "end": 2.524
+        },
+        {
+          "word": "at",
+          "start": 2.536,
+          "end": 2.668
+        },
+        {
+          "word": "the",
+          "start": 2.68,
+          "end": 2.776
+        },
+        {
+          "word": "Secret",
+          "start": 2.788,
+          "end": 3.233
+        },
+        {
+          "word": "Cave.",
+          "start": 3.245,
+          "end": 3.69
+        }
+      ],
+      "duration": 3.69
     }
   ]
 }

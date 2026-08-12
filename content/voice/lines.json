@@ -85,5 +85,39 @@
     "id": "hazel_pebble",
     "speaker": "hazel",
     "text": "I found a shiny pebble!"
+  },
+  {
+    "id": "sneak_quest_offer",
+    "speaker": "sneak",
+    "text": "My spell book has a faerie spell! We need three magic stones.",
+    "say": "My spell book has a faerie spell. We need three magic stones.",
+    "note": "The faerie quest, offered. Full stop where the text has a bang: edge-tts puts a full second of silence after a mid-line '!', which on screen is a second with no word lit."
+  },
+  {
+    "id": "sneak_quest_stones",
+    "speaker": "sneak",
+    "text": "A ruby, a sapphire, and a malachite! You'll need a hammer to crack them.",
+    "say": "A ruby, a sapphire, and a malachite. You'll need a hammer to crack them.",
+    "note": "The second half of the offer. Same mid-line '!' fix."
+  },
+  {
+    "id": "sneak_quest_hammer",
+    "speaker": "sneak",
+    "text": "I saw a hammer near the well!",
+    "note": "Phase one's instruction, and what the yellow button replays. The bang is line-final, so it costs nothing and no say split is needed."
+  },
+  {
+    "id": "sneak_quest_crack",
+    "speaker": "sneak",
+    "text": "Crack the stones with your hammer!",
+    "say": "Crack the stones with your hammer.",
+    "note": "Phase two's instruction."
+  },
+  {
+    "id": "sneak_quest_cave",
+    "speaker": "sneak",
+    "text": "We have them all! Meet me at the Secret Cave.",
+    "say": "We have them all. Meet me at the Secret Cave.",
+    "note": "Where the quest parks until the cave, the ritual and the faeries are built. Same mid-line '!' fix."
   }
 ]
