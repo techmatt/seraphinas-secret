@@ -107,11 +107,19 @@ export type Hooks = {
     choppable: boolean;
     state: 'standing' | 'stump' | 'gone';
   }[];
+  npcs: {
+    id: string;
+    x: number;
+    y: number;
+    facing: 'down' | 'up' | 'left' | 'right';
+    lines: string[];
+  }[];
   tools: { slots: (string | null)[]; held: number; holding: string | null };
   giveTool: (tool: string) => number | null;
   takeTool: (tool: string) => boolean;
   swings: number;
   whacks: number;
+  treeGaps: number;
   doorways: { id: string; x: number; y: number; to: string; enter: 'walk' | 'press' }[];
   landmarks: { id: string; x: number; y: number }[];
   interactRadius: number;
@@ -130,6 +138,7 @@ export type Hooks = {
     lineId: string | null;
     words: string[];
     highlighted: number;
+    bubble: { visible: boolean; speaker: string; x: number; y: number };
     say: (id: string) => void;
     scrub: (seconds: number) => void;
     timings: (id: string) => { word: string; start: number; end: number }[];
@@ -567,11 +576,66 @@ export async function standByProp(page: Page, id: string) {
 }
 
 /**
- * Stand her within reach of a tree. A tree is an interactable like any other —
- * see `interactables` in the hooks — so this is `standByProp` under a name that
- * reads right at the call site.
+ * Stand her a deliberate distance from an interactable rather than on top of it.
+ *
+ * `standByProp` aims at the thing itself and lets `nearestStanding` sort it out,
+ * which is right for a well: a well is solid, so the nearest tile she can stand
+ * on is beside it. A person is not solid — she walks straight through her own
+ * sister — so aiming at one puts her *inside* it, and every question about where
+ * the speech balloon went then has the same answer for both of them.
+ *
+ * `by` is in world pixels from the target. It still finishes through
+ * `walkToProp`, so the end state is the usual one: in reach, and the nearest
+ * thing to her, which is what the dot is over and what a press will fire.
  */
-export const standByTree = standByProp;
+export async function standNear(page: Page, id: string, by: { x?: number; y?: number }) {
+  const thing = (await readHooks(page)).interactables.find((p) => p.id === id);
+  if (!thing) throw new Error(`no interactable ${id} to stand near`);
+
+  await page.evaluate(
+    ([x, y]) => (window as unknown as { __seraphina: Hooks }).__seraphina.teleport(x!, y!),
+    [thing.x + (by.x ?? 0), thing.y + (by.y ?? 0)],
+  );
+  await framesPass(page, 4, 200);
+  await walkToProp(page, id);
+}
+
+/**
+ * Stand her within reach of a tree, with nothing else within reach of her.
+ *
+ * Not `standByProp` any more, and the difference is the whole of the green
+ * button's new rule. A tree is not an interactable: the axe is what green does
+ * when *nothing* is in reach, so "close enough to chop this tree" now means both
+ * near the tree and clear of everything that would take the press instead. A
+ * spec that stopped one stride from a well would swing at nothing and be told
+ * the axe is broken.
+ */
+export async function standByTree(page: Page, id: string) {
+  const pick = (hooks: Snapshot) => {
+    const tree = hooks.trees.find((t) => t.id === id);
+    if (!tree) throw new Error(`no tree ${id} in ${hooks.room}`);
+    return tree;
+  };
+
+  const tree = pick(await readHooks(page));
+  await page.evaluate(
+    ([x, y]) => (window as unknown as { __seraphina: Hooks }).__seraphina.teleport(x!, y!),
+    [tree.x, tree.y],
+  );
+  await framesPass(page, 4, 200);
+
+  await travel(
+    page,
+    pick,
+    (hooks) => {
+      const away = (m: { x: number; y: number }) =>
+        Math.hypot(m.x - hooks.player.x, m.y - hooks.player.y);
+      if (away(pick(hooks)) > hooks.interactRadius * 0.9) return false;
+      return hooks.interactables.every((other) => away(other) > hooks.interactRadius);
+    },
+    `tree ${id}`,
+  );
+}
 
 /** Walk to a named place in the map data — "the woods", "the facade row". */
 export async function walkToLandmark(page: Page, id: string, within = 90) {

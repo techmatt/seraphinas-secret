@@ -41,6 +41,22 @@ interface Laid {
   word: string;
 }
 
+/**
+ * Whoever is talking: where they are, and who they are.
+ *
+ * The balloon has always sat over the speaker; until there was somebody else in
+ * the world the speaker was always Seraphina, so "over the speaker" and "over
+ * her" were the same picture and nothing could tell them apart. They are not the
+ * same picture any more — her sister says her own lines from where her sister is
+ * standing — and `id` is how a test can say which of the two it is looking at
+ * rather than guessing from coordinates.
+ */
+export interface Speaker {
+  id: string;
+  x: number;
+  y: number;
+}
+
 export class SpeechBubble extends Phaser.GameObjects.Container {
   private readonly balloon: Phaser.GameObjects.Graphics;
   private readonly slab: Phaser.GameObjects.Rectangle;
@@ -54,8 +70,8 @@ export class SpeechBubble extends Phaser.GameObjects.Container {
 
   private highlighted = -1;
 
-  /** Where the tail should point, in world space. */
-  private speaker = { x: 0, y: 0 };
+  /** Who the tail points at, in world space. */
+  private speaker: Speaker = { id: 'seraphina', x: 0, y: 0 };
 
   constructor(
     scene: Phaser.Scene,
@@ -64,7 +80,7 @@ export class SpeechBubble extends Phaser.GameObjects.Container {
     private readonly bank: VoiceBank,
   ) {
     super(scene, x, y);
-    this.speaker = { x, y };
+    this.speaker = { id: 'seraphina', x, y };
 
     this.balloon = scene.add.graphics();
     this.slab = scene.add.rectangle(0, 0, 10, 10, 0xff8fd8).setVisible(false);
@@ -98,13 +114,18 @@ export class SpeechBubble extends Phaser.GameObjects.Container {
     return this.line !== null;
   }
 
+  /** Who the balloon currently belongs to. */
+  get speakerId(): string {
+    return this.speaker.id;
+  }
+
   // --- driving it ----------------------------------------------------------
 
   /**
    * Say a manifest line. Calling it again restarts, so mashing A is fine.
    * `speaker` is who the tail points at; it defaults to wherever it pointed last.
    */
-  say(id: string, speaker?: { x: number; y: number }): void {
+  say(id: string, speaker?: Speaker): void {
     const line = this.bank.get(id);
     if (!line) {
       console.warn(`voice: no line "${id}" in the manifest`);
@@ -114,7 +135,7 @@ export class SpeechBubble extends Phaser.GameObjects.Container {
     this.stop();
     this.line = line;
     this.scrubbed = null;
-    if (speaker) this.speaker = { x: speaker.x, y: speaker.y };
+    if (speaker) this.speaker = { id: speaker.id, x: speaker.x, y: speaker.y };
     this.layout(line);
 
     this.setVisible(true).setAlpha(1).setScale(0.86);

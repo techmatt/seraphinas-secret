@@ -94,6 +94,17 @@ export interface CharacterSheet {
   /** Back to front. Every layer shares the grid and the rows. */
   layers: SheetLayer[];
   anims: AnimRow[];
+  /**
+   * How big this character is drawn, as a fraction of everybody else. Absent is
+   * full size.
+   *
+   * The pack draws one body and the game scales it, which is the only way a
+   * little sister is little: there is no smaller sheet. The *product* of this
+   * and WORLD_SCALE has to be a whole number, for the same reason WORLD_SCALE is
+   * one — a fractional scale turns square pixels into uneven ones, and a
+   * four-year-old will not know why her sister looks smudged.
+   */
+  scale?: number;
 }
 
 /** Where `npm run assets:sync` puts the pack, from the browser's point of view. */
@@ -123,13 +134,17 @@ const PLAYER_GRID = { frameWidth: 64, frameHeight: 64, columns: 9 } as const;
  * hammer swing is a later prompt's problem, and mapping a row nothing draws
  * would be a guess written down as a fact.
  */
-const PLAYER_ROWS: AnimRow[] = [
+const STANDING_ROWS: AnimRow[] = [
   { name: 'idle', facing: 'down', row: 0, frames: 6, frameRate: 6 },
   { name: 'idle', facing: 'right', row: 1, frames: 6, frameRate: 6 },
   { name: 'idle', facing: 'up', row: 2, frames: 6, frameRate: 6 },
   { name: 'walk', facing: 'down', row: 3, frames: 6, frameRate: 10 },
   { name: 'walk', facing: 'right', row: 4, frames: 6, frameRate: 10 },
   { name: 'walk', facing: 'up', row: 5, frames: 6, frameRate: 10 },
+];
+
+const PLAYER_ROWS: AnimRow[] = [
+  ...STANDING_ROWS,
   // Twelve a second: half a second of swing, which is long enough to read as a
   // wind-up and short enough that she is never waiting to be allowed to move.
   { name: 'chop', facing: 'down', row: 35, frames: 6, frameRate: 12, repeat: 0 },
@@ -186,4 +201,85 @@ export const SERAPHINA: CharacterSheet = {
     },
   ],
   anims: PLAYER_ROWS,
+};
+
+/**
+ * The rest of the cast, drawn off the same body.
+ *
+ * The pack's own NPC sheets are no help here: `NPCs (Premade)/` is eight adults
+ * with jobs — a bartender, a miner, a chef — and `Cute_Fantasy_Characters/` is
+ * knights, orcs, goblins and angels on a different grid again. There is no
+ * child in the pack except the one the paper doll makes, so a child is what the
+ * paper doll makes. Which is the arrangement paying off rather than a
+ * compromise: a new person is six file paths, on the grid everything already
+ * agrees on, with the walk cycle and the idle breath already registered.
+ *
+ * They are given `STANDING_ROWS` and no axe. Nobody but Seraphina swings
+ * anything, and a chop row mapped for somebody who cannot chop is a fact
+ * written down that nothing checks.
+ */
+const kid = (
+  id: string,
+  parts: { hair: string; shirt: string; legs: string; feet: string },
+  scale?: number,
+): CharacterSheet => ({
+  id,
+  ...PLAYER_GRID,
+  layers: [
+    { key: `${id}-base`, file: `${PLAYER}/Player_Base/Player_Base_animations.png` },
+    { key: `${id}-shoes`, file: `${PLAYER}/Feet/${parts.feet}.png` },
+    { key: `${id}-legs`, file: `${PLAYER}/Legs/OG_Pants/${parts.legs}.png` },
+    { key: `${id}-chest`, file: `${PLAYER}/Chest/OG_Shirt/${parts.shirt}.png` },
+    { key: `${id}-hands`, file: `${PLAYER}/Hands/Hands_1_Bare.png` },
+    { key: `${id}-hair`, file: `${PLAYER}/Head/${parts.hair}.png` },
+  ],
+  anims: STANDING_ROWS,
+  ...(scale === undefined ? {} : { scale }),
+});
+
+/**
+ * Sneak: next door, her age, and reading. Short tousled brown hair against her
+ * long gold, and a purple shirt — the one colour nobody else in the village
+ * wears, and the nearest the pack's palette comes to a wizard. His spell book
+ * is a separate sprite lying open at his feet; there is no frame of anybody
+ * holding a book, and a boy standing over one reads as reading.
+ */
+export const SNEAK: CharacterSheet = kid('sneak', {
+  hair: 'Hair_2/Hair_2_Brown',
+  shirt: 'Shirt_1_Purple',
+  legs: 'Pants_1_Brown',
+  feet: 'Shoes_1_Brown',
+});
+
+/**
+ * Hazel: the little sister, and little is the whole of it. There is no smaller
+ * body in the pack, so she is the same one at three quarters — which is 3x
+ * against everybody else's 4x, and so still a whole number of screen pixels per
+ * pack pixel. Anything else would draw her out of a different, blurrier game.
+ *
+ * Brown hair in a bun and an orange shirt: family enough to be a sister, unlike
+ * enough that a four-year-old never has to look twice to tell which one she is
+ * driving.
+ */
+export const HAZEL: CharacterSheet = kid(
+  'hazel',
+  {
+    hair: 'Hair_6/Hair_6_Brown',
+    shirt: 'Shirt_1_Orange',
+    legs: 'Pants_1_Brown',
+    feet: 'Shoes_1_Brown',
+  },
+  0.75,
+);
+
+/**
+ * Every sheet a map file may name. Map data carries the string; this is the one
+ * place that turns it into layers — the same arrangement as a line id and the
+ * voice manifest, so a person in the layout is authored content and never a
+ * pile of file paths in `content/`.
+ */
+export const CHARACTER_SHEETS: Record<string, CharacterSheet> = {
+  seraphina: SERAPHINA,
+  sneak: SNEAK,
+  hazel: HAZEL,
 };

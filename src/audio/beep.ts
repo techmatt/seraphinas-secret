@@ -100,6 +100,19 @@ export function playChopThunk(step: number): void {
   playNoise(0.09 + drop * 0.02, 2600, 700, 0.1 + drop * 0.03);
 }
 
+/**
+ * The axe going through nothing: a short breath of air, and no knock.
+ *
+ * A swing that hits nothing still has to answer, because pressing green and
+ * hearing silence is the one way this game can look broken. It is deliberately
+ * the quietest thing in the file — a whiff is not an event, it is the absence of
+ * one, and a whiff as loud as a blow would teach her that hitting air is worth
+ * doing.
+ */
+export function playWhoosh(): void {
+  playNoise(0.16, 1400, 380, 0.045);
+}
+
 /** The whole thing coming down: a long crash, then it lands. */
 export function playTreeCrash(): void {
   playNoise(0.62, 3400, 220, 0.22);

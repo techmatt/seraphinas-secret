@@ -32,6 +32,7 @@ import {
   GAP_UNDERGROWTH,
   WOOD_WALL_TREES,
 } from './perimeter.js';
+import { PEOPLE, PEOPLE_DRESSING } from './people.js';
 import { POND_CELLS, ROAD_CELLS } from './roads.js';
 import { POND_DRESSING, POND_SIDE } from './pond.js';
 import { CLEARING_DRESSING, UNDERGROWTH, WOOD_TREES, WOODS_PROPS } from './woods-edge.js';
@@ -90,6 +91,8 @@ export const OUTSIDE: ZoneLayout = {
     ...FRONTS,
     ...GREEN_DRESSING,
     ...STREET_FURNITURE,
+    // Last, so a book left on a doorstep is on top of the doorstep.
+    ...PEOPLE_DRESSING,
   ],
   block: EDGE,
   /**
@@ -134,5 +137,6 @@ export const OUTSIDE: ZoneLayout = {
       at: plan.door,
     })),
   ],
+  npcs: PEOPLE,
   landmarks: LANDMARKS,
 };

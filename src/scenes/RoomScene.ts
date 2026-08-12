@@ -5,13 +5,14 @@ import {
   playStumpPop,
   playThudChime,
   playTreeCrash,
+  playWhoosh,
 } from '../audio/beep';
 import { unlockAudio } from '../audio/context';
 import { DEPTH, GAME_HEIGHT, TILE_SIZE, WORLD_SCALE } from '../config';
 import { makeButtonDot } from '../ui/ButtonDot';
 import { makeStickHint, type StickHint } from '../ui/StickHint';
 import { makeToolRow, preloadToolIcons, type ToolRow } from '../ui/ToolRow';
-import { SpeechBubble } from '../ui/SpeechBubble';
+import { SpeechBubble, type Speaker } from '../ui/SpeechBubble';
 import { VoiceBank } from '../voice/VoiceBank';
 import {
   Character,
@@ -23,6 +24,7 @@ import { SERAPHINA } from '../world/characterSheets';
 import { DebugHitboxes } from '../world/DebugHitboxes';
 import { Doorway } from '../world/Doorway';
 import { loadMap, spawnOf, type FlourishId, type MapData } from '../world/mapData';
+import { Npc, sheetFor } from '../world/Npc';
 import { makeProp, nudgeProp, type Prop } from '../world/scenery';
 import { TileWorld } from '../world/TileWorld';
 import { toolBelt, type ToolId } from '../world/ToolBelt';
@@ -66,12 +68,21 @@ let walkHintDone = false;
 /**
  * Something the green button does something to.
  *
- * A prop and a press-to-enter door are the same thing from where she is
- * standing: get near it, a green dot appears, press green, something happens.
+ * A prop, a press-to-enter door and a person are the same thing from where she
+ * is standing: get near it, a green dot appears, press green, something happens.
  * They are different objects in the map data and the same object here, which is
  * what lets a front door pick up every affordance a chest already had — the
  * proximity radius, the dot, the nearest-wins rule — without any of it being
  * written twice.
+ *
+ * Everything in this list has a dot, and that is now the definition of the list:
+ * the dot is a *selection*, so a thing the button is about is a thing that says
+ * so. Trees are deliberately not in here. There are two hundred of them, she
+ * walks through them constantly, and a dot drifting from trunk to trunk beside
+ * her would be an answer to a question nobody asked — but the version of that
+ * which kept them in the pool and hid their dot had the worse half of both:
+ * standing between a spruce and a shed took the dot off the shed and gave the
+ * press to the spruce. The axe is a fallback now, not a competitor. See `swing`.
  */
 interface Interactable {
   id: string;
@@ -79,22 +90,22 @@ interface Interactable {
   x: number;
   y: number;
   /**
-   * Whether the green dot appears over it.
+   * How far above `y` the green dot floats.
    *
-   * The dot is a *selection*: it says "this is the one thing here the button is
-   * about", which is a question a chest, a well or a front door genuinely
-   * raises. A tree does not. There are two hundred of them, she walks through
-   * them constantly, and swinging an axe at whichever one she is nearest is
-   * what the button does out there whether or not anything was pointed at — so
-   * a dot drifting from trunk to trunk as she walks would be an answer to a
-   * question nobody asked, on every step of every wood.
-   *
-   * She still swings at the nearest one, which is why a tree is an Interactable
-   * at all and not a special case somewhere else.
+   * A prop's `y` is its middle, so a fixed lift clears it. A person's `y` is
+   * their feet, and a person in this pack is seventy screen pixels tall — so the
+   * same fixed lift puts the dot on their chest, where it covers the child it is
+   * pointing at. Asked of whoever it is about, rather than assumed.
    */
-  dot: boolean;
+  lift: number;
   press: () => void;
 }
+
+/** What clears a prop: half its picture and a bit. */
+const DOT_LIFT = 58;
+
+/** What clears a person: their own height, and a bit. */
+const HEAD_GAP = 34;
 
 /** What the title screen — or the zone she just left — hands over. */
 export interface RoomSceneData {
@@ -139,6 +150,7 @@ export class RoomScene extends Phaser.Scene {
   private props: Prop[] = [];
   private doorways: Doorway[] = [];
   private trees: Tree[] = [];
+  private npcs: Npc[] = [];
   private interactables: Interactable[] = [];
 
   private sparkles!: Phaser.GameObjects.Particles.ParticleEmitter;
@@ -197,6 +209,7 @@ export class RoomScene extends Phaser.Scene {
     this.props = [];
     this.doorways = [];
     this.trees = [];
+    this.npcs = [];
     this.interactables = [];
     this.leaving = false;
     this.doorwaysArmed = false;
@@ -209,6 +222,9 @@ export class RoomScene extends Phaser.Scene {
   preload(): void {
     this.makeSparkTexture();
     preloadCharacter(this, SERAPHINA);
+    // Everybody standing in this zone, queued alongside her. Their sheets are
+    // hers with different files in the slots, so this is the same call.
+    for (const npc of this.mapData?.npcs ?? []) preloadCharacter(this, sheetFor(npc.sheet));
     preloadToolIcons(this);
     if (this.mapData) TileWorld.preload(this, this.mapData);
   }
@@ -257,21 +273,31 @@ export class RoomScene extends Phaser.Scene {
       );
     }
 
-    // Everything the green button reaches, in one list: the props, the doors
-    // you press rather than walk through, and every tree in the zone.
-    //
-    // Trees are in here rather than beside it because "the nearest thing wins"
-    // has to be one question with one answer — a wood where the dot is over the
-    // toadstool and the press hits the spruce behind it would be the game
-    // lying about what the button does. Only the dot is theirs to skip; see
-    // Interactable.
+    // People, before the interactable list is built, because they are in it.
+    // Their animations are registered per sheet and the call is idempotent, so a
+    // zone with two children drawn off the same stack pays for one.
+    for (const def of map.npcs ?? []) {
+      registerCharacterAnims(this, sheetFor(def.sheet));
+      this.npcs.push(new Npc(this, def));
+    }
+
+    // Everything the green button reaches, in one list: the props, the people,
+    // and the doors you press rather than walk through. Nearest wins, and the
+    // winner wears the dot. Trees are not in here — see Interactable and `swing`.
     this.interactables = [
       ...this.props.map((prop) => ({
         id: prop.def.id,
         x: prop.x,
         y: prop.y,
-        dot: true,
+        lift: DOT_LIFT,
         press: () => this.poke(prop),
+      })),
+      ...this.npcs.map((npc) => ({
+        id: npc.id,
+        x: npc.x,
+        y: npc.y,
+        lift: npc.headHeight + HEAD_GAP,
+        press: () => this.talkTo(npc),
       })),
       ...this.doorways
         .filter((door) => door.def.enter === 'press')
@@ -279,16 +305,9 @@ export class RoomScene extends Phaser.Scene {
           id: door.def.id,
           x: door.x,
           y: door.y,
-          dot: true,
+          lift: DOT_LIFT,
           press: () => this.leaveThrough(door),
         })),
-      ...this.trees.map((tree) => ({
-        id: tree.def.id,
-        x: tree.x,
-        y: tree.y,
-        dot: false,
-        press: () => this.swingAt(tree),
-      })),
     ];
 
     const spawn = spawnOf(map, this.arrivedVia);
@@ -393,19 +412,23 @@ export class RoomScene extends Phaser.Scene {
     const pad = this.input.gamepad?.getPad(0);
 
     if (!this.leaving) {
-      // Mid-swing she is not steering. Half a second of not being in control is
-      // the price of the swing landing where she aimed it, and it is the only
-      // moment in the game where the stick does nothing.
-      if (!this.player.chopping) {
-        this.movePlayer(seconds, pad);
-        this.checkDoorways();
-      }
+      // She steers through the swing. There is no moment in this game where the
+      // stick does nothing: the blow was aimed when the swing started and moving
+      // does not retarget or cancel it, so letting her walk costs the chop
+      // nothing and buys back the only half-second the game ever took off her.
+      this.movePlayer(seconds, pad);
+      this.checkDoorways();
       this.handleTools(pad);
       this.handleInteract(pad);
     }
     this.player.setDepth(this.player.y);
     this.world.revealBehind(this.player.x, this.player.y);
     this.updateHitboxes();
+    this.watchForStumpGap();
+    // She walks through people, so they wobble when she does. It is the only
+    // thing that stops walking through somebody feeling like walking through a
+    // photograph of them.
+    for (const npc of this.npcs) npc.jostle(this.player.x, this.player.y);
     this.bubble.tick();
     // Read off the dot itself rather than written where it is decided: a
     // doorway hides it without going through handleInteract at all.
@@ -423,6 +446,7 @@ export class RoomScene extends Phaser.Scene {
     hooks.voice.lineId = this.bubble.lineId;
     hooks.voice.words = this.bubble.spokenWords;
     hooks.voice.highlighted = this.bubble.highlightedIndex;
+    this.syncBubbleHooks();
   }
 
   // --- camera --------------------------------------------------------------
@@ -452,7 +476,7 @@ export class RoomScene extends Phaser.Scene {
   private setupVoiceHooks(): void {
     hooks.voice.say = (id) => {
       unlockAudio();
-      this.bubble.say(id, this.player);
+      this.bubble.say(id, this.speaking());
       this.syncVoiceHooks();
     };
     hooks.voice.scrub = (seconds) => {
@@ -462,11 +486,27 @@ export class RoomScene extends Phaser.Scene {
     hooks.voice.timings = (id) => this.voice.get(id)?.words ?? [];
   }
 
+  /** Seraphina, as somebody the balloon can point at. */
+  private speaking(): Speaker {
+    return { id: 'seraphina', x: this.player.x, y: this.player.y };
+  }
+
   /** update() does this every frame, but a paused scene has no frames. */
   private syncVoiceHooks(): void {
     hooks.voice.lineId = this.bubble.lineId;
     hooks.voice.words = this.bubble.spokenWords;
     hooks.voice.highlighted = this.bubble.highlightedIndex;
+    this.syncBubbleHooks();
+  }
+
+  /** Where the balloon actually is, and whose it is. */
+  private syncBubbleHooks(): void {
+    hooks.voice.bubble = {
+      visible: this.bubble.visible,
+      speaker: this.bubble.speakerId,
+      x: this.bubble.x,
+      y: this.bubble.y,
+    };
   }
 
   /**
@@ -510,6 +550,22 @@ export class RoomScene extends Phaser.Scene {
     }));
   }
 
+  /**
+   * Who is standing here, which way they are turned, and what they have to say.
+   * Written on a change rather than every frame — people do not move — and one
+   * of the two changes is a person turning to look at her, so `talkTo` calls it
+   * too.
+   */
+  private syncNpcHooks(): void {
+    hooks.npcs = this.npcs.map((npc) => ({
+      id: npc.id,
+      x: npc.x,
+      y: npc.y,
+      facing: npc.facing,
+      lines: [...npc.def.lines],
+    }));
+  }
+
   private syncToolHooks(): void {
     hooks.tools = {
       slots: [...toolBelt.slots],
@@ -536,6 +592,8 @@ export class RoomScene extends Phaser.Scene {
     this.syncCameraHooks();
     this.syncTreeHooks();
     this.syncToolHooks();
+
+    this.syncNpcHooks();
 
     hooks.interactables = this.interactables.map(({ id, x, y }) => ({ id, x, y }));
     hooks.doorways = this.doorways.map((d) => ({
@@ -659,6 +717,22 @@ export class RoomScene extends Phaser.Scene {
     hooks.hitboxes = this.hitboxes.visible;
   }
 
+  /**
+   * Count any frame in which a tree that has not been cleared has nothing on
+   * screen at all.
+   *
+   * The bug this replaces was one visible beat long — trunk gone, stump not yet
+   * raised, bare grass in between — which is exactly the size of thing a
+   * screenshot cannot be pointed at and a person watching cannot be sure of. A
+   * per-frame count can: the number is zero for a whole run of the wood, or it
+   * is not. Cheap enough to leave on, at a couple of hundred null checks a frame.
+   */
+  private watchForStumpGap(): void {
+    for (const tree of this.trees) {
+      if (tree.state !== 'gone' && !tree.drawn) hooks.treeGaps += 1;
+    }
+  }
+
   private handleInteract(pad?: Phaser.Input.Gamepad.Gamepad): void {
     const padDown = pad?.A ?? false;
     const padPressed = padDown && !this.padInteractWasDown;
@@ -669,15 +743,17 @@ export class RoomScene extends Phaser.Scene {
       : false;
 
     const near = this.nearestInteractable();
-    // Mid-swing the dot goes, so the thing she is hitting does not also look
-    // like a thing she has not pressed yet. A tree never shows one at all —
-    // see Interactable — and because the nearest wins, a tree being nearest
-    // takes the dot off the shed behind it too. That is the honest answer: the
-    // button is about the tree.
-    this.prompt.setVisible(near !== null && near.dot && !this.player.chopping);
-    if (near) this.prompt.setPosition(near.x, near.y - 58);
+    this.prompt.setVisible(near !== null);
+    if (near) this.prompt.setPosition(near.x, near.y - near.lift);
 
-    if ((padPressed || keyPressed) && near) near.press();
+    if (!padPressed && !keyPressed) return;
+
+    // The dot is a promise, so it is kept first: whatever is under it is what
+    // green does. Only when there is nothing under it does the button fall
+    // through to the tool in her hand — which is why standing between a spruce
+    // and a shed now opens the shed, and why swinging at nothing is allowed.
+    if (near) near.press();
+    else this.swing();
   }
 
   /**
@@ -793,6 +869,32 @@ export class RoomScene extends Phaser.Scene {
 
   // --- the juice ---------------------------------------------------------
 
+  /**
+   * Say hello. They turn to face her, and the balloon comes up over *them*.
+   *
+   * The anchor is the point of this. A speech balloon that always appears over
+   * the player is a balloon that says nothing about who is talking, and the one
+   * thing a pre-reader has to get out of a conversation is which of the two
+   * people on screen the words belong to — so it sits over the speaker and
+   * leans its tail at them, and her sister's lines come out of her sister.
+   *
+   * Pressing again says the next line and wraps. There is no end to a
+   * conversation and there is nothing to get wrong: green says the next thing,
+   * for ever.
+   */
+  private talkTo(npc: Npc): void {
+    npc.lookAt(this.player.x, this.player.y);
+
+    const line = npc.say();
+    if (!line) return;
+
+    this.sparkles.explode(14, npc.x, npc.y - 40);
+    this.bubble.say(line, { id: npc.id, x: npc.x, y: npc.y });
+    hooks.sparkles += 1;
+    this.syncNpcHooks();
+    this.syncVoiceHooks();
+  }
+
   private poke(prop: Prop): void {
     nudgeProp(this, prop);
 
@@ -807,35 +909,77 @@ export class RoomScene extends Phaser.Scene {
 
     this.sparkles.explode(48, prop.x, prop.y);
     playSparkleChime();
-    this.bubble.say(prop.def.line, this.player);
+    // A prop speaks in her voice and out of her mouth: she is the one saying
+    // "my cozy bed", so the balloon belongs over her. Only a person who is not
+    // her moves it — see `talkTo`.
+    this.bubble.say(prop.def.line, this.speaking());
     this.cameras.main.shake(140, 0.004);
     hooks.sparkles += 1;
   }
 
   /**
-   * Swing the axe at a tree.
+   * Swing the held tool, and hit a tree with it if one is standing there.
    *
-   * She turns to face it and the blow lands partway through the swing, not at
-   * the end of it — see `Character.chop`. Everything that happens to the tree is
-   * the tree's business; this picks the noise and shakes the camera by how big
-   * a thing just happened.
+   * This is what the green button does when it has nothing else to do, and the
+   * two halves are deliberately separable. The swing always happens: at nothing
+   * at all, in the middle of a field, it is a full swing and a breath of air, and
+   * a button that answers every press is worth more than a button that is right
+   * about when it is worth pressing. The *hit* is decided once, here, from where
+   * she is standing at the moment the swing starts — so walking out of range
+   * mid-swing does not take the blow away, and walking into range does not
+   * conjure one.
+   *
+   * Everything that happens to the tree is the tree's business; `landBlow` picks
+   * the noise and shakes the camera by how big a thing just happened.
    *
    * Without the axe in hand nothing happens at all, which today cannot occur:
    * the axe is welded into slot one. The check is here because the day a quest
    * hands her a hammer is the day "the green button chops" stops being true, and
-   * finding that out then would mean finding it out in the wood.
+   * a hammer swung with the axe's animation would be the game drawing a lie.
    */
-  private swingAt(tree: Tree): void {
+  private swing(): void {
     if (!toolBelt.holding('axe')) return;
-    if (tree.state === 'gone') return;
 
-    const towards = this.directionTo(tree.x, tree.y);
+    const tree = this.nearestTree();
     const swung = this.player.chop(
-      towards,
-      () => this.landBlow(tree),
+      tree ? this.directionTo(tree.x, tree.y) : this.player.facing,
+      () => {
+        if (tree) this.landBlow(tree);
+      },
       () => this.syncPlayerHooks(),
     );
-    if (swung) hooks.swings += 1;
+    if (!swung) return;
+
+    hooks.swings += 1;
+    // A whiff answers quietly. The blow has its own noise and it lands a frame
+    // and a half from now, so a whoosh under it would only muddy it.
+    if (!tree) playWhoosh();
+  }
+
+  /**
+   * The tree the swing would connect with, or null for a whiff. Same reach and
+   * same nearest-wins rule as the dot, so "close enough to press" and "close
+   * enough to chop" are one distance and not two.
+   */
+  private nearestTree(): Tree | null {
+    let best: Tree | null = null;
+    let bestDistance = INTERACT_RADIUS;
+
+    for (const tree of this.trees) {
+      if (tree.state === 'gone') continue;
+      const distance = Phaser.Math.Distance.Between(
+        this.player.x,
+        this.player.y,
+        tree.x,
+        tree.y,
+      );
+      if (distance <= bestDistance) {
+        bestDistance = distance;
+        best = tree;
+      }
+    }
+
+    return best;
   }
 
   /** The moment the axe is in the wood. */

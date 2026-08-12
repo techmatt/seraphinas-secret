@@ -115,6 +115,21 @@ export interface MapProp extends MapMarker {
   line?: string;
 }
 
+/**
+ * Somebody standing in the world: a character sheet, a spot, and things to say.
+ *
+ * `x, y` is where their feet are — the same space her own position is in, which
+ * is what lets the green button's proximity test treat a person exactly like a
+ * chest. Nothing here makes a tile solid; she walks through people on purpose.
+ */
+export interface MapNpc extends MapMarker {
+  /** Key into `src/world/characterSheets.ts`. */
+  sheet: string;
+  facing: Direction;
+  /** Manifest lines, cycled by repeated presses. */
+  lines: string[];
+}
+
 export interface MapDoorway {
   id: string;
   x: number;
@@ -162,6 +177,8 @@ export interface MapData {
   spawns: Record<string, MapSpawn>;
   doorways: MapDoorway[];
   props: MapProp[];
+  /** The people who live here. Absent in a map built before there were any. */
+  npcs?: MapNpc[];
   landmarks: MapMarker[];
 }
 

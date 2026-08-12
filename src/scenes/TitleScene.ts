@@ -227,7 +227,7 @@ export class TitleScene extends Phaser.Scene {
       return;
     }
 
-    this.bubble.say(GREETING, { x: this.dot.x, y: this.dot.y + 20 });
+    this.bubble.say(GREETING, { id: 'seraphina', x: this.dot.x, y: this.dot.y + 20 });
 
     // Leave when she stops talking. With no manifest there is nothing to wait
     // for, so the door opens on the flourish alone.

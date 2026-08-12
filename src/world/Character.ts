@@ -35,6 +35,16 @@ export const CHARACTER_SCALE = WORLD_SCALE;
 export const FOOT_ORIGIN_Y = 41 / 64;
 
 /**
+ * The other end of the same measurement: the top of her head inside the frame.
+ *
+ * Most of a 64-pixel frame is the room the tool animations swing through, so the
+ * person in it is eighteen pixels tall between rows 23 and 40. Anything that has
+ * to be put *above* somebody — a green dot, a speech balloon — needs that number
+ * rather than the frame's, or it lands on their chest.
+ */
+const HEAD_TOP_Y = 23 / 64;
+
+/**
  * Which frame of the swing the axe is actually in the wood.
  *
  * Frame one, counting from zero: the pack draws the wind-up in frame zero and
@@ -127,9 +137,21 @@ export class Character extends Phaser.GameObjects.Container {
   private animNow: AnimName = 'idle';
 
   /**
-   * Set while a swing is playing. A chop is the first thing she does that takes
-   * time, so it is the first thing that can be interrupted — and a swing that
-   * restarts every time a thumbstick twitches is a swing that never lands.
+   * Set while a swing is playing, and the reason `face` and `setMoving` do
+   * nothing while it is.
+   *
+   * She keeps walking during a swing — the legs are the scene's business and it
+   * never stops steering her — but the *picture* is the swing's for its whole
+   * duration. Her feet may slide, which is accepted: a girl who skates half a
+   * tile mid-chop is a far smaller thing than a girl the game took the controls
+   * away from, and taking the controls away is the closest this game comes to a
+   * fail state.
+   *
+   * It is also what keeps the swing from restarting. Every walk-anim request
+   * during a chop lands in `apply()`, and the guard there is a per-layer test of
+   * "is this key already running" — which cannot tell a request to *continue* the
+   * swing from a request to *replace* it. So the swing is defended here, at the
+   * door, and `apply()` is left doing only the job it is right about.
    */
   private swinging = false;
 
@@ -141,11 +163,16 @@ export class Character extends Phaser.GameObjects.Container {
   ) {
     super(scene, x, y);
 
+    // A sheet may be drawn smaller than everybody else — that is the only way a
+    // little sister is little, there being one body in the pack. See
+    // CharacterSheet.scale for why the product has to stay a whole number.
+    const scale = this.drawScale;
+
     for (const layer of sheet.layers) {
       const sprite = scene.add
         .sprite(0, 0, layer.key, 0)
         .setOrigin(0.5, FOOT_ORIGIN_Y)
-        .setScale(CHARACTER_SCALE);
+        .setScale(scale);
       this.layers.push(sprite);
       this.add(sprite);
     }
@@ -174,6 +201,19 @@ export class Character extends Phaser.GameObjects.Container {
   }
 
   /**
+   * How far above their feet the top of their head is, in screen pixels. Small
+   * — a person in this pack is eighteen pack pixels tall — and it varies, since
+   * a little sister is drawn at three quarters of everybody else.
+   */
+  get headHeight(): number {
+    return (FOOT_ORIGIN_Y - HEAD_TOP_Y) * this.sheet.frameHeight * this.drawScale;
+  }
+
+  private get drawScale(): number {
+    return CHARACTER_SCALE * (this.sheet.scale ?? 1);
+  }
+
+  /**
    * Which frame of its own sheet each layer is drawing right now, keyed by
    * texture key, and only for the layers actually on screen.
    *
@@ -196,8 +236,13 @@ export class Character extends Phaser.GameObjects.Container {
 
   // --- driving it -----------------------------------------------------------
 
+  /**
+   * Turn her. Ignored mid-swing: the blow was aimed when the swing started, and
+   * a swing that turns to follow the stick is one she can steer into a tree she
+   * never pointed at.
+   */
   face(direction: Direction): void {
-    if (direction === this.facingNow) return;
+    if (this.swinging || direction === this.facingNow) return;
     this.facingNow = direction;
     this.apply();
   }
@@ -209,11 +254,6 @@ export class Character extends Phaser.GameObjects.Container {
     if (next === this.animNow) return;
     this.animNow = next;
     this.apply();
-  }
-
-  /** Mid-swing. The scene stops steering her while this is true. */
-  get chopping(): boolean {
-    return this.swinging;
   }
 
   /**

@@ -146,6 +146,38 @@ export interface PropLayout {
   line?: string;
 }
 
+/**
+ * Somebody standing in the world.
+ *
+ * A person is not a prop with a face on it. A prop is a rectangle of the tile
+ * pack and a line; a person is a character sheet — the same paper-doll stack
+ * Seraphina is drawn from — who stands somewhere, faces a way, and has more than
+ * one thing to say. So they are their own list rather than a `props` entry with
+ * extra fields, and `sheet` names a stack in `src/world/characterSheets.ts` the
+ * same way `line` names a line in the voice manifest: a string the generator
+ * carries and never opens.
+ *
+ * Nothing here makes a tile solid. She walks straight through her sister, on
+ * purpose — a four-year-old aiming a thumbstick will corner herself on anything
+ * that stands its ground, and being stuck behind a person is a fail state with
+ * a friendly face on it.
+ */
+export interface NpcLayout {
+  id: string;
+  /** Which character sheet the game draws them from. */
+  sheet: string;
+  /** Where their feet are, in tiles. */
+  x: number;
+  y: number;
+  /** Which way they stand when nobody is talking to them. */
+  facing: Direction;
+  /**
+   * Manifest lines, in order. Pressing green again says the next one and wraps,
+   * which is the whole of "talking to somebody" until the quest engine lands.
+   */
+  lines: string[];
+}
+
 export interface LandmarkLayout {
   id: string;
   /** In tiles. Where a test stands to photograph the place. */
@@ -191,6 +223,8 @@ export interface ZoneLayout {
   spawns: Record<string, SpawnLayout>;
   doorways: DoorwayLayout[];
   props: PropLayout[];
+  /** The people who live here. Absent is a zone with nobody in it. */
+  npcs?: NpcLayout[];
   landmarks: LandmarkLayout[];
   /** What shows through where there are no tiles at all. */
   backdrop: number;
@@ -315,6 +349,13 @@ export interface BuiltProp extends BuiltMarker {
   line?: string;
 }
 
+/** A person, at pack-pixel feet. See NpcLayout for why they are not props. */
+export interface BuiltNpc extends BuiltMarker {
+  sheet: string;
+  facing: Direction;
+  lines: string[];
+}
+
 export interface BuiltDoorway {
   id: string;
   /** Trigger rectangle, in pack pixels. */
@@ -362,5 +403,6 @@ export interface BuiltMap {
   spawns: Record<string, BuiltSpawn>;
   doorways: BuiltDoorway[];
   props: BuiltProp[];
+  npcs: BuiltNpc[];
   landmarks: BuiltMarker[];
 }

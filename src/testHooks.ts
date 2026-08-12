@@ -23,6 +23,13 @@ export interface TreeMarker extends Marker {
   state: 'standing' | 'stump' | 'gone';
 }
 
+export interface NpcMarker extends Marker {
+  /** Which way they are turned right now — they turn to face her when spoken to. */
+  facing: 'down' | 'up' | 'left' | 'right';
+  /** Everything they can say, in the order repeated presses will say it. */
+  lines: string[];
+}
+
 export interface DoorwayMarker extends Marker {
   /** Room id on the far side. */
   to: string;
@@ -115,21 +122,20 @@ export interface TestHooks {
     blocked: string;
   };
   /**
-   * Everything the green button reaches: this zone's pokeable props, any door
-   * that is entered with a press rather than walked through, and every tree.
+   * Everything the green button reaches: this zone's pokeable props, its people,
+   * and any door entered with a press rather than walked through. Nearest wins,
+   * and the winner is what the dot is over — so this list is exactly the list of
+   * things that can wear the dot.
    *
-   * Trees are in here because the game's rule is "the nearest one wins", and a
-   * harness steering by a list the game does not use would be steering by a
-   * different rule. What each tree currently *is* lives in `trees` below.
-   *
-   * Not the same list as "what the dot appears over" — a tree is reachable and
-   * dotless. `promptDot` is what says whether the dot is actually on screen.
+   * Trees are deliberately not in it. The axe is what green does when this list
+   * has nothing in reach, so a tree is never in competition with a shed; what
+   * each tree currently *is* lives in `trees` below.
    */
   interactables: Marker[];
   /**
-   * Whether the green proximity dot is showing. It marks a *selection* — the
-   * one thing here the button is about — so props and press-doors raise it and
-   * trees deliberately do not.
+   * Whether the green proximity dot is showing. It marks a *selection* — the one
+   * thing here the button is about — so everything in `interactables` raises it
+   * and nothing else does.
    */
   promptDot: boolean;
   /**
@@ -141,6 +147,12 @@ export interface TestHooks {
    * an unchoppable tree shakes for ever and never leaves `standing`.
    */
   trees: TreeMarker[];
+  /**
+   * The people in this zone. They are also in `interactables` — the green button
+   * treats a person exactly like a chest — and this is the extra half a test
+   * needs: which way they are turned, and what they are going to say next.
+   */
+  npcs: NpcMarker[];
   /**
    * The four boxes and which one is lit. `slots` has a null for each empty box,
    * because an empty box is drawn and a test has to be able to see that.
@@ -163,6 +175,16 @@ export interface TestHooks {
    */
   swings: number;
   whacks: number;
+  /**
+   * Frames in which a tree that still exists had nothing drawn for it.
+   *
+   * The number the felling animation is judged by, and it must stay zero. A tree
+   * pivots out of its own tile early in its fall, so a stump raised when the fall
+   * *lands* leaves a beat of bare ground where a tree was standing — one visible
+   * frame's worth of the world forgetting itself, which no screenshot can be
+   * pointed at. Counted every frame instead; see `watchForStumpGap`.
+   */
+  treeGaps: number;
   /** This zone's doorways, at the centre of each opening. */
   doorways: DoorwayMarker[];
   /**
@@ -241,6 +263,16 @@ export interface VoiceHooks {
   words: string[];
   /** Index into `words` of the glowing one, or -1 between words. */
   highlighted: number;
+  /**
+   * The balloon: whether it is up, whose it is, and where in the world it sits.
+   *
+   * `speaker` is the load-bearing field. A balloon that always appears over the
+   * player says nothing about who is talking, and which of the two people on
+   * screen the words belong to is the one thing a pre-reader has to get out of a
+   * conversation. `x, y` is what makes that checkable rather than claimed — it
+   * has to be over her sister, not merely labelled with her sister's name.
+   */
+  bubble: { visible: boolean; speaker: string; x: number; y: number };
   /** Start a line by id, without walking to anything. */
   say: (id: string) => void;
   /** Jump the line's clock to `seconds` and stop the audio, so it holds still. */
@@ -287,11 +319,13 @@ export const hooks: TestHooks = {
   interactables: [],
   promptDot: false,
   trees: [],
+  npcs: [],
   tools: { slots: [], held: 0, holding: null },
   giveTool: () => null,
   takeTool: () => false,
   swings: 0,
   whacks: 0,
+  treeGaps: 0,
   doorways: [],
   landmarks: [],
   interactRadius: 0,
@@ -310,6 +344,7 @@ export const hooks: TestHooks = {
     lineId: null,
     words: [],
     highlighted: -1,
+    bubble: { visible: false, speaker: 'seraphina', x: 0, y: 0 },
     say: () => undefined,
     scrub: () => undefined,
     timings: () => [],

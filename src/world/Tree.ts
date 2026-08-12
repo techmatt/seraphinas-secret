@@ -105,6 +105,20 @@ export class Tree {
     return this.def.chop === true;
   }
 
+  /**
+   * Whether there is anything of this tree on screen at all.
+   *
+   * Anything short of `gone` should always be able to say yes, and the moment it
+   * could not was the felling: the trunk tipped out of its tile at the start of
+   * the fall and the stump was raised at the end of it, leaving most of a second
+   * of bare ground where a tree had been standing. Nothing else in the game can
+   * produce that beat, and a screenshot cannot catch a beat, so the scene counts
+   * this every frame instead — see `treeGaps` in the hooks.
+   */
+  get drawn(): boolean {
+    return this.sprite !== null;
+  }
+
   /** What it is currently making solid, or null once the tile is given back. */
   get footprint(): TreeFootprint | null {
     if (this.what === 'gone') return null;
@@ -178,16 +192,23 @@ export class Tree {
     this.juice.leaves.explode(leaves, this.x, this.canopyY());
   }
 
-  /** The big moment: over it goes, and a stump is standing where it was. */
+  /**
+   * The big moment: over it goes, and a stump is standing where it was.
+   *
+   * The stump is raised *first*, before the trunk has moved a degree, and that
+   * ordering is the whole point. A tree pivots out of its own tile in the first
+   * fifth of its fall, so a stump raised when the fall lands leaves half a second
+   * of bare grass with a tree lying next to it — she hits a tree and the world
+   * briefly forgets it was ever there. Raised now, it grows underneath the trunk
+   * while the trunk is still over it, and what she sees is the tree coming off
+   * the stump rather than the stump arriving after the tree.
+   */
   private fell(): void {
     const sprite = this.sprite;
     this.what = 'stump';
-    this.sprite = null;
+    this.raiseStump();
 
-    if (!sprite) {
-      this.raiseStump();
-      return;
-    }
+    if (!sprite) return;
 
     this.falling = true;
 
@@ -206,6 +227,12 @@ export class Tree {
     // it, and losing the character is the nearest thing this game has to losing.
     const away = this.x >= footX ? -1 : 1;
 
+    // One in front of the stump for as long as it exists. The two share a base
+    // line, so without this the stump would be drawn over the trunk it is
+    // supposed to be hidden under — and the whole point of raising it early is
+    // that nobody sees it arrive.
+    if (this.sprite) sprite.setDepth(this.sprite.depth + 1);
+
     this.world.forget(sprite);
     this.scene.tweens.killTweensOf(sprite);
     this.scene.tweens.add({
@@ -218,7 +245,6 @@ export class Tree {
         this.falling = false;
         this.juice.leaves.explode(FALL_LEAVES, this.x, this.y);
         this.juice.sparkles.explode(CELEBRATION, this.x, this.y);
-        this.raiseStump();
         this.scene.tweens.add({
           targets: sprite,
           alpha: 0,

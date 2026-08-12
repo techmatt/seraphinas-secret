@@ -41,6 +41,7 @@ import type {
   BuiltImage,
   BuiltMap,
   BuiltMarker,
+  BuiltNpc,
   BuiltProp,
   BuiltSprite,
   BuiltTileAnim,
@@ -492,6 +493,18 @@ function buildZone(zone: ZoneLayout, sheets: Map<string, Sheet>): BuiltMap {
     h: Math.round(door.h * TILE),
   }));
 
+  // People. Nothing is placed and nothing is blocked: an NPC is a character
+  // sheet standing on a coordinate, so all the generator does is turn tiles into
+  // pack pixels and check below that she can get to them.
+  const npcs: BuiltNpc[] = (zone.npcs ?? []).map((npc) => ({
+    id: npc.id,
+    sheet: npc.sheet,
+    x: Math.round(npc.x * TILE),
+    y: Math.round(npc.y * TILE),
+    facing: npc.facing,
+    lines: npc.lines,
+  }));
+
   const landmarks: BuiltMarker[] = zone.landmarks.map((mark) => ({
     id: mark.id,
     x: Math.round(mark.x * TILE),
@@ -540,6 +553,7 @@ function buildZone(zone: ZoneLayout, sheets: Map<string, Sheet>): BuiltMap {
     spawns,
     doorways,
     props,
+    npcs,
     landmarks,
   };
 }
@@ -629,6 +643,10 @@ function assertReachable(
 
   for (const [name, spawn] of Object.entries(zone.spawns)) complain(`spawn ${name}`, spawn.x, spawn.y);
   for (const mark of zone.landmarks) complain(`landmark ${mark.id}`, mark.x, mark.y);
+  // A person she cannot reach is a person she cannot talk to, and the layout is
+  // where that gets decided — so it is where it gets caught. They stand on their
+  // own tile rather than beside it, having no footprint of their own.
+  for (const npc of zone.npcs ?? []) complain(`npc ${npc.id}`, npc.x, npc.y);
   for (const door of zone.doorways) {
     complain(`doorway ${door.id}`, door.x + door.w / 2, door.y + door.h / 2);
   }
@@ -753,6 +771,7 @@ async function main(): Promise<void> {
       `world: ${zone.id} — ${map.cols}x${map.rows} tiles, ` +
         `${map.tilesets.length} tilesets, ${map.images.length} images (${moving} animated), ` +
         `${map.sprites.length} sprites, ${map.props.length} props, ` +
+        `${map.npcs.length} npcs, ` +
         `${map.trees.length} trees (${choppable} choppable), ` +
         `${map.overlay?.filter((g) => g >= 0).length ?? 0} overlaid, ` +
         `${map.tileAnims?.length ?? 0} moving tiles, ` +

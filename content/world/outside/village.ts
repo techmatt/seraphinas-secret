@@ -77,10 +77,12 @@ export const FRONTS: Placement[] = [
   ...hedgeAlong(45.2, 23, 6, 'y', 17),
   ...lamps([[35, 30], [44, 30]], true),
 
-  // Joey's, on the top road.
+  // Joey's, on the top road. The second hedge used to run to the edge of his
+  // front; it stops a tile short now, because Sneak stands in the gap between
+  // the two houses and a boy planted in a bush is not the reading he wants.
   ...flowerPotsAtDoor(BUILDINGS.joey.door.x, BUILDINGS.joey.door.y + 0.5, 18),
   ...hedgeAlong(30, 12.2, 2, 'x', 19),
-  ...hedgeAlong(35, 12.2, 2, 'x', 20),
+  ...hedgeAlong(34.4, 12.3, 2, 'x', 20),
 
   // Scar's, next door along.
   ...flowerPotsAtDoor(BUILDINGS.scar.door.x, BUILDINGS.scar.door.y + 0.5, 25),
