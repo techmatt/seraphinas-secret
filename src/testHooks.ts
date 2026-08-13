@@ -504,7 +504,14 @@ export const hooks: TestHooks = {
     step: null,
   },
   session: () => ({
-    run: { quest: null, items: [], granted: [], faeries: false, following: null },
+    run: {
+      quest: null,
+      completed: [],
+      items: [],
+      granted: [],
+      faeries: false,
+      following: null,
+    },
     world: {},
     persistent: { coins: 0 },
   }),

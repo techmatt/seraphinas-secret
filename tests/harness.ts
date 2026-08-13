@@ -125,6 +125,7 @@ export type Hooks = {
   session: () => {
     run: {
       quest: { id: string; phase: string; done: string[] } | null;
+      completed: string[];
       items: string[];
       granted: string[];
       faeries: boolean;

@@ -1037,9 +1037,10 @@ export class RoomScene extends Phaser.Scene {
       instruction: quests.instruction,
       giver: quests.giver,
       /**
-       * Everybody wearing a thought bubble right now, and how many are actually
-       * built. A list because there are two quests and neither is taken until
-       * one of them is; empty the moment either is.
+       * Everybody in this zone wearing a thought bubble right now, and how many
+       * are actually built. A list because there are two quests: two of them
+       * before either is taken, none at all while one is running, and whatever
+       * she has not done yet again the moment it is finished.
        */
       offers: this.npcs.filter((npc) => quests.offerFrom(npc.id) !== null).map((n) => n.id),
       markers: this.markers.length,
@@ -1859,9 +1860,12 @@ export class RoomScene extends Phaser.Scene {
   private refreshQuestHud(): void {
     this.questRow.show(quests.slots);
 
-    // A cloud over everybody who has something to ask. There are two of them
-    // before either job is taken and none of them after — see `quests.ts` for
-    // why two is allowed and one active quest still is not.
+    // A cloud over everybody who has something to ask: two before either job is
+    // taken, none while one is running, and one again the moment it is finished
+    // — see `quests.ts` for why two is allowed and one active quest still is
+    // not. That last transition is why this runs at the end of a quest and not
+    // only at the start of one: the bubble has to come back on the instant, over
+    // whoever is standing in the zone she happens to have finished in.
     const wants = this.npcs.filter((npc) => quests.offerFrom(npc.id) !== null);
     if (wants.length !== this.markers.length) {
       for (const marker of this.markers) marker.destroy();

@@ -13,7 +13,7 @@ Three halves, split by what they are *about*:
 
 | Half | Holds | Cleared by |
 | --- | --- | --- |
-| `run` | the quest, items in hand, tools a quest lent her, whether the faeries are out, which bunny is following her | a night |
+| `run` | the quest, the quests already finished today, items in hand, tools a quest lent her, whether the faeries are out, which bunny is following her | a night |
 | `world` | per-zone deltas — which trees are felled, keyed by zone id | a night |
 | `persistent` | coins (`COIN_SLOTS` = 3) | only `reset()` |
 
@@ -29,7 +29,12 @@ returns. The seam between "cleared by a night" and "kept" is
 
 One quest at a time; there is no quest log. **Two quests do mean two thought
 bubbles before either is taken** — Sneak's and Hazel's — and accepting either
-takes both off the sky. A quest is phases with a `goal` of kind `fetch` /
+takes both off the sky. **Finishing one puts the other back**, that instant and
+wherever she is standing: the day refuses only what she has already done, which
+is `run.completed` on the store and is written by `advance` when a quest parks
+(Matt, 2026-08-13). Anything a finished quest left in the world — the ring, the
+bunnies at the den — outlives her taking the second job; see `inPlay`.
+A quest is phases with a `goal` of kind `fetch` /
 `collect` / `travel` / `ritual` / `fell` / `gather` / `lure` / `park`. `park` is
 the goal that cannot finish, which is what `finished` reads. Progress lives in
 the store, so walking through a doorway rebuilds the picture and never the

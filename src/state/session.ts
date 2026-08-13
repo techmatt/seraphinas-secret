@@ -77,6 +77,22 @@ export interface SessionData {
   /** The quest and everything it handed her. Cleared by sleep. */
   run: {
     quest: QuestState | null;
+    /**
+     * The jobs she has already finished today, in the order she finished them.
+     *
+     * `quest` is one job and always will be — but "which job is on" and "which
+     * jobs are over" are two different questions, and the second one used to be
+     * answered by the first one refusing to let go. A finished quest sat in
+     * `quest` for the rest of the day for no reason but to stop its giver
+     * offering it again, which also stopped the *other* giver offering theirs
+     * (Matt, 2026-08-13: finishing one quest must not block the other). So the
+     * fact moved here, where it can outlive the next job being taken, and
+     * `quest` went back to meaning only what she is doing now.
+     *
+     * In `run` because it is a fact about today: a night clears it, and in the
+     * morning both jobs are going again.
+     */
+    completed: string[];
     /** Quest items in hand, in the order she picked them up. */
     items: string[];
     /** Tools a quest has lent her. The axe is not one; it is hers. */
@@ -138,7 +154,14 @@ export class SessionState {
 
   private static empty(): SessionData {
     return {
-      run: { quest: null, items: [], granted: [], faeries: false, following: null },
+      run: {
+        quest: null,
+        completed: [],
+        items: [],
+        granted: [],
+        faeries: false,
+        following: null,
+      },
       world: {},
       persistent: { coins: 0 },
     };
@@ -149,6 +172,7 @@ export class SessionState {
     return {
       run: {
         quest: this.data.run.quest ? { ...this.data.run.quest, done: [...this.data.run.quest.done] } : null,
+        completed: [...this.data.run.completed],
         items: [...this.data.run.items],
         granted: [...this.data.run.granted],
         faeries: this.data.run.faeries,
@@ -175,6 +199,23 @@ export class SessionState {
     const quest: QuestState = { id, phase, done: [] };
     this.data.run.quest = quest;
     return quest;
+  }
+
+  /** The jobs she has finished today. See `SessionData.run.completed`. */
+  get completed(): readonly string[] {
+    return this.data.run.completed;
+  }
+
+  /**
+   * That one is over.
+   *
+   * Written the moment a quest parks rather than when it is put down, and kept
+   * whatever `quest` does next — taking a second job overwrites the first, and
+   * the day still has to remember that the first one happened. See
+   * `QuestEngine.advance`.
+   */
+  completeQuest(id: string): void {
+    if (!this.data.run.completed.includes(id)) this.data.run.completed.push(id);
   }
 
   /** Move to the next phase. Per-phase progress starts empty again. */

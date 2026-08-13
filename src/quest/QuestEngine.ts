@@ -6,6 +6,13 @@
  * through is a thing she would have to be able to read. There is one job on, it
  * is the one the boy next door asked for, and the yellow button says what it is.
  *
+ * One at a *time*, though, and not one a day: finishing a job puts every other
+ * job back on offer that instant, so both of the game's quests are one
+ * afternoon's work in either order (Matt, 2026-08-13). The day remembers what
+ * she has already done in `SessionData.run.completed`, which is a list of
+ * finished things rather than a log of unfinished ones — nothing to read, and
+ * nothing on screen.
+ *
  * This is the whole of the rules layer. It owns no sprites, no sounds and no
  * Phaser — the scene draws what this says is true, and the session store is
  * where it all actually lives, so walking through a doorway rebuilds the picture
@@ -120,13 +127,23 @@ export class QuestEngine {
   /**
    * The quest this person is carrying a thought bubble about, or null.
    *
-   * Null the moment one is accepted, and null for everybody else always: one
-   * active quest means one bubble in the world, and a second bubble would be a
-   * choice she has to make.
+   * Two things take a bubble off a head, and they are different lengths. A job
+   * being *on* takes every bubble off until it is over — one active quest, and
+   * the other giver waits — and that is the whole of what accepting one does.
+   * A job being *finished* takes only its own giver's, and only until she
+   * sleeps: a four-year-old who finishes a quest and is immediately asked to do
+   * it again has not finished anything.
+   *
+   * So the moment the active quest parks, everything she has not done today is
+   * on offer again, from wherever she happens to be standing when it happens
+   * (Matt, 2026-08-13: finishing one quest must not prevent the other). Both
+   * jobs in one afternoon, in either order.
    */
   offerFrom(npcId: string): Quest | null {
-    if (this.store.quest) return null;
-    return this.table.find((q) => q.giver === npcId) ?? null;
+    if (this.store.quest && !this.finished) return null;
+    const quest = this.table.find((q) => q.giver === npcId);
+    if (!quest || this.store.completed.includes(quest.id)) return null;
+    return quest;
   }
 
   /**
@@ -335,14 +352,37 @@ export class QuestEngine {
   // --- the pen, the bunnies and the carrots ---------------------------------
 
   /**
+   * The quests whose things are still standing in the world: the one she is on,
+   * and everything she finished today.
+   *
+   * A finished quest used to be the active one for ever, so "the quest" and
+   * "the quest whose ring is in the wood" were the same question. They stopped
+   * being the same the day taking a second job became possible — and a ring of
+   * trees that vanished, with three rescued bunnies inside it, the moment she
+   * said yes to somebody else would be an afternoon the game took back. So the
+   * furniture answers to *today* rather than to what she is doing now.
+   */
+  private inPlay(): Quest[] {
+    const done = this.table.filter((q) => this.store.completed.includes(q.id));
+    const active = this.active;
+    return active && !done.includes(active) ? [active, ...done] : done;
+  }
+
+  /** The quest whose ring is in the wood, active or finished. There is one. */
+  private penQuest(): Quest | null {
+    return this.inPlay().find((q) => q.pen) ?? null;
+  }
+
+  /**
    * The ring of trees this quest planted, or null.
    *
    * Out from the press that takes the job right through to the night that
-   * clears it, `done` included — see `pen` on a Quest. It answers for the quest
-   * rather than for the phase, which is the whole of that rule in one line.
+   * clears it, `done` included and a second job included — see `pen` on a Quest
+   * and `inPlay`. It answers for the quest rather than for the phase, which is
+   * the whole of that rule in one line.
    */
   get pen(): QuestPen | null {
-    return this.active?.pen ?? null;
+    return this.penQuest()?.pen ?? null;
   }
 
   /**
@@ -372,7 +412,9 @@ export class QuestEngine {
    */
   get bunniesLoose(): boolean {
     const kind = this.phase?.goal.kind;
-    if (!this.pen || !kind) return false;
+    // A ring left over from a job that is already done has nobody in it to be
+    // loose: they are all home, and `atHome` is what says so.
+    if (this.penQuest() !== this.active || !kind) return false;
     return kind !== 'travel' && kind !== 'fell';
   }
 
@@ -385,8 +427,10 @@ export class QuestEngine {
    * second would be a second den, and the word means the place they live.
    */
   get den(): QuestSpot | null {
-    for (const phase of this.active?.phases ?? []) {
-      if (phase.goal.kind === 'lure') return phase.goal.den;
+    for (const quest of this.inPlay()) {
+      for (const phase of quest.phases) {
+        if (phase.goal.kind === 'lure') return phase.goal.den;
+      }
     }
     return null;
   }
@@ -403,11 +447,14 @@ export class QuestEngine {
 
   /** Whether this bunny is home, which is the only thing that fills its box. */
   atHome(id: string): boolean {
-    // Once the quest has parked, every one of them is: getting all three home is
+    const quest = this.penQuest();
+    if (!quest) return false;
+    // Once that quest is done, every one of them is: getting all three home is
     // the only thing that ends it. Which is also the only way to answer this at
     // all after the last phase, because entering one clears the last one's
-    // progress — see `SessionState.enterPhase`.
-    if (this.finished) return true;
+    // progress — see `SessionState.enterPhase` — and after a *second* job is
+    // taken there is no progress of the first one's left to read at all.
+    if (this.store.completed.includes(quest.id)) return true;
     return lureOf(this.phase) !== null && this.store.did(id);
   }
 
@@ -490,6 +537,11 @@ export class QuestEngine {
     const next = quest.phases[quest.phases.indexOf(here) + 1];
     if (!next) return null;
     this.store.enterPhase(next.id);
+    // Parking is finishing — see `finished` — so this is the one instant a
+    // quest becomes a thing she *did today* rather than a thing she is doing.
+    // Written down here, once, because every quest reaches its last phase
+    // through this line and none of them knows it is the last.
+    if (next.goal.kind === 'park') this.store.completeQuest(quest.id);
     return next;
   }
 

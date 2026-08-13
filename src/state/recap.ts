@@ -76,9 +76,12 @@ export function snapshotDay(): DayFacts {
     faeries: data.run.faeries,
     // A finished quest is the only thing that says the bunnies are home, and
     // which quest matters — an afternoon that summoned faeries did not rescue
-    // anything. Read this way rather than off a counter for the file's own
-    // reason: the store is already the complete record of the day.
-    bunnies: data.run.quest?.id === 'bunny' && quests.finished,
+    // anything. Read off the day's list of finished jobs rather than off the
+    // active one, because a day can now have two of them and the second one
+    // overwrites `quest`: an afternoon that rescued the bunnies and then went
+    // on to summon the faeries did both, and says both. Still not a counter —
+    // the store remains the complete record of the day.
+    bunnies: data.run.completed.includes('bunny'),
     onAnErrand: data.run.quest !== null && !quests.finished,
     stones: data.run.faeries || data.run.items.length > 0,
     trees,
@@ -115,8 +118,13 @@ export const MAX_EVENTS = 2;
  * `summon` — so a line for each would spend both of a day's two slots saying one
  * thing twice. The bunny line is the same instant for the other quest, which is
  * why it sits beside the faerie line rather than under a heading of its own:
- * they are the two ways an afternoon can have finished something, and neither
- * can be true on the same day as the other.
+ * they are the two ways an afternoon can have finished something.
+ *
+ * Both of them can be true on one day, and that day is what the two slots are
+ * for: an afternoon that summoned the faeries *and* got the bunnies home says
+ * exactly those two things and nothing else. Everything below them is cut, and
+ * the errand line is not even a candidate — an errand is a job she is still in
+ * the middle of, and a day with two finished quests in it has none.
  */
 const EVENTS: { line: string; when: (day: DayFacts) => boolean }[] = [
   { line: 'seraphina_recap_faeries', when: (day) => day.faeries },
