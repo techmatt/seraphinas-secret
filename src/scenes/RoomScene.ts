@@ -18,7 +18,16 @@ import {
 } from '../audio/beep';
 import { unlockAudio } from '../audio/context';
 import { DEPTH, GAME_HEIGHT, TILE, TILE_SIZE, WORLD_SCALE } from '../config';
-import { itemOf, rocksOf, type RitualStep } from '../quest/Quest';
+import {
+  itemOf,
+  lureOf,
+  pickupsOf,
+  rocksOf,
+  walkToOf,
+  type QuestPen,
+  type QuestSpot,
+  type RitualStep,
+} from '../quest/Quest';
 import { quests } from '../quest/QuestEngine';
 import { dayClock } from '../state/dayClock';
 import { recapFor, snapshotDay } from '../state/recap';
@@ -31,7 +40,7 @@ import { makeQuestRow, type QuestRow } from '../ui/QuestRow';
 import { makeShimmer, type Shimmer } from '../ui/shimmer';
 import { makeStickHint, type StickHint } from '../ui/StickHint';
 import { makeToolRow, preloadToolIcons, type ToolRow } from '../ui/ToolRow';
-import { COIN_ICON, GEM_ICONS } from '../ui/toolIcons';
+import { CARROT_WORLD, COIN_ICON, GEM_ICONS, TOOL_ICONS } from '../ui/toolIcons';
 import { SpeechBubble, type Speaker } from '../ui/SpeechBubble';
 import { NEEDS, nameOf } from '../voice/barks';
 import { VoiceBank } from '../voice/VoiceBank';
@@ -41,6 +50,7 @@ import {
   preloadCharacter,
   registerCharacterAnims,
 } from '../world/Character';
+import { Bunny, preloadBunnies, registerBunnyAnims, type Roam } from '../world/Bunny';
 import { SERAPHINA } from '../world/characterSheets';
 import { DebugHitboxes } from '../world/DebugHitboxes';
 import { Doorway } from '../world/Doorway';
@@ -62,7 +72,7 @@ import { CURTAIN_DEPTH, playNightfall, playSunrise } from '../world/nightfall';
 import { makeProp, nudgeProp, type Prop } from '../world/scenery';
 import { TileWorld } from '../world/TileWorld';
 import { toolBelt, type ToolId } from '../world/ToolBelt';
-import { makeLeafEmitter, Tree } from '../world/Tree';
+import { makeLeafEmitter, TINY_TREE, Tree } from '../world/Tree';
 import { isOutdoors, STARTING_ZONE, type ZoneId } from '../world/zones';
 import { playArrivalFlourish, playExitFlourish } from '../world/transition';
 import { hooks, syncAudioHook } from '../testHooks';
@@ -156,6 +166,24 @@ const BED = 'bed';
 /** What Dad calls out of the house when the light starts going. */
 const DAD_BEDTIME = 'dad_bedtime';
 
+/**
+ * The two ways the lure phase says no, and the two Hazel says how-many.
+ *
+ * Both refusals are hers rather than Hazel's, because neither is somebody
+ * talking to her: they are the world answering a button, which is the narrative
+ * voice rule in CLAUDE.md. The counting pair is Hazel's, because she is standing
+ * at the den watching them arrive — and it is indexed by how many are home, so
+ * one bunny in means "two more" and there is no third entry, because the third
+ * one home is not a count, it is the end.
+ */
+const BUNNY_ONE_AT_A_TIME = 'seraphina_one_bunny';
+const BUNNY_NEEDS_CARROT = 'seraphina_need_carrot';
+const BUNNIES_LEFT = ['hazel_two_more', 'hazel_one_more'];
+
+/** The last two things anybody says about the bunnies. Hers, at the den. */
+const HAZEL_HOME = 'hazel_bunnies_home';
+const HAZEL_COIN = 'hazel_bunny_coin';
+
 /** What clears a prop: half its picture and a bit. */
 const DOT_LIFT = 58;
 
@@ -165,12 +193,64 @@ const HEAD_GAP = 34;
 /** What clears a one-tile thing lying in the grass: its own tile, and a bit. */
 const ITEM_LIFT = TILE_SIZE + 30;
 
+/** What clears a bunny, which is about half a tile of animal. */
+const BUNNY_LIFT = TILE_SIZE * 0.9;
+
 /**
  * How long the celebration at the end of the quest runs before the next thing
  * anybody says. Long, on purpose: the summoning is the biggest moment in the
  * game and the first sentence over the top of it would take the size off it.
  */
 const SUMMONING_BEAT = 1200;
+
+/**
+ * How close she has to get to the den before the bunny at her heels is home, in
+ * tiles.
+ *
+ * Generous. There is nothing standing at the den to walk up to — it is a spot in
+ * a wood with a light on it and Hazel beside it — so "arrived" has to be a
+ * circle rather than a doorstep, and a circle a four-year-old can miss is a
+ * circle she will walk through three times wondering why nothing happened.
+ */
+const DEN_REACH = 1.8;
+
+/**
+ * How far a loose bunny will hop from the ring it came out of, in tiles.
+ *
+ * A little wider than the pen, so they read as *out* — and no wider, because a
+ * bunny that wandered off across the wood would be a thing she has to look for,
+ * and looking for one is what the carrots are.
+ */
+const LOOSE_LEASH = 3.4;
+
+/** ...and how far one settled at the den will drift from it. Barely at all. */
+const DEN_ROAM = 1.1;
+
+/**
+ * The pen's own light: how big a pool each tree gets, and how much of it.
+ *
+ * Under a third of the objective shimmer's radius and half its brightness. It
+ * says "these trees" rather than "this one thing", which is a different sentence
+ * and has to be said more quietly — sixteen objective shimmers in a five-tile
+ * ring would be a bonfire.
+ */
+const PEN_GLOW = { radius: 34, alpha: 0.26 };
+
+/** The pen's twinkle: how many particles come off the one tree whose turn it is. */
+const PEN_TWINKLE = 2;
+
+/**
+ * What the three lights of the second quest are tinted.
+ *
+ * A carrot's own orange, so the pool of light on the grass is the colour of the
+ * thing standing in it — the gems' arrangement, which is the whole of how "the
+ * green one" works. The pen and the den share a soft green: the pen because a
+ * ring of trees glowing orange would be a ring of trees on fire, and the den
+ * because it is where the wood takes them back.
+ */
+const CARROT_TINT = 0xff9d3c;
+const PEN_TINT = 0xa8e86b;
+const DEN_TINT = 0x8fe0a0;
 
 /**
  * How the bedtime recap is paced over the starfield.
@@ -269,8 +349,29 @@ export class RoomScene extends Phaser.Scene {
   /** What the active quest phase has put out in *this* zone, if anything. */
   private rocks: GemRock[] = [];
   private lying: GroundItem | null = null;
+  /** The things a `gather` phase has left lying about. Same idea, several of them. */
+  private pickups: GroundItem[] = [];
   private shimmers: Shimmer[] = [];
-  private marker: QuestMarker | null = null;
+  /**
+   * Everybody with a cloud over their head. A list, because there are two
+   * quests and neither has been taken until one of them has — see `quests.ts`.
+   */
+  private markers: QuestMarker[] = [];
+
+  /**
+   * The ring of trees a quest planted, and the light on each of them.
+   *
+   * Kept apart from `trees` and `shimmers` — which they are also in — because
+   * those two are rebuilt on every phase change and the pen is not: it goes up
+   * on the press that takes the job and stands until the night. See `buildPen`.
+   */
+  private penTrees: Tree[] = [];
+  private penGlows: { tree: Tree; glow: Shimmer }[] = [];
+  /** Which pen tree twinkles next. One at a time, round the ring. */
+  private penTwinkle = 0;
+
+  /** Three bunnies, penned, loose, following her or home. See Bunny. */
+  private bunnies: Bunny[] = [];
   private circle: SpellCircle | null = null;
   /** True while she is standing inside it — which is while it owns the buttons. */
   private inCircle = false;
@@ -377,8 +478,13 @@ export class RoomScene extends Phaser.Scene {
     this.interactables = [];
     this.rocks = [];
     this.lying = null;
+    this.pickups = [];
     this.shimmers = [];
-    this.marker = null;
+    this.markers = [];
+    this.penTrees = [];
+    this.penGlows = [];
+    this.penTwinkle = 0;
+    this.bunnies = [];
     this.circle = null;
     this.inCircle = false;
     this.faeries = null;
@@ -399,6 +505,10 @@ export class RoomScene extends Phaser.Scene {
     // And anybody the quest has moved here, who is in nobody's map file.
     for (const guest of quests.guests(this.zoneId)) preloadCharacter(this, sheetFor(guest.sheet));
     preloadToolIcons(this);
+    // One sheet, queued everywhere. A quest can put bunnies in any zone and the
+    // scene has no way of knowing which before the map is up, so the cheapest
+    // honest answer is to always have the picture.
+    preloadBunnies(this);
     if (this.mapData) TileWorld.preload(this, this.mapData);
   }
 
@@ -521,7 +631,11 @@ export class RoomScene extends Phaser.Scene {
     }
 
     // Whatever the quest has put out here, and the light on it. Before the
-    // interactable list, because a thing lying in the grass is in it.
+    // interactable list, because a thing lying in the grass is in it — and the
+    // pen before both, because its trees are solid and she is about to be stood
+    // somewhere that has to not be inside one.
+    registerBunnyAnims(this);
+    this.buildPen();
     this.buildQuestObjects();
     this.refreshInteractables();
 
@@ -585,6 +699,7 @@ export class RoomScene extends Phaser.Scene {
       loop: true,
       callback: () => {
         for (const shimmer of this.shimmers) this.sparkles.explode(4, shimmer.x, shimmer.y);
+        this.twinklePen();
       },
     });
 
@@ -690,6 +805,7 @@ export class RoomScene extends Phaser.Scene {
       this.movePlayer(seconds, pad);
       this.checkDoorways();
       this.watchTheCircle();
+      this.watchQuestSpots();
 
       // Inside the circle the spell has the face buttons and nothing else does.
       // Everywhere else — which is everywhere in the world but one ring on one
@@ -714,6 +830,7 @@ export class RoomScene extends Phaser.Scene {
     this.dusk?.update(delta, this.player.x, this.player.y);
     this.dadCallsHer();
     this.faeries?.update(delta, this.player.x, this.player.y);
+    for (const bunny of this.bunnies) bunny.update(delta, this.player);
     this.player.setDepth(this.player.y);
     this.world.revealBehind(this.player.x, this.player.y);
     this.updateHitboxes();
@@ -745,6 +862,9 @@ export class RoomScene extends Phaser.Scene {
     // summoned. The only honest way to ask "are they still with her" after a
     // doorway, which is the whole claim they exist to make.
     hooks.faeries = this.faeries?.positions ?? [];
+    // And where the bunnies are, and what each is doing. Every frame, because
+    // three of the four things a bunny can be doing involve moving.
+    hooks.bunnies = this.bunnies.map((b) => ({ id: b.id, x: b.x, y: b.y, state: b.state }));
     this.syncBubbleHooks();
   }
 
@@ -916,11 +1036,17 @@ export class RoomScene extends Phaser.Scene {
       phase: quests.phase?.id ?? null,
       instruction: quests.instruction,
       giver: quests.giver,
-      /** Who is wearing a thought bubble right now, or null. */
-      offering: this.npcs.find((npc) => quests.offerFrom(npc.id) !== null)?.id ?? null,
-      marker: this.marker !== null,
+      /**
+       * Everybody wearing a thought bubble right now, and how many are actually
+       * built. A list because there are two quests and neither is taken until
+       * one of them is; empty the moment either is.
+       */
+      offers: this.npcs.filter((npc) => quests.offerFrom(npc.id) !== null).map((n) => n.id),
+      markers: this.markers.length,
       slots: quests.slots.map((slot) => ({ ...slot })),
       held: [...quests.held],
+      /** The bunny at her heels, or null. Never more than one. */
+      following: quests.following,
       /**
        * The ritual, from the outside. `circle` is whether the ring is actually
        * on the floor of this zone, `inCircle` whether she is standing in it —
@@ -935,6 +1061,12 @@ export class RoomScene extends Phaser.Scene {
         ...(this.lying
           ? [{ id: this.lying.id, x: this.lying.x, y: this.lying.y, broken: false }]
           : []),
+        ...this.pickups.map((carrot) => ({
+          id: carrot.id,
+          x: carrot.x,
+          y: carrot.y,
+          broken: false,
+        })),
         ...this.rocks.map((rock) => ({
           id: rock.id,
           x: rock.x,
@@ -1404,11 +1536,15 @@ export class RoomScene extends Phaser.Scene {
    */
   private tookTheJob(offerLine: string): void {
     playFanfare();
-    this.marker?.destroy();
-    this.marker = null;
+    for (const marker of this.markers) marker.destroy();
+    this.markers = [];
     this.sparkles.explode(60, this.player.x, this.player.y - 40);
     hooks.sparkles += 1;
 
+    // A quest may bring its own furniture with it. The pen goes up on this
+    // press and not before — she has to be able to walk that clearing all
+    // morning and find nothing in it.
+    this.buildPen();
     this.buildQuestObjects();
     this.refreshInteractables();
     this.refreshQuestHud();
@@ -1462,7 +1598,7 @@ export class RoomScene extends Phaser.Scene {
 
     const item = itemOf(phase);
     if (item && item.zone === this.zoneId && quests.itemWaiting) {
-      this.lying = new GroundItem(this, item.id, item);
+      this.lying = new GroundItem(this, item.id, TOOL_ICONS[item.id], item);
       this.shimmers.push(makeShimmer(this, this.lying.x, this.lying.y - TILE_SIZE / 2, 0xfff3b0));
     }
 
@@ -1477,6 +1613,34 @@ export class RoomScene extends Phaser.Scene {
       else this.shimmers.push(makeShimmer(this, rock.x, rock.midY, GEM_ICONS[spot.id].tint));
     }
 
+    // The carrots. The stones' arrangement exactly, minus the hammer: one that
+    // has been picked up is simply not built, because there is nothing left of
+    // it to see — where a cracked stone still has its own broken picture.
+    for (const spot of pickupsOf(phase)) {
+      if (spot.zone !== this.zoneId || !quests.waiting(spot.id)) continue;
+      const carrot = new GroundItem(this, spot.id, CARROT_WORLD, spot);
+      this.pickups.push(carrot);
+      this.shimmers.push(
+        makeShimmer(this, carrot.x, carrot.y - TILE_SIZE / 2, CARROT_TINT),
+      );
+    }
+
+    // And the den, which is a place rather than a thing — so the only mark on it
+    // is the light, and Hazel standing in it.
+    const lure = lureOf(phase);
+    if (lure && lure.den.zone === this.zoneId) {
+      this.shimmers.push(
+        makeShimmer(this, lure.den.x * TILE_SIZE, lure.den.y * TILE_SIZE, DEN_TINT),
+      );
+    }
+
+    // The walk out to the pen: the ring's own trees glow all quest long, and
+    // this is the brighter light in the middle of them that says *that* is where
+    // she is going. It goes when the phase does.
+    const walk = walkToOf(phase);
+    if (walk && walk.zone === this.zoneId) {
+      this.shimmers.push(makeShimmer(this, walk.x * TILE_SIZE, walk.y * TILE_SIZE, DEN_TINT));
+    }
   }
 
   private clearQuestObjects(): void {
@@ -1484,20 +1648,173 @@ export class RoomScene extends Phaser.Scene {
     this.shimmers = [];
     this.lying?.destroy();
     this.lying = null;
+    for (const carrot of this.pickups) carrot.destroy();
+    this.pickups = [];
     // The rocks' own sprites go with the scene; only the list has to be dropped.
     this.rocks = [];
+  }
+
+  // --- the pen and the bunnies ----------------------------------------------
+
+  /**
+   * The ring of tiny trees, and the three bunnies inside it.
+   *
+   * Built once per visit to the zone and never again, which is what keeps it out
+   * of `buildQuestObjects`: that runs on every phase change and every one of
+   * these is a solid tile and a sprite, so rebuilding it four times an afternoon
+   * would leave four rings standing in the same clearing. The press that takes
+   * the job calls this itself; every other caller is a zone opening.
+   *
+   * **The trees are per placement, like every other choppable in the game.** A
+   * tree the map file has never heard of is still a Tree: it is given the cells
+   * it makes solid, the cells felling it hands back, and the memory of what she
+   * already did to it — the same three things the generator writes down for the
+   * wood, worked out here because the generator was not there when this was
+   * planted. What is different is only its `TreeStyle`.
+   */
+  private buildPen(): void {
+    const pen = quests.pen;
+    if (this.penTrees.length || !pen || pen.zone !== this.zoneId) return;
+
+    const felled = session.trees(this.zoneId);
+    const edge = (col: number, row: number) =>
+      col === pen.x || row === pen.y || col === pen.x + pen.size - 1 || row === pen.y + pen.size - 1;
+
+    for (let row = pen.y; row < pen.y + pen.size; row++) {
+      for (let col = pen.x; col < pen.x + pen.size; col++) {
+        if (!edge(col, row)) continue;
+        // Never onto something that is already solid. The clearing was chosen
+        // because nothing is — see PEN in `quests.ts` — and this is what makes
+        // that a fact rather than a claim: a ring that lands on a trunk simply
+        // has a gap in it, which is a wonky pen and not a broken world.
+        if (this.world.solidCell(col, row)) continue;
+
+        const id = `pen_${this.penTrees.length}`;
+        const cells = { x: col, y: row, w: 1, h: 1 };
+        // The picture hangs two tiles above its own trunk and half a tile to the
+        // left of it, which is where `blocks` on `oakSmall` says the trunk is.
+        // Written out rather than imported: `footing.ts` is the generator's, and
+        // the game may not reach into `tools/`.
+        const tree = new Tree(
+          this,
+          this.world,
+          {
+            id,
+            key: 'oakSmall',
+            x: (col - 0.5) * TILE,
+            y: (row - 2) * TILE,
+            ax: Math.round((col + 0.5) * TILE),
+            ay: Math.round((row + 0.5) * TILE),
+            chop: true,
+            cells,
+            clears: [[col, row]],
+          },
+          { leaves: this.leaves, sparkles: this.sparkles },
+          felled[id],
+          TINY_TREE,
+        );
+
+        // Solid from the moment it is planted — unless she has already knocked
+        // this one all the way out, in which case the Tree has just handed the
+        // cell back and blocking it now would be taking it away again.
+        if (tree.state !== 'gone') this.world.block([[col, row]]);
+
+        this.penTrees.push(tree);
+        this.trees.push(tree);
+        if (tree.state === 'standing') this.lightPenTree(tree);
+      }
+    }
+
+    this.syncWorldHooks();
+    this.buildBunnies(pen);
+  }
+
+  /**
+   * Three bunnies, put wherever the quest says they are by now.
+   *
+   * Nothing about a bunny is remembered except which one is following her, so
+   * this is where the other three states are *worked out* rather than restored:
+   * home if its box is filled, following if the store says so, loose once the
+   * ring is open, and penned until then. Which is why walking through a doorway
+   * costs a bunny nothing — there was never anything to lose.
+   */
+  private buildBunnies(pen: QuestPen): void {
+    const den = quests.den;
+    const loose = quests.bunniesLoose;
+    // Inside the ring is what it encloses; out of it is a little wider than the
+    // ring itself. Both are the same point, which is the middle of the pen.
+    const inside = this.penRoam((pen.size - 2) / 2)!;
+    const outside = this.penRoam(LOOSE_LEASH)!;
+    const atDen = den
+      ? { x: den.x * TILE_SIZE, y: den.y * TILE_SIZE, r: DEN_ROAM * TILE_SIZE }
+      : null;
+
+    for (const spot of pen.bunnies) {
+      if (atDen && quests.atHome(spot.id)) {
+        this.bunnies.push(new Bunny(this, spot.id, atDen, 'home', atDen));
+        continue;
+      }
+
+      const following = quests.following === spot.id;
+      const start = loose
+        ? { x: outside.x, y: outside.y }
+        : { x: spot.x * TILE_SIZE, y: spot.y * TILE_SIZE };
+      const bunny = new Bunny(
+        this,
+        spot.id,
+        start,
+        following ? 'following' : loose ? 'loose' : 'penned',
+        loose ? outside : inside,
+      );
+      // A follower is standing wherever she is, because that is where it was
+      // when she walked through the door — the faeries' rule, and the only
+      // answer that is not "your bunny is back in the wood".
+      if (following) bunny.placeAt(this.player.x, this.player.y);
+      this.bunnies.push(bunny);
+    }
+  }
+
+  /** The quiet light on one pen tree: "this is one of the important ones". */
+  private lightPenTree(tree: Tree): void {
+    const glow = makeShimmer(this, tree.x, tree.y - TILE_SIZE / 2, PEN_TINT, PEN_GLOW);
+    this.penGlows.push({ tree, glow });
+  }
+
+  /**
+   * One tree of the ring twinkles, and the next one twinkles next time.
+   *
+   * Round the ring rather than all sixteen at once: sixteen bursts a second is
+   * the objective sparkle turned up, and what this has to say is quieter than
+   * that. It also drops the light off anything that is no longer a standing
+   * tree, which is the one place a felled pen tree's glow gets tidied away.
+   */
+  private twinklePen(): void {
+    for (let i = this.penGlows.length - 1; i >= 0; i--) {
+      const lit = this.penGlows[i]!;
+      if (lit.tree.state === 'standing') continue;
+      lit.glow.destroy();
+      this.penGlows.splice(i, 1);
+    }
+    if (!this.penGlows.length) return;
+
+    this.penTwinkle = (this.penTwinkle + 1) % this.penGlows.length;
+    const lit = this.penGlows[this.penTwinkle]!;
+    this.sparkles.explode(PEN_TWINKLE, lit.glow.x, lit.glow.y);
   }
 
   /** The row of slots, the yellow dot, and the bubble over the boy next door. */
   private refreshQuestHud(): void {
     this.questRow.show(quests.slots);
 
-    const wants = this.npcs.find((npc) => quests.offerFrom(npc.id) !== null);
-    if (wants && !this.marker) {
-      this.marker = makeQuestMarker(this, wants.x, wants.y, wants.headHeight + HEAD_GAP + 26);
-    } else if (!wants && this.marker) {
-      this.marker.destroy();
-      this.marker = null;
+    // A cloud over everybody who has something to ask. There are two of them
+    // before either job is taken and none of them after — see `quests.ts` for
+    // why two is allowed and one active quest still is not.
+    const wants = this.npcs.filter((npc) => quests.offerFrom(npc.id) !== null);
+    if (wants.length !== this.markers.length) {
+      for (const marker of this.markers) marker.destroy();
+      this.markers = wants.map((npc) =>
+        makeQuestMarker(this, npc.x, npc.y, npc.headHeight + HEAD_GAP + 26),
+      );
     }
     this.syncQuestHooks();
   }
@@ -1551,6 +1868,28 @@ export class RoomScene extends Phaser.Scene {
             },
           ]
         : []),
+      ...this.pickups.map((carrot) => ({
+        id: carrot.id,
+        x: carrot.x,
+        y: carrot.y,
+        lift: ITEM_LIFT,
+        press: () => this.pickUpCarrot(carrot),
+      })),
+      // And the bunnies, but only while the job is to bring them home. They hop
+      // about loose for a whole phase before that with nothing to press them
+      // for, and a green dot over one then would be a promise the game has not
+      // got round to keeping.
+      ...(lureOf(quests.phase)
+        ? this.bunnies
+            .filter((bunny) => bunny.taggable)
+            .map((bunny) => ({
+              id: bunny.id,
+              x: bunny.x,
+              y: bunny.y,
+              lift: BUNNY_LIFT,
+              press: () => this.tagBunny(bunny),
+            }))
+        : []),
     ];
 
     hooks.interactables = this.interactables.map(({ id, x, y }) => ({ id, x, y }));
@@ -1566,33 +1905,245 @@ export class RoomScene extends Phaser.Scene {
    * a thing she will want and can therefore be trusted to work out.
    */
   private pickUp(): void {
-    const item = this.lying;
-    if (!item) return;
+    const lying = this.lying;
+    // Which *tool* it is comes off the quest rather than off the sprite: a
+    // GroundItem is any small thing in the grass now — a carrot is one — and
+    // only the phase knows that this particular one goes in the tool row.
+    const tool = itemOf(quests.phase)?.id;
+    if (!lying || !tool) return;
 
-    item.collect();
+    lying.collect();
     this.lying = null;
     this.refreshInteractables();
 
-    toolBelt.give(item.id);
-    toolBelt.hold(item.id);
-    session.grant(item.id);
+    toolBelt.give(tool);
+    toolBelt.hold(tool);
+    session.grant(tool);
     this.toolRow.refresh();
     this.toolRow.bounce(toolBelt.heldSlot);
     this.syncToolHooks();
 
     playPickup();
-    this.sparkles.explode(48, item.x, item.y - TILE_SIZE / 2);
+    this.sparkles.explode(48, lying.x, lying.y - TILE_SIZE / 2);
     hooks.sparkles += 1;
 
     // She names it as she straightens up. One line and not two, even though this
     // also put a new tool in her hand: a pickup does not go through the blue
     // button, so the switch bark never gets a turn — the two paths are separate
     // by construction rather than by a flag one of them has to remember to set.
-    this.bark(nameOf(item.id));
+    this.bark(nameOf(tool));
 
-    const { complete } = quests.finish(item.id, false);
+    const { complete } = quests.finish(tool, false);
     if (complete) this.nextPhase();
     else this.syncQuestHooks();
+  }
+
+  // --- the bunny rescue ------------------------------------------------------
+
+  /**
+   * A carrot, off the ground and into her pocket.
+   *
+   * `pickUp`'s sibling and deliberately not the same method: that one puts a
+   * *tool* in her hand and lights a box on the tool row, and a carrot is neither
+   * — it is a thing she is carrying for a quest, which is what `keep` on
+   * `finish` has always meant. What they do share is the grammar she can see:
+   * walk up, green dot, press, it leaps and spins away, she says its name.
+   */
+  private pickUpCarrot(carrot: GroundItem): void {
+    carrot.collect();
+    this.pickups = this.pickups.filter((c) => c !== carrot);
+    // Its light goes with it. Everything else on the row keeps its own.
+    const lit = this.shimmers.find((s) => s.x === carrot.x);
+    if (lit) {
+      lit.destroy();
+      this.shimmers = this.shimmers.filter((s) => s !== lit);
+    }
+    this.refreshInteractables();
+
+    playPickup();
+    this.sparkles.explode(48, carrot.x, carrot.y - TILE_SIZE / 2);
+    hooks.sparkles += 1;
+    this.faeries?.cheer();
+    this.bark(nameOf('carrot'));
+
+    const { complete } = quests.finish(carrot.id);
+    this.questRow.land(carrot.id);
+    this.refreshQuestHud();
+    if (complete) this.nextPhase();
+  }
+
+  /**
+   * She pressed green at a bunny. One of three things happens and none of them
+   * is nothing.
+   *
+   * The two refusals are the whole reason this reads as a rule rather than as a
+   * bug: a second bunny while one is already following gets a laugh and a line,
+   * and a bunny with no carrot in her pocket gets told where the carrots are.
+   * Nothing is taken either way and nothing is blocked — there is no button in
+   * this game that answers with silence. See CLAUDE.md, "No fail states".
+   */
+  private tagBunny(bunny: Bunny): void {
+    const answer = quests.tag(bunny.id);
+
+    if (answer !== 'following') {
+      playFizzle();
+      playGiggle();
+      this.sparkles.explode(12, bunny.x, bunny.y - TILE_SIZE / 2);
+      hooks.sparkles += 1;
+      this.bark(answer === 'busy' ? BUNNY_ONE_AT_A_TIME : BUNNY_NEEDS_CARROT);
+      return;
+    }
+
+    bunny.follow();
+    playSparkleChime();
+    this.sparkles.explode(36, bunny.x, bunny.y - TILE_SIZE / 2);
+    hooks.sparkles += 1;
+    this.faeries?.cheer();
+    this.bark(nameOf('bunny'));
+    this.refreshInteractables();
+    this.syncQuestHooks();
+  }
+
+  /**
+   * The one at her heels is home.
+   *
+   * Fired by walking into the den with a bunny behind her, which is the only
+   * thing this phase ever asks: there is no button to press at the far end,
+   * because a four-year-old who has walked a bunny across a wood has already
+   * done the thing.
+   */
+  private dropOffBunny(den: QuestSpot): void {
+    const got = quests.deposit();
+    if (!got) return;
+
+    const at = { x: den.x * TILE_SIZE, y: den.y * TILE_SIZE };
+    this.bunnies.find((b) => b.id === got.id)?.settle({ ...at, r: DEN_ROAM * TILE_SIZE });
+
+    playSparkleChime();
+    this.sparkles.explode(60, at.x, at.y - TILE_SIZE / 2);
+    this.cameras.main.shake(160, 0.004);
+    hooks.sparkles += 1;
+    this.faeries?.cheer();
+
+    this.refreshQuestHud();
+    this.questRow.land(got.id);
+    this.refreshInteractables();
+
+    if (got.complete) {
+      this.bunniesAllHome(at);
+      return;
+    }
+
+    // ...and Hazel counts what is left, out loud, in a sentence that was cut
+    // knowing the number. There is no synthesiser in this game and there never
+    // will be, so "two more" and "one more" are two clips and a lookup — see
+    // `state/recap.ts` for the same rule from the other end.
+    const counting = BUNNIES_LEFT[got.count - 1];
+    if (counting) this.time.delayedCall(700, () => this.sayFrom(quests.giver, counting));
+  }
+
+  /**
+   * All three are home. The end of the second quest.
+   *
+   * The state settles here and only the flourish waits, which is the split the
+   * first quest's coin established: walking away in the middle of the
+   * celebration cannot cost her anything, because by this line everything has
+   * already happened. See `summon`, and `RoomScene.payUp`.
+   */
+  private bunniesAllHome(at: { x: number; y: number }): void {
+    playFanfare();
+    playSummon();
+    this.sparkles.explode(160, at.x, at.y - TILE_SIZE / 2);
+    this.cameras.main.shake(420, 0.010);
+    hooks.sparkles += 1;
+
+    quests.advance();
+    this.refreshQuestHud();
+    this.refreshInteractables();
+    this.syncQuestHooks();
+
+    const earned = session.addCoin();
+    this.syncCoinHooks();
+
+    this.time.delayedCall(SUMMONING_BEAT, () => {
+      if (!this.scene.isActive() || this.leaving) return;
+      this.sayFrom('hazel', HAZEL_HOME);
+      this.sayNext(HAZEL_HOME, 'hazel', HAZEL_COIN, () => this.payUp(earned, 'hazel'));
+    });
+  }
+
+  /**
+   * One of the ring's trees has gone over. Fills a box, and on the fourth one
+   * lets the bunnies out through the hole she has just made.
+   *
+   * Any four of the sixteen, in any order. The gap is the tree that just fell,
+   * which is what the three of them aim for as they leave — see `Bunny.release`.
+   * Nothing here checks whether they *can* get out: they have no collision and
+   * never did, and a pen a bunny could genuinely be trapped in would be a fail
+   * state with fur on it.
+   */
+  private penFell(tree: Tree): void {
+    if (!this.penTrees.includes(tree)) return;
+    const got = quests.fell();
+    if (!got) return;
+
+    this.refreshQuestHud();
+    this.questRow.land(got.id);
+    if (!got.complete) return;
+
+    const loose = this.penRoam(LOOSE_LEASH);
+    if (loose) {
+      for (const bunny of this.bunnies) bunny.release({ x: tree.x, y: tree.y }, loose);
+    }
+    this.nextPhase();
+  }
+
+  /** The middle of the ring and a radius, in world pixels. See `Roam`. */
+  private penRoam(tiles: number): Roam | null {
+    const pen = quests.pen;
+    if (!pen) return null;
+    return {
+      x: (pen.x + pen.size / 2) * TILE_SIZE,
+      y: (pen.y + pen.size / 2) * TILE_SIZE,
+      r: tiles * TILE_SIZE,
+    };
+  }
+
+  /**
+   * The two things the scene watches her walk into: a spot a phase named, and
+   * the den with a bunny behind her.
+   *
+   * Both are places rather than objects, which is why neither is an
+   * interactable and why this is a per-frame proximity test — the same shape as
+   * `watchTheCircle`, and cheap for the same reason: nearly always a no, and
+   * never asked at all unless a quest is on.
+   */
+  private watchQuestSpots(): void {
+    const phase = quests.phase;
+
+    const walk = walkToOf(phase);
+    if (walk && walk.zone === this.zoneId) {
+      const away = Phaser.Math.Distance.Between(
+        this.player.x,
+        this.player.y,
+        walk.x * TILE_SIZE,
+        walk.y * TILE_SIZE,
+      );
+      // Self-guarding: getting there moves the phase on, and the next frame's
+      // `walkToOf` is null.
+      if (away <= walk.r * TILE_SIZE) this.nextPhase();
+      return;
+    }
+
+    const lure = lureOf(phase);
+    if (!lure || lure.den.zone !== this.zoneId || !quests.following) return;
+    const away = Phaser.Math.Distance.Between(
+      this.player.x,
+      this.player.y,
+      lure.den.x * TILE_SIZE,
+      lure.den.y * TILE_SIZE,
+    );
+    if (away <= DEN_REACH * TILE_SIZE) this.dropOffBunny(lure.den);
   }
 
   /**
@@ -1823,7 +2374,7 @@ export class RoomScene extends Phaser.Scene {
       this.sayFrom('sneak', 'sneak_faeries_real');
       this.sayNext('sneak_faeries_real', 'hazel', 'hazel_pretty', () => {
         this.sayNext('hazel_pretty', 'sneak', 'sneak_thanks', () => {
-          this.sayNext('sneak_thanks', 'sneak', 'sneak_coin', () => this.payUp(earned));
+          this.sayNext('sneak_thanks', 'sneak', 'sneak_coin', () => this.payUp(earned, 'sneak'));
         });
       });
     });
@@ -1842,9 +2393,13 @@ export class RoomScene extends Phaser.Scene {
    * she already had three, in which case this bounces one off a full pocket
    * instead — the honest picture of what just happened, and not a failure. The
    * store was told either way, so nothing here can get the count wrong.
+   *
+   * `from` is whose hand it comes out of. There are two quests and two people
+   * who finish one, and the coin is thrown from wherever that person is
+   * standing — which for a guest is not where the map put them.
    */
-  private payUp(earned: boolean): void {
-    const from = this.npcs.find((npc) => npc.id === 'sneak');
+  private payUp(earned: boolean, fromId: string): void {
+    const from = this.npcs.find((npc) => npc.id === fromId);
     if (!earned) {
       this.coinBouncesOff();
       return;
@@ -2427,11 +2982,18 @@ export class RoomScene extends Phaser.Scene {
       // count of its own: an unchoppable tree is always on its first blow, and
       // that is exactly what it should keep sounding like.
       playChopThunk(before === 'stump' ? 1 : 0);
-      this.cameras.main.shake(110, bites && tree.choppable ? 0.004 : 0.0025);
+      this.cameras.main.shake(
+        110,
+        (bites && tree.choppable ? 0.004 : 0.0025) * tree.style.juice,
+      );
     } else if (what === 'fell') {
       playTreeCrash();
-      this.cameras.main.shake(360, 0.011);
+      this.cameras.main.shake(360 * tree.style.juice, 0.011 * tree.style.juice);
       hooks.sparkles += 1;
+      // A tree of the ring coming down is also a box on the quest row filling
+      // in. Asked of the pen rather than of the tree, because a tree does not
+      // know what a quest is and this is the only place that has to.
+      this.penFell(tree);
     } else {
       playStumpPop();
       this.cameras.main.shake(140, 0.005);

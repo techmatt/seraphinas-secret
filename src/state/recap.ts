@@ -34,6 +34,8 @@ import { session } from './session';
 export interface DayFacts {
   /** Three lights came out of the fire and are following her. */
   faeries: boolean;
+  /** Three bunnies are out of the ring and home at the den. */
+  bunnies: boolean;
   /** She took a job and the day ended before the job did. */
   onAnErrand: boolean;
   /**
@@ -72,6 +74,11 @@ export function snapshotDay(): DayFacts {
 
   return {
     faeries: data.run.faeries,
+    // A finished quest is the only thing that says the bunnies are home, and
+    // which quest matters — an afternoon that summoned faeries did not rescue
+    // anything. Read this way rather than off a counter for the file's own
+    // reason: the store is already the complete record of the day.
+    bunnies: data.run.quest?.id === 'bunny' && quests.finished,
     onAnErrand: data.run.quest !== null && !quests.finished,
     stones: data.run.faeries || data.run.items.length > 0,
     trees,
@@ -103,12 +110,17 @@ export const MAX_EVENTS = 2;
  * in it; and a tree comes last because chopping one is a thing she can do a
  * dozen times in an afternoon.
  *
- * A finished quest is deliberately *not* in here. Finishing the faerie quest and
- * summoning the faeries are the same instant — see `summon` — so a line for each
- * would spend both of a day's two slots saying one thing twice.
+ * A finished quest is deliberately *not* in here as a line of its own. Finishing
+ * the faerie quest and summoning the faeries are the same instant — see
+ * `summon` — so a line for each would spend both of a day's two slots saying one
+ * thing twice. The bunny line is the same instant for the other quest, which is
+ * why it sits beside the faerie line rather than under a heading of its own:
+ * they are the two ways an afternoon can have finished something, and neither
+ * can be true on the same day as the other.
  */
 const EVENTS: { line: string; when: (day: DayFacts) => boolean }[] = [
   { line: 'seraphina_recap_faeries', when: (day) => day.faeries },
+  { line: 'seraphina_recap_bunnies', when: (day) => day.bunnies },
   { line: 'seraphina_recap_errand', when: (day) => day.onAnErrand },
   { line: 'seraphina_recap_stones', when: (day) => day.stones },
   { line: 'seraphina_recap_trees', when: (day) => day.trees > 0 },

@@ -14,8 +14,7 @@
 
 import Phaser from 'phaser';
 import { TILE, WORLD_SCALE } from '../config';
-import { TOOL_ICONS, type IconDef } from '../ui/toolIcons';
-import type { ToolId } from './ToolBelt';
+import type { IconDef } from '../ui/toolIcons';
 
 /** How far it bobs, and how long a bob takes. Small: this is a glint, not a jig. */
 const BOB = 5;
@@ -26,11 +25,17 @@ export class GroundItem {
 
   constructor(
     private readonly scene: Phaser.Scene,
-    readonly id: ToolId,
+    /** Progress key, and what the green dot over it is about. */
+    readonly id: string,
+    /**
+     * Which 16-pixel cell to draw. Handed in rather than looked up by id: a
+     * hammer is drawn from the tool sheet and a carrot from the crop sheet, and
+     * one table keyed by id would have to know about both. See `toolIcons.ts`.
+     */
+    icon: IconDef,
     /** Where it lies, in tiles: the point she walks up to. */
     private readonly tile: { x: number; y: number },
   ) {
-    const icon: IconDef = TOOL_ICONS[id];
     if (!scene.textures.exists(icon.file)) return;
 
     const sprite = scene.add

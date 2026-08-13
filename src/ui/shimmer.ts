@@ -28,13 +28,27 @@ export interface Shimmer {
   destroy: () => void;
 }
 
+/**
+ * How loud one of these is. The default is the objective's, which is the only
+ * volume there was until a quest wanted to mark sixteen trees at once — see
+ * `PEN_GLOW` in RoomScene. A quieter shimmer is still the same sentence, said
+ * about a group instead of about a thing.
+ */
+export interface ShimmerLevel {
+  radius: number;
+  alpha: number;
+}
+
+const OBJECTIVE: ShimmerLevel = { radius: RADIUS, alpha: 0.5 };
+
 export function makeShimmer(
   scene: Phaser.Scene,
   x: number,
   y: number,
   tint: number,
+  level: ShimmerLevel = OBJECTIVE,
 ): Shimmer {
-  const glow = makeGlow(scene, x, y, RADIUS, tint, 0.5)
+  const glow = makeGlow(scene, x, y, level.radius, tint, level.alpha)
     // On the floor, under everything standing on it — so the thing it is about
     // is drawn over its own light rather than washed out by it.
     .setDepth(DEPTH.doorLight);
@@ -42,7 +56,9 @@ export function makeShimmer(
   scene.tweens.add({
     targets: glow,
     scale: { from: glow.scale * 0.8, to: glow.scale * 1.18 },
-    alpha: { from: 0.3, to: 0.7 },
+    // The breath is a fraction of whatever it was set to, so a quiet shimmer
+    // breathes rather than brightening back up to the loud one's range.
+    alpha: { from: level.alpha * 0.6, to: level.alpha * 1.4 },
     duration: BREATH_MS,
     yoyo: true,
     repeat: -1,

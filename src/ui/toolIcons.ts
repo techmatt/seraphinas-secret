@@ -56,6 +56,30 @@ const ORE_COLUMNS = 8;
  */
 const UI_ICONS = 'assets/Cute_Fantasy_UI/UI/UI_Icons.png';
 
+/**
+ * `Crops.png`: seven columns by twenty-two crops, two 16-pixel rows each. Per
+ * crop the row runs sign, seed jar, sprout, two growing stages, the mature plant
+ * standing in the ground, and the harvested item with a cream outline — so a
+ * crop's world form and its pocket form are two cells of one row.
+ *
+ * It divides exactly on the 16-pixel grid, seven wide, which is the only reason
+ * one frame number does for it: the carrot in the ground is row 5, column 5.
+ */
+const CROPS = 'assets/Cute_Fantasy/Crops/Crops.png';
+
+/**
+ * The food icons, eight columns by twelve rows of 16 px. The outlined set, for
+ * the reason everything else here is outlined: these are drawn on a dark box and
+ * on a dirt road, and the cream edge is what stops them being part of either.
+ */
+const FOOD_ICONS = 'assets/Cute_Fantasy/Icons/Outline/Food_Icons_Outline.png';
+
+/**
+ * The resource icons, six by six. Row 4 column 0 is a cut log with its rings
+ * showing, which is this game's picture of "a tree came down".
+ */
+const RESOURCE_ICONS = 'assets/Cute_Fantasy/Icons/Outline/Resources_Icons_Outline.png';
+
 /** One icon on a sheet: the file, and which 16-pixel slot along it. */
 export interface IconDef {
   /** Phaser texture key. One key per sheet; the slot is a frame inside it. */
@@ -73,6 +97,28 @@ export const TOOL_ICONS = {
 
 /** The one coin picture: gold, whole, 16x16. Both a filled slot and a ghost. */
 export const COIN_ICON: IconDef = { file: UI_ICONS, slot: 6 };
+
+/**
+ * A carrot, twice: one standing in the ground and one in her pocket.
+ *
+ * Two sheets rather than the two cells of `Crops.png` the pack pairs, because
+ * the pocket half is drawn for a box and the ground half is drawn for the
+ * ground. The outlined food icon is also on a sheet the HUD already reaches for,
+ * so it costs nothing that the crop sheet's own icon would not.
+ */
+export const CARROT_WORLD: IconDef = { file: CROPS, slot: 5 * 7 + 5 };
+export const CARROT_ICON: IconDef = { file: FOOD_ICONS, slot: 4 * 8 + 2 };
+
+/**
+ * The log: what a felled tiny tree puts in a box on the quest row.
+ *
+ * The row draws the thing she is collecting, and what the pen phase collects is
+ * *falls* — so the box holds what a fall leaves, not what she is hitting. It is
+ * also the only picture in the pack that reads as "wood" at 48 pixels; a tiny
+ * tree at that size is a green smudge, and the box next to it would be a tiny
+ * tree that had not been felled yet, which is the opposite of what it means.
+ */
+export const LOG_ICON: IconDef = { file: RESOURCE_ICONS, slot: 4 * 6 + 0 };
 
 /**
  * The three magic stones, by the names Sneak calls them.
@@ -116,5 +162,8 @@ export const ICON_SHEETS = [
     ...Object.values(TOOL_ICONS).map((i) => i.file),
     ...Object.values(GEM_ICONS).map((i) => i.file),
     COIN_ICON.file,
+    CARROT_WORLD.file,
+    CARROT_ICON.file,
+    LOG_ICON.file,
   ]),
 ];

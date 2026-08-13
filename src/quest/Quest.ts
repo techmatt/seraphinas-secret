@@ -43,6 +43,43 @@ export interface QuestRock {
 }
 
 /**
+ * A spot in the world a quest cares about: a thing lying in the grass, or a
+ * place to walk to. In tiles, like everything a quest writes down.
+ *
+ * The general form of `QuestRock` and `QuestItem`, which those two are not
+ * because each of them carries an id that means something else as well — a gem's
+ * id picks its colour, an item's picks the box it goes into on the tool row. A
+ * carrot's id is only a progress key, and a den has no id at all worth having.
+ */
+export interface QuestSpot {
+  id: string;
+  zone: string;
+  x: number;
+  y: number;
+}
+
+/**
+ * A ring of trees a quest plants, and what is inside it.
+ *
+ * The pen exists only while the quest does: it is spawned on the press that
+ * takes the job, and it is not in `content/world/` for the same reason the
+ * stones are not — the world is the same world without it, and the build's
+ * reachability gate has no business being asked about something that is not
+ * there most of the time. `quest.spec` stands in, over the live collision grid.
+ *
+ * `x, y` is the ring's top-left corner and `size` is how many tiles across it
+ * is, so the trees are its border and what they enclose is `size - 2` square.
+ */
+export interface QuestPen {
+  zone: string;
+  x: number;
+  y: number;
+  size: number;
+  /** Where each bunny starts, inside the ring. In tiles. */
+  bunnies: { id: string; x: number; y: number }[];
+}
+
+/**
  * The three buttons a ritual asks for, named by the only thing about them a
  * four-year-old can use: their colour.
  *
@@ -90,7 +127,18 @@ export interface QuestGuest {
  *    fills its own slot on the quest row.
  *  - **travel** — go somewhere. It ends the moment she is standing in the zone
  *    it names, which is a thing the scene notices on its way up rather than
- *    anything she has to do when she gets there.
+ *    anything she has to do when she gets there. With `at`, it is a *spot*
+ *    inside that zone instead, and the scene watches her walk into it — which
+ *    is the only difference, and it is why it is the same kind: "go there" is
+ *    one instruction whether the there is a cave or a clearing.
+ *  - **fell** — knock over this many of the trees the quest planted. Any of
+ *    them, in any order; a fall fills a box and the stumps can be left standing.
+ *  - **gather** — several things lying in the grass, picked up with the green
+ *    button in any order. `collect`'s twin for a thing that is not hit with
+ *    anything: the row and the freedom are the same, and only the verb differs.
+ *  - **lure** — bring somebody home, one at a time, and one at a time is
+ *    *enforced*: tagging a second while the first is following is a funny
+ *    nothing. The quest names who and where; how a bunny follows is the scene's.
  *  - **ritual** — a fixed order of coloured buttons, pressed standing in the
  *    ring on the floor of `zone`. The one goal that takes the face buttons
  *    over, and only in there. A quest does not say where the ring is or how big
@@ -102,8 +150,11 @@ export interface QuestGuest {
 export type PhaseGoal =
   | { kind: 'fetch'; item: QuestItem }
   | { kind: 'collect'; rocks: QuestRock[] }
-  | { kind: 'travel'; zone: string }
+  | { kind: 'travel'; zone: string; at?: { x: number; y: number; r: number } }
   | { kind: 'ritual'; zone: string; steps: RitualStep[] }
+  | { kind: 'fell'; falls: string[] }
+  | { kind: 'gather'; items: QuestSpot[] }
+  | { kind: 'lure'; bunnies: string[]; den: QuestSpot }
   | { kind: 'park' };
 
 export interface QuestPhase {
@@ -141,6 +192,16 @@ export interface Quest {
    * person, and never both on screen at once.
    */
   gather?: { during: string[]; guests: QuestGuest[] };
+  /**
+   * A ring of trees this quest plants, and what it pens in.
+   *
+   * It is out the moment the job is taken and stays out until the night resets
+   * the quest — through the phase that fells four of it, and past the end of the
+   * quest, because a ring of stumps in a clearing is the afternoon she had and
+   * tidying it away the instant the last bunny is home would be the game taking
+   * it back. See `QuestPen`.
+   */
+  pen?: QuestPen;
 }
 
 /** The rocks a phase wants, or none. Where the quest row's slots come from. */
@@ -158,4 +219,25 @@ export function ritualOf(
   phase: QuestPhase | null,
 ): { zone: string; steps: RitualStep[] } | null {
   return phase?.goal.kind === 'ritual' ? phase.goal : null;
+}
+
+/** The things a phase wants picked up off the ground, or none. */
+export function pickupsOf(phase: QuestPhase | null): QuestSpot[] {
+  return phase?.goal.kind === 'gather' ? phase.goal.items : [];
+}
+
+/** The lure a phase is, or null. Who has to be brought home, and where home is. */
+export function lureOf(
+  phase: QuestPhase | null,
+): { bunnies: string[]; den: QuestSpot } | null {
+  return phase?.goal.kind === 'lure' ? phase.goal : null;
+}
+
+/** The place a phase wants her to walk to, or null for anything else. */
+export function walkToOf(
+  phase: QuestPhase | null,
+): { zone: string; x: number; y: number; r: number } | null {
+  const goal = phase?.goal;
+  if (goal?.kind !== 'travel' || !goal.at) return null;
+  return { zone: goal.zone, ...goal.at };
 }

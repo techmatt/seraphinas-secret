@@ -20,8 +20,16 @@
 import type { GemId } from '../ui/toolIcons';
 import type { ToolId } from '../world/ToolBelt';
 
-/** Anything she can name aloud: a tool on the row, or a stone on the quest row. */
-export type Named = ToolId | GemId;
+/**
+ * Anything she can name aloud: a tool on the row, a stone on the quest row, or
+ * one of the two words the second quest is about.
+ *
+ * `carrot` and `bunny` are written out rather than derived from an id because
+ * there are three of each and they are all the same word — `carrot_1` is not a
+ * thing anybody says out loud. What she is being taught is the noun, so the noun
+ * is what is in here.
+ */
+export type Named = ToolId | GemId | 'carrot' | 'bunny';
 
 /** Her naming it — "Hammer!", "Malachite!". */
 export function nameOf(thing: Named): string {

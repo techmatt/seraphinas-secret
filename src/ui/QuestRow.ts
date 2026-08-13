@@ -33,8 +33,16 @@ import {
   PAD_COLOR,
   type PadColorName,
 } from './ButtonDot';
-import { GEM_ICONS, ICON_SIZE, type GemId } from './toolIcons';
-import type { QuestSlot } from '../quest/QuestEngine';
+import {
+  CARROT_ICON,
+  GEM_ICONS,
+  ICON_SIZE,
+  LOG_ICON,
+  type GemId,
+  type IconDef,
+} from './toolIcons';
+import { BUNNY_ICON } from '../world/Bunny';
+import type { QuestSlot, SlotKind } from '../quest/QuestEngine';
 
 /** One box, and the gap to the next. A little under the tool row's. */
 const BOX = 48;
@@ -60,7 +68,30 @@ const PALE = 0xfff6ff;
  */
 const GHOST_ALPHA = 0.34;
 
-const ICON_SCALE = (BOX - 14) / ICON_SIZE;
+/** How much of a box a picture fills, whatever size the picture is drawn at. */
+const ICON_FILL = BOX - 14;
+const ICON_SCALE = ICON_FILL / ICON_SIZE;
+
+/**
+ * What each kind of box holds, and what colour its own light is.
+ *
+ * Everything but a gem is one picture however many boxes of it there are — four
+ * identical logs read as "four of these", where four different things would read
+ * as a list. The gem is the exception because the three stones are three colours
+ * and the colour *is* the instruction; it is resolved from the slot's id below.
+ *
+ * `size` is the art's own, so a picture cut off a 32-pixel animal sheet and one
+ * cut off a 16-pixel icon sheet end up the same size in the box.
+ */
+const KIND_ICONS: Partial<Record<SlotKind, { icon: IconDef | typeof BUNNY_ICON; size: number; tint: number }>> = {
+  tree: { icon: LOG_ICON, size: ICON_SIZE, tint: 0xd9b25f },
+  carrot: { icon: CARROT_ICON, size: ICON_SIZE, tint: 0xff9d3c },
+  bunny: { icon: BUNNY_ICON, size: BUNNY_ICON.size, tint: 0xfff0dc },
+};
+
+/** A frame name or a frame number — the two ways this game addresses a sheet. */
+const frameOf = (icon: IconDef | typeof BUNNY_ICON): string | number =>
+  'frame' in icon ? icon.frame : icon.slot;
 
 interface Box {
   container: Phaser.GameObjects.Container;
@@ -110,11 +141,13 @@ export function makeQuestRow(scene: Phaser.Scene): QuestRow {
       const y = BOTTOM - BOX / 2;
 
       // What the box is *about*, and what colour its own light is. A gem gives
-      // both; a button gives its pad colour and draws itself.
+      // both; a button gives its pad colour and draws itself; everything else
+      // comes off the table above.
+      const kind = KIND_ICONS[slot.kind];
       const tint =
         slot.kind === 'button'
           ? padColor(slot.id as PadColorName)
-          : GEM_ICONS[slot.id as GemId].tint;
+          : (kind?.tint ?? GEM_ICONS[slot.id as GemId].tint);
 
       const glow = makeGlow(scene, 0, 0, BOX * 0.95, tint, 0.55).setVisible(false);
       const frame = scene.add.graphics();
@@ -124,6 +157,13 @@ export function makeQuestRow(scene: Phaser.Scene): QuestRow {
         // Not pulsing: the row is saying which buttons this is about, not asking
         // to be pressed. The one asking is the boy, out loud, one at a time.
         icon = makeButtonDot(scene, 0, 0, { color: tint, radius: 13 });
+      } else if (kind) {
+        icon = scene.add
+          .image(0, 0, kind.icon.file, frameOf(kind.icon))
+          .setScale(ICON_FILL / kind.size);
+        if (scene.textures.exists(kind.icon.file)) {
+          scene.textures.get(kind.icon.file).setFilter(Phaser.Textures.FilterMode.NEAREST);
+        }
       } else {
         const gem = GEM_ICONS[slot.id as GemId];
         icon = scene.add.image(0, 0, gem.file, gem.slot).setScale(ICON_SCALE);

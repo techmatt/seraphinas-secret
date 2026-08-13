@@ -112,10 +112,11 @@ export type Hooks = {
     phase: string | null;
     instruction: string | null;
     giver: string | null;
-    offering: string | null;
-    marker: boolean;
-    slots: { id: string; filled: boolean; kind: 'gem' | 'button' }[];
+    offers: string[];
+    markers: number;
+    slots: { id: string; filled: boolean; kind: 'gem' | 'button' | 'tree' | 'carrot' | 'bunny' }[];
     held: string[];
+    following: string | null;
     objects: { id: string; x: number; y: number; broken: boolean }[];
     circle: boolean;
     inCircle: boolean;
@@ -127,6 +128,7 @@ export type Hooks = {
       items: string[];
       granted: string[];
       faeries: boolean;
+      following: string | null;
     };
     world: Record<string, { trees: Record<string, { state: string; landed: number }> }>;
     persistent: { coins: number };
@@ -155,6 +157,7 @@ export type Hooks = {
   recap: string[];
   ritualMisses: number;
   faeries: { x: number; y: number }[];
+  bunnies: { id: string; x: number; y: number; state: string }[];
   aliveParticles: number;
   peakParticles: number;
   pause: () => void;

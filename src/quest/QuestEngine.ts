@@ -15,11 +15,14 @@
 import { session, type SessionState } from '../state/session';
 import {
   itemOf,
+  lureOf,
   ritualOf,
   rocksOf,
   type Quest,
   type QuestGuest,
+  type QuestPen,
   type QuestPhase,
+  type QuestSpot,
   type RitualStep,
 } from './Quest';
 import { QUESTS } from './quests';
@@ -35,8 +38,20 @@ import { QUESTS } from './quests';
 export interface QuestSlot {
   id: string;
   filled: boolean;
-  kind: 'gem' | 'button';
+  kind: SlotKind;
 }
+
+/**
+ * What a box on the row holds. A *kind*, never a picture: which pixels each of
+ * these is drawn from is the HUD's business, and a rules layer that knew what a
+ * carrot looks like would be a rules layer with an art pack in it. See QuestRow.
+ *
+ * `gem` is the one that also reads the slot's *id*, because the three stones are
+ * three different colours and "the green one" is the whole instruction. Every
+ * other kind is one picture however many boxes of it there are, which is what
+ * makes four identical boxes read as "four of these" rather than as a list.
+ */
+export type SlotKind = 'gem' | 'button' | 'tree' | 'carrot' | 'bunny';
 
 /**
  * The progress key logged when she first stands in the ritual's circle.
@@ -168,19 +183,15 @@ export class QuestEngine {
    * is the slot's `kind`.
    */
   get slots(): QuestSlot[] {
-    const ritual = ritualOf(this.phase);
-    if (ritual) {
-      return ritual.steps.map((step) => ({
-        id: step.id,
-        filled: this.store.did(step.id),
-        kind: 'button' as const,
-      }));
-    }
-    return rocksOf(this.phase).map((rock) => ({
-      id: rock.id,
-      filled: this.store.did(rock.id),
-      kind: 'gem' as const,
-    }));
+    const boxes = (ids: string[], kind: QuestSlot['kind']): QuestSlot[] =>
+      ids.map((id) => ({ id, filled: this.store.did(id), kind }));
+
+    const goal = this.phase?.goal;
+    if (goal?.kind === 'ritual') return boxes(goal.steps.map((s) => s.id), 'button');
+    if (goal?.kind === 'fell') return boxes(goal.falls, 'tree');
+    if (goal?.kind === 'gather') return boxes(goal.items.map((i) => i.id), 'carrot');
+    if (goal?.kind === 'lure') return boxes(goal.bunnies, 'bunny');
+    return boxes(rocksOf(this.phase).map((r) => r.id), 'gem');
   }
 
   // --- the ritual -----------------------------------------------------------
@@ -269,9 +280,21 @@ export class QuestEngine {
     return item !== null && !this.store.did(item.id);
   }
 
+  /**
+   * Whether one of this phase's objectives is still outstanding — the stone
+   * still whole, the carrot still lying in the grass, the bunny still out.
+   *
+   * One question with three names in front of it, because a zone building
+   * itself asks exactly this of everything the phase put on the ground and the
+   * answer never depended on which kind of thing it was.
+   */
+  waiting(id: string): boolean {
+    return !this.store.did(id);
+  }
+
   /** Whether this rock is still whole. */
   rockWhole(id: string): boolean {
-    return !this.store.did(id);
+    return this.waiting(id);
   }
 
   /**
@@ -303,7 +326,123 @@ export class QuestEngine {
     if (goal.kind === 'fetch') return [goal.item.id];
     if (goal.kind === 'collect') return goal.rocks.map((r) => r.id);
     if (goal.kind === 'ritual') return goal.steps.map((s) => s.id);
+    if (goal.kind === 'fell') return goal.falls;
+    if (goal.kind === 'gather') return goal.items.map((i) => i.id);
+    if (goal.kind === 'lure') return goal.bunnies;
     return null;
+  }
+
+  // --- the pen, the bunnies and the carrots ---------------------------------
+
+  /**
+   * The ring of trees this quest planted, or null.
+   *
+   * Out from the press that takes the job right through to the night that
+   * clears it, `done` included — see `pen` on a Quest. It answers for the quest
+   * rather than for the phase, which is the whole of that rule in one line.
+   */
+  get pen(): QuestPen | null {
+    return this.active?.pen ?? null;
+  }
+
+  /**
+   * One of the pen's trees has gone over. Fills the next empty box.
+   *
+   * *Which* box is not a question worth asking — any four of the sixteen will
+   * do, and none of them is a different four — so this takes the first unfilled
+   * one rather than being told. Returns null for a fall during any other phase,
+   * which is a tree coming down in a wood and nothing else.
+   */
+  fell(): { id: string; count: number; complete: boolean } | null {
+    const goal = this.phase?.goal;
+    if (goal?.kind !== 'fell') return null;
+    const next = goal.falls.find((id) => !this.store.did(id));
+    if (!next) return null;
+    return { id: next, ...this.finish(next, false) };
+  }
+
+  /**
+   * Whether the bunnies are out of the ring.
+   *
+   * Read off the goal kind rather than off a list of phase names: they are
+   * penned while there is still a walk to make or a tree to fell, and loose the
+   * moment neither is what she has been asked for. Naming the phases would be
+   * the same fact written twice, and the copy in here is the one nobody would
+   * update.
+   */
+  get bunniesLoose(): boolean {
+    const kind = this.phase?.goal.kind;
+    if (!this.pen || !kind) return false;
+    return kind !== 'travel' && kind !== 'fell';
+  }
+
+  /**
+   * Where the bunnies are being taken, or null for a quest with nowhere.
+   *
+   * Read off the quest rather than off the phase, because a zone building itself
+   * has to know where a bunny that is *already home* is standing — and by then
+   * the lure phase is behind her. There is only ever one lure in a quest; a
+   * second would be a second den, and the word means the place they live.
+   */
+  get den(): QuestSpot | null {
+    for (const phase of this.active?.phases ?? []) {
+      if (phase.goal.kind === 'lure') return phase.goal.den;
+    }
+    return null;
+  }
+
+  /** Every carrot in her pocket, in the order she picked them up. */
+  get carrots(): readonly string[] {
+    return this.store.items.filter((item) => item.startsWith('carrot'));
+  }
+
+  /** The bunny at her heels, or null. Never more than one — see `tag`. */
+  get following(): string | null {
+    return this.store.following;
+  }
+
+  /** Whether this bunny is home, which is the only thing that fills its box. */
+  atHome(id: string): boolean {
+    // Once the quest has parked, every one of them is: getting all three home is
+    // the only thing that ends it. Which is also the only way to answer this at
+    // all after the last phase, because entering one clears the last one's
+    // progress — see `SessionState.enterPhase`.
+    if (this.finished) return true;
+    return lureOf(this.phase) !== null && this.store.did(id);
+  }
+
+  /**
+   * She pressed green at a bunny. Says what that was worth, and never nothing.
+   *
+   * Three answers and two of them are refusals, which is the whole design of
+   * this phase: one bunny at a time is *enforced*, and enforced in this game
+   * means a funny line and the world carrying on exactly as it was. No carrot
+   * taken, no bunny lost, nothing to undo. See CLAUDE.md, "No fail states".
+   */
+  tag(id: string): 'busy' | 'noCarrot' | 'following' {
+    if (this.store.following) return 'busy';
+    const carrot = this.carrots[0];
+    if (!carrot) return 'noCarrot';
+    // The carrot is spent as it is handed over — it goes out of her pocket and
+    // off the row it was never on, the same way a stone leaves as it goes in
+    // the fire.
+    this.store.drop(carrot);
+    this.store.follow(id);
+    return 'following';
+  }
+
+  /**
+   * The one at her heels is home. Fills its box and says how many that makes.
+   *
+   * Returns null when nobody is following, which is every frame of the walk
+   * back to the den with nothing in tow — the scene asks on arrival and does not
+   * know or care whether this trip was one.
+   */
+  deposit(): { id: string; count: number; complete: boolean } | null {
+    const id = this.store.following;
+    if (!id || lureOf(this.phase) === null) return null;
+    this.store.unfollow();
+    return { id, ...this.finish(id, false) };
   }
 
   /**
@@ -317,6 +456,20 @@ export class QuestEngine {
   arrive(zone: string): boolean {
     const goal = this.phase?.goal;
     if (goal?.kind !== 'travel' || goal.zone !== zone) return false;
+    // A phase that names a *spot* is not finished by walking into the zone the
+    // spot is in — she is already standing in it, and the walk is the point.
+    // The scene watches her cross into it instead; see `reachedSpot`.
+    if (goal.at) return false;
+    this.advance();
+    return true;
+  }
+
+  /**
+   * She is standing on the spot a `travel` phase named. Advances it once, and
+   * says whether that was news — asked every frame, and a no nearly always.
+   */
+  reachedSpot(): boolean {
+    if (this.phase?.goal.kind !== 'travel') return false;
     this.advance();
     return true;
   }

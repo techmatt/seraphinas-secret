@@ -37,6 +37,11 @@ export const CATEGORIES = [
   'Cute_Fantasy/Buildings',
   'Cute_Fantasy/Outdoor decoration',
   'Cute_Fantasy/Crops',
+  // The animals, for the bunnies. There is no rabbit anywhere in the twelve
+  // packs — the frog is the only thing in any of them that hops, and the palest
+  // of its six colourways is standing in until Matt draws real ones. See
+  // `src/world/Bunny.ts`, which is the only file that knows that.
+  'Cute_Fantasy/Animals',
   // The item icons, for the tool row. The only folder here the tile world does
   // not draw from: `src/ui/toolIcons.ts` names the rectangles instead of
   // `tools/world/catalog.ts`, because the HUD is not a place in the world and

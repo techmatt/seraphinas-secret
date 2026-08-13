@@ -228,6 +228,92 @@
     "note": "The last line of the quest, and the first coin in the game. His, out of his own mouth — he is handing her something. One sentence with no punctuation in the middle of it, so edge-tts has nowhere to put a second of silence, and the trailing '!' is free. 'Gold coin' is the pair of words the whole line exists to teach: it is said as the coin flies across the screen into the row, so the words and the picture are one event. See RoomScene.payUp."
   },
   {
+    "id": "hazel_quest_offer",
+    "speaker": "hazel",
+    "text": "Three little bunnies are stuck in the woods!",
+    "note": "The bunny rescue, offered. One sentence with nothing in the middle of it, so edge-tts has nowhere to put a second of silence and the trailing bang is free. 'Bunnies' is in every line of this quest — she cannot read the word yet and hearing it nine times in an afternoon is how that changes."
+  },
+  {
+    "id": "hazel_quest_pen",
+    "speaker": "hazel",
+    "text": "Little trees are all around the bunnies! Go and find them.",
+    "say": "Little trees are all around the bunnies, go and find them.",
+    "note": "The second half of the offer, and phase one's instruction — the same line doing both, the way sneak_quest_stones does. Comma where the text has a bang: a mid-line '!' buys ~0.9 s of a lit sentence with no word lit."
+  },
+  {
+    "id": "hazel_quest_chop",
+    "speaker": "hazel",
+    "text": "Chop the little trees to free the bunnies!",
+    "note": "Phase two. The verb and the reason in one breath, because what she has to hold in her head is why she is swinging."
+  },
+  {
+    "id": "hazel_quest_carrots",
+    "speaker": "hazel",
+    "text": "Bunnies love carrots! Find three in the woods.",
+    "say": "Bunnies love carrots, find three in the woods.",
+    "note": "Phase three. Same mid-line '!' fix."
+  },
+  {
+    "id": "hazel_quest_lure",
+    "speaker": "hazel",
+    "text": "Give a bunny a carrot and walk it home to me!",
+    "note": "Phase four, and the whole mechanic in one sentence: a carrot, a bunny, a walk. 'One at a time' is deliberately not in it — being told a rule she has not broken yet is a rule she will not remember, and the game says so out loud the moment she tries. See seraphina_one_bunny."
+  },
+  {
+    "id": "hazel_two_more",
+    "speaker": "hazel",
+    "text": "Two more bunnies to go!",
+    "note": "Said at the den as the first one arrives. Pre-cut with the number in it, because there is no synthesiser in this game and there is never going to be one — two counts means two clips and a lookup. See BUNNIES_LEFT in RoomScene."
+  },
+  {
+    "id": "hazel_one_more",
+    "speaker": "hazel",
+    "text": "One more bunny to go!",
+    "note": "And the second. There is no third: the third one home is not a count, it is the end of the quest."
+  },
+  {
+    "id": "hazel_bunnies_home",
+    "speaker": "hazel",
+    "text": "All three bunnies are home!",
+    "note": "The big moment of the second quest, said over the celebration at the den."
+  },
+  {
+    "id": "hazel_bunny_coin",
+    "speaker": "hazel",
+    "text": "The bunnies want you to have this shiny gold coin!",
+    "note": "The gift line, and hers rather than Seraphina's — she is standing at the den handing something over, which is somebody talking and not the world's own voice, exactly like sneak_coin. 'Gold coin' is the pair of words the line exists to teach and it is said as the coin flies across the screen. One sentence with no punctuation in the middle of it."
+  },
+  {
+    "id": "seraphina_bunny",
+    "speaker": "seraphina",
+    "text": "Bunny!",
+    "note": "A naming bark, derived from the id the way every other one is — see src/voice/barks.ts. Said as a bunny takes the carrot and falls in behind her. The bang is line-final, which costs nothing."
+  },
+  {
+    "id": "seraphina_carrot",
+    "speaker": "seraphina",
+    "text": "Carrot!",
+    "note": "The same, as one comes off the ground. One word for all three carrots: 'carrot_1' is not a thing anybody says out loud, and the noun is what is being taught."
+  },
+  {
+    "id": "seraphina_one_bunny",
+    "speaker": "seraphina",
+    "text": "One bunny at a time, silly!",
+    "note": "Tagging a second bunny while one is already following. The wrong answer is a funny nothing and never a buzzer — nothing is taken, no carrot is spent, and the bunny she already has carries on walking behind her. 'Silly' is aimed at herself, which is the only direction this game ever aims it. See CLAUDE.md, 'No fail states'."
+  },
+  {
+    "id": "seraphina_need_carrot",
+    "speaker": "seraphina",
+    "text": "The bunny wants a carrot!",
+    "note": "Pressing green at a bunny with an empty pocket. It names the fix rather than the failure, exactly like seraphina_need_axe: what she needs is the thing to go and do."
+  },
+  {
+    "id": "seraphina_recap_bunnies",
+    "speaker": "seraphina",
+    "text": "I took three little bunnies home to their den.",
+    "note": "A day the bunny rescue was finished. It sits beside the faerie line in the recap's order because they are the two ways an afternoon can have finished something, and no day can be both. See src/state/recap.ts."
+  },
+  {
     "id": "seraphina_recap_faeries",
     "speaker": "seraphina",
     "text": "We called real faeries out of the fire.",

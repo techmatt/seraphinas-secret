@@ -50,14 +50,26 @@ export interface QuestHooks {
   instruction: string | null;
   /** Whose voice that is: the npc who handed the job out. */
   giver: string | null;
-  /** Who is wearing a thought bubble in this zone, or null once it is taken. */
-  offering: string | null;
-  /** Whether the bubble is actually built and on screen. */
-  marker: boolean;
+  /**
+   * Everybody in this zone wearing a thought bubble, and empty once any job is
+   * taken. A list because there are two quests: before either is accepted there
+   * is a boy on a doorstep and a girl by a pond, each with something to ask.
+   */
+  offers: string[];
+  /** How many of those bubbles are actually built and on screen. */
+  markers: number;
   /** The quest row, left to right. Empty when the phase wants nothing. */
   slots: { id: string; filled: boolean }[];
   /** Quest items in her pocket, in the order she found them. */
   held: string[];
+  /**
+   * The bunny walking behind her, or null.
+   *
+   * The one thing about the lure phase that cannot be read off anything else:
+   * one at a time is the mechanic, and a test that only counted filled boxes
+   * would pass just as well against a phase that let her tag all three at once.
+   */
+  following: string | null;
   /** What this phase has standing in this zone right now. */
   objects: { id: string; x: number; y: number; broken: boolean }[];
   /** Whether this zone has the ritual's circle drawn on its floor. */
@@ -353,6 +365,16 @@ export interface TestHooks {
    * "they came with her through the door" is a thing the suite can settle.
    */
   faeries: { x: number; y: number }[];
+  /**
+   * The bunnies, and what each one is doing: penned behind the ring, loose in
+   * the wood, following her, or home at the den.
+   *
+   * Empty in every zone and on every afternoon that has not taken Hazel's job.
+   * Their positions are the only way to ask whether one actually came out of the
+   * pen or actually walked to the den — everything else about this quest is
+   * bookkeeping, and the bookkeeping agreeing with itself is not the claim.
+   */
+  bunnies: { id: string; x: number; y: number; state: string }[];
   /** Particles currently alive. */
   aliveParticles: number;
   /**
@@ -471,17 +493,18 @@ export const hooks: TestHooks = {
     phase: null,
     instruction: null,
     giver: null,
-    offering: null,
-    marker: false,
+    offers: [],
+    markers: 0,
     slots: [],
     held: [],
+    following: null,
     objects: [],
     circle: false,
     inCircle: false,
     step: null,
   },
   session: () => ({
-    run: { quest: null, items: [], granted: [], faeries: false },
+    run: { quest: null, items: [], granted: [], faeries: false, following: null },
     world: {},
     persistent: { coins: 0 },
   }),
@@ -509,6 +532,7 @@ export const hooks: TestHooks = {
   recap: [],
   ritualMisses: 0,
   faeries: [],
+  bunnies: [],
   aliveParticles: 0,
   peakParticles: 0,
   pause: () => undefined,

@@ -1405,6 +1405,639 @@
       "duration": 2.466
     }
   },
+  "hazel_quest_offer": {
+    "hash": "30f85fd65b3948c5",
+    "entry": {
+      "id": "hazel_quest_offer",
+      "speaker": "hazel",
+      "text": "Three little bunnies are stuck in the woods!",
+      "audio": "voice/hazel_quest_offer.mp3",
+      "words": [
+        {
+          "word": "Three",
+          "start": 0.098,
+          "end": 0.428
+        },
+        {
+          "word": "little",
+          "start": 0.44,
+          "end": 0.758
+        },
+        {
+          "word": "bunnies",
+          "start": 0.77,
+          "end": 1.195
+        },
+        {
+          "word": "are",
+          "start": 1.206,
+          "end": 1.371
+        },
+        {
+          "word": "stuck",
+          "start": 1.383,
+          "end": 1.761
+        },
+        {
+          "word": "in",
+          "start": 1.772,
+          "end": 1.879
+        },
+        {
+          "word": "the",
+          "start": 1.89,
+          "end": 1.985
+        },
+        {
+          "word": "woods!",
+          "start": 1.996,
+          "end": 2.515
+        }
+      ],
+      "duration": 2.515
+    }
+  },
+  "hazel_quest_pen": {
+    "hash": "c2113cf20b5f7da7",
+    "entry": {
+      "id": "hazel_quest_pen",
+      "speaker": "hazel",
+      "text": "Little trees are all around the bunnies! Go and find them.",
+      "audio": "voice/hazel_quest_pen.mp3",
+      "words": [
+        {
+          "word": "Little",
+          "start": 0.097,
+          "end": 0.463
+        },
+        {
+          "word": "trees",
+          "start": 0.475,
+          "end": 0.923
+        },
+        {
+          "word": "are",
+          "start": 0.934,
+          "end": 1.182
+        },
+        {
+          "word": "all",
+          "start": 1.194,
+          "end": 1.418
+        },
+        {
+          "word": "around",
+          "start": 1.43,
+          "end": 1.783
+        },
+        {
+          "word": "the",
+          "start": 1.795,
+          "end": 1.878
+        },
+        {
+          "word": "bunnies!",
+          "start": 1.89,
+          "end": 2.373
+        },
+        {
+          "word": "Go",
+          "start": 2.633,
+          "end": 2.892
+        },
+        {
+          "word": "and",
+          "start": 2.904,
+          "end": 3.045
+        },
+        {
+          "word": "find",
+          "start": 3.057,
+          "end": 3.434
+        },
+        {
+          "word": "them.",
+          "start": 3.446,
+          "end": 3.729
+        }
+      ],
+      "duration": 3.729
+    }
+  },
+  "hazel_quest_chop": {
+    "hash": "8d433c5217a350b4",
+    "entry": {
+      "id": "hazel_quest_chop",
+      "speaker": "hazel",
+      "text": "Chop the little trees to free the bunnies!",
+      "audio": "voice/hazel_quest_chop.mp3",
+      "words": [
+        {
+          "word": "Chop",
+          "start": 0.097,
+          "end": 0.416
+        },
+        {
+          "word": "the",
+          "start": 0.427,
+          "end": 0.545
+        },
+        {
+          "word": "little",
+          "start": 0.557,
+          "end": 0.852
+        },
+        {
+          "word": "trees",
+          "start": 0.864,
+          "end": 1.276
+        },
+        {
+          "word": "to",
+          "start": 1.288,
+          "end": 1.406
+        },
+        {
+          "word": "free",
+          "start": 1.418,
+          "end": 1.724
+        },
+        {
+          "word": "the",
+          "start": 1.736,
+          "end": 1.842
+        },
+        {
+          "word": "bunnies!",
+          "start": 1.854,
+          "end": 2.409
+        }
+      ],
+      "duration": 2.409
+    }
+  },
+  "hazel_quest_carrots": {
+    "hash": "0e5a7858d3a00e1a",
+    "entry": {
+      "id": "hazel_quest_carrots",
+      "speaker": "hazel",
+      "text": "Bunnies love carrots! Find three in the woods.",
+      "audio": "voice/hazel_quest_carrots.mp3",
+      "words": [
+        {
+          "word": "Bunnies",
+          "start": 0.097,
+          "end": 0.545
+        },
+        {
+          "word": "love",
+          "start": 0.557,
+          "end": 0.899
+        },
+        {
+          "word": "carrots!",
+          "start": 0.911,
+          "end": 1.512
+        },
+        {
+          "word": "Find",
+          "start": 1.784,
+          "end": 2.161
+        },
+        {
+          "word": "three",
+          "start": 2.173,
+          "end": 2.562
+        },
+        {
+          "word": "in",
+          "start": 2.574,
+          "end": 2.715
+        },
+        {
+          "word": "the",
+          "start": 2.727,
+          "end": 2.833
+        },
+        {
+          "word": "woods.",
+          "start": 2.845,
+          "end": 3.34
+        }
+      ],
+      "duration": 3.34
+    }
+  },
+  "hazel_quest_lure": {
+    "hash": "530f83b741697ab2",
+    "entry": {
+      "id": "hazel_quest_lure",
+      "speaker": "hazel",
+      "text": "Give a bunny a carrot and walk it home to me!",
+      "audio": "voice/hazel_quest_lure.mp3",
+      "words": [
+        {
+          "word": "Give",
+          "start": 0.097,
+          "end": 0.298
+        },
+        {
+          "word": "a",
+          "start": 0.309,
+          "end": 0.392
+        },
+        {
+          "word": "bunny",
+          "start": 0.404,
+          "end": 0.758
+        },
+        {
+          "word": "a",
+          "start": 0.769,
+          "end": 0.852
+        },
+        {
+          "word": "carrot",
+          "start": 0.864,
+          "end": 1.335
+        },
+        {
+          "word": "and",
+          "start": 1.347,
+          "end": 1.512
+        },
+        {
+          "word": "walk",
+          "start": 1.524,
+          "end": 1.819
+        },
+        {
+          "word": "it",
+          "start": 1.831,
+          "end": 1.913
+        },
+        {
+          "word": "home",
+          "start": 1.925,
+          "end": 2.243
+        },
+        {
+          "word": "to",
+          "start": 2.255,
+          "end": 2.373
+        },
+        {
+          "word": "me!",
+          "start": 2.385,
+          "end": 2.668
+        }
+      ],
+      "duration": 2.668
+    }
+  },
+  "hazel_two_more": {
+    "hash": "9912e66da6a243af",
+    "entry": {
+      "id": "hazel_two_more",
+      "speaker": "hazel",
+      "text": "Two more bunnies to go!",
+      "audio": "voice/hazel_two_more.mp3",
+      "words": [
+        {
+          "word": "Two",
+          "start": 0.097,
+          "end": 0.333
+        },
+        {
+          "word": "more",
+          "start": 0.345,
+          "end": 0.628
+        },
+        {
+          "word": "bunnies",
+          "start": 0.64,
+          "end": 1.064
+        },
+        {
+          "word": "to",
+          "start": 1.076,
+          "end": 1.194
+        },
+        {
+          "word": "go!",
+          "start": 1.206,
+          "end": 1.559
+        }
+      ],
+      "duration": 1.559
+    }
+  },
+  "hazel_one_more": {
+    "hash": "e54ccd5dcb1bb1c2",
+    "entry": {
+      "id": "hazel_one_more",
+      "speaker": "hazel",
+      "text": "One more bunny to go!",
+      "audio": "voice/hazel_one_more.mp3",
+      "words": [
+        {
+          "word": "One",
+          "start": 0.097,
+          "end": 0.392
+        },
+        {
+          "word": "more",
+          "start": 0.404,
+          "end": 0.687
+        },
+        {
+          "word": "bunny",
+          "start": 0.699,
+          "end": 1.005
+        },
+        {
+          "word": "to",
+          "start": 1.017,
+          "end": 1.159
+        },
+        {
+          "word": "go!",
+          "start": 1.17,
+          "end": 1.536
+        }
+      ],
+      "duration": 1.536
+    }
+  },
+  "hazel_bunnies_home": {
+    "hash": "d59fa5916ac1d6bd",
+    "entry": {
+      "id": "hazel_bunnies_home",
+      "speaker": "hazel",
+      "text": "All three bunnies are home!",
+      "audio": "voice/hazel_bunnies_home.mp3",
+      "words": [
+        {
+          "word": "All",
+          "start": 0.097,
+          "end": 0.38
+        },
+        {
+          "word": "three",
+          "start": 0.392,
+          "end": 0.722
+        },
+        {
+          "word": "bunnies",
+          "start": 0.734,
+          "end": 1.182
+        },
+        {
+          "word": "are",
+          "start": 1.194,
+          "end": 1.371
+        },
+        {
+          "word": "home!",
+          "start": 1.383,
+          "end": 1.807
+        }
+      ],
+      "duration": 1.807
+    }
+  },
+  "hazel_bunny_coin": {
+    "hash": "1b1137bf497e377f",
+    "entry": {
+      "id": "hazel_bunny_coin",
+      "speaker": "hazel",
+      "text": "The bunnies want you to have this shiny gold coin!",
+      "audio": "voice/hazel_bunny_coin.mp3",
+      "words": [
+        {
+          "word": "The",
+          "start": 0.097,
+          "end": 0.25
+        },
+        {
+          "word": "bunnies",
+          "start": 0.262,
+          "end": 0.675
+        },
+        {
+          "word": "want",
+          "start": 0.687,
+          "end": 0.923
+        },
+        {
+          "word": "you",
+          "start": 0.934,
+          "end": 1.064
+        },
+        {
+          "word": "to",
+          "start": 1.076,
+          "end": 1.158
+        },
+        {
+          "word": "have",
+          "start": 1.17,
+          "end": 1.453
+        },
+        {
+          "word": "this",
+          "start": 1.465,
+          "end": 1.63
+        },
+        {
+          "word": "shiny",
+          "start": 1.642,
+          "end": 2.09
+        },
+        {
+          "word": "gold",
+          "start": 2.102,
+          "end": 2.467
+        },
+        {
+          "word": "coin!",
+          "start": 2.479,
+          "end": 2.927
+        }
+      ],
+      "duration": 2.927
+    }
+  },
+  "seraphina_bunny": {
+    "hash": "e73b559013469a5a",
+    "entry": {
+      "id": "seraphina_bunny",
+      "speaker": "seraphina",
+      "text": "Bunny!",
+      "audio": "voice/seraphina_bunny.mp3",
+      "words": [
+        {
+          "word": "Bunny!",
+          "start": 0.104,
+          "end": 0.621
+        }
+      ],
+      "duration": 0.621
+    }
+  },
+  "seraphina_carrot": {
+    "hash": "b84f76c47c5dced3",
+    "entry": {
+      "id": "seraphina_carrot",
+      "speaker": "seraphina",
+      "text": "Carrot!",
+      "audio": "voice/seraphina_carrot.mp3",
+      "words": [
+        {
+          "word": "Carrot!",
+          "start": 0.104,
+          "end": 0.729
+        }
+      ],
+      "duration": 0.729
+    }
+  },
+  "seraphina_one_bunny": {
+    "hash": "81983fce0811be09",
+    "entry": {
+      "id": "seraphina_one_bunny",
+      "speaker": "seraphina",
+      "text": "One bunny at a time, silly!",
+      "audio": "voice/seraphina_one_bunny.mp3",
+      "words": [
+        {
+          "word": "One",
+          "start": 0.104,
+          "end": 0.471
+        },
+        {
+          "word": "bunny",
+          "start": 0.485,
+          "end": 0.933
+        },
+        {
+          "word": "at",
+          "start": 0.947,
+          "end": 1.123
+        },
+        {
+          "word": "a",
+          "start": 1.137,
+          "end": 1.205
+        },
+        {
+          "word": "time,",
+          "start": 1.218,
+          "end": 1.694
+        },
+        {
+          "word": "silly!",
+          "start": 2.007,
+          "end": 2.604
+        }
+      ],
+      "duration": 2.604
+    }
+  },
+  "seraphina_need_carrot": {
+    "hash": "470d94183d8c07a7",
+    "entry": {
+      "id": "seraphina_need_carrot",
+      "speaker": "seraphina",
+      "text": "The bunny wants a carrot!",
+      "audio": "voice/seraphina_need_carrot.mp3",
+      "words": [
+        {
+          "word": "The",
+          "start": 0.104,
+          "end": 0.295
+        },
+        {
+          "word": "bunny",
+          "start": 0.308,
+          "end": 0.689
+        },
+        {
+          "word": "wants",
+          "start": 0.702,
+          "end": 1.042
+        },
+        {
+          "word": "a",
+          "start": 1.055,
+          "end": 1.137
+        },
+        {
+          "word": "carrot!",
+          "start": 1.151,
+          "end": 1.735
+        }
+      ],
+      "duration": 1.735
+    }
+  },
+  "seraphina_recap_bunnies": {
+    "hash": "d342e9315f45792c",
+    "entry": {
+      "id": "seraphina_recap_bunnies",
+      "speaker": "seraphina",
+      "text": "I took three little bunnies home to their den.",
+      "audio": "voice/seraphina_recap_bunnies.mp3",
+      "words": [
+        {
+          "word": "I",
+          "start": 0.103,
+          "end": 0.28
+        },
+        {
+          "word": "took",
+          "start": 0.293,
+          "end": 0.62
+        },
+        {
+          "word": "three",
+          "start": 0.633,
+          "end": 0.986
+        },
+        {
+          "word": "little",
+          "start": 1,
+          "end": 1.34
+        },
+        {
+          "word": "bunnies",
+          "start": 1.353,
+          "end": 1.788
+        },
+        {
+          "word": "home",
+          "start": 1.802,
+          "end": 2.155
+        },
+        {
+          "word": "to",
+          "start": 2.168,
+          "end": 2.291
+        },
+        {
+          "word": "their",
+          "start": 2.304,
+          "end": 2.562
+        },
+        {
+          "word": "den.",
+          "start": 2.576,
+          "end": 3.011
+        }
+      ],
+      "duration": 3.011
+    }
+  },
   "seraphina_recap_faeries": {
     "hash": "d2fbbbdc852df315",
     "entry": {

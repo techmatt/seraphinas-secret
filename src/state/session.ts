@@ -91,6 +91,21 @@ export interface SessionData {
      * is the night they go home.
      */
     faeries: boolean;
+    /**
+     * The one bunny walking behind her, by id, or null.
+     *
+     * One and not a list, and that is the mechanic rather than a shortcut: the
+     * lure phase asks for one at a time and *enforces* it, so "who is following"
+     * has exactly one answer and a field that could hold two would be a field
+     * the rule had to be checked against. It is in the store because a bunny
+     * that stopped following her when she stepped indoors would be a bunny she
+     * lost — see `QuestEngine.tag`.
+     *
+     * Nothing else about a bunny is remembered. Where each one is standing is
+     * worked out from the quest every time a zone is built, which is why three
+     * animals wandering a wood cost the store one string.
+     */
+    following: string | null;
   };
   /** The marks she has left on places, keyed by zone id. Cleared by sleep. */
   world: Record<string, ZoneDelta>;
@@ -123,7 +138,7 @@ export class SessionState {
 
   private static empty(): SessionData {
     return {
-      run: { quest: null, items: [], granted: [], faeries: false },
+      run: { quest: null, items: [], granted: [], faeries: false, following: null },
       world: {},
       persistent: { coins: 0 },
     };
@@ -137,6 +152,7 @@ export class SessionState {
         items: [...this.data.run.items],
         granted: [...this.data.run.granted],
         faeries: this.data.run.faeries,
+        following: this.data.run.following,
       },
       world: Object.fromEntries(
         Object.entries(this.data.world).map(([zone, delta]) => [
@@ -219,6 +235,26 @@ export class SessionState {
   /** They are out. Nothing puts them back but a night's sleep, or a page reload. */
   summonFaeries(): void {
     this.data.run.faeries = true;
+  }
+
+  /** The bunny walking behind her, or null. Never more than one. */
+  get following(): string | null {
+    return this.data.run.following;
+  }
+
+  /**
+   * This one is coming with her. Whoever was already following is dropped —
+   * which never happens, because the rule that says one at a time is checked
+   * before this is called, and a store that silently held two would be the
+   * thing that made a bug out of forgetting to check.
+   */
+  follow(id: string): void {
+    this.data.run.following = id;
+  }
+
+  /** It is home. Nobody is following her now. */
+  unfollow(): void {
+    this.data.run.following = null;
   }
 
   get granted(): readonly string[] {

@@ -166,8 +166,11 @@ test('the faerie quest, from the offer to the cave', async ({ page }) => {
   // Before anything: a boy with a cloud over his head, and no quest.
   const idle = await readHooks(page);
   expect(idle.quest.id, 'nothing is on yet').toBeNull();
-  expect(idle.quest.offering, 'and Sneak is the one asking').toBe('sneak');
-  expect(idle.quest.marker, 'with a thought bubble actually built').toBe(true);
+  // Two people with something to ask, which is what two quests looks like from
+  // the yard: a boy on his doorstep and a girl by the pond. One of them can be
+  // said yes to, and saying yes to either takes both clouds off the sky.
+  expect(idle.quest.offers.sort(), 'both of them are asking').toEqual(['hazel', 'sneak']);
+  expect(idle.quest.markers, 'with a thought bubble apiece, actually built').toBe(2);
   expect(idle.tools.slots, 'she has the axe and three empty boxes').toEqual([
     'axe',
     null,
@@ -181,8 +184,8 @@ test('the faerie quest, from the offer to the cave', async ({ page }) => {
   const taken = await readHooks(page);
   expect(taken.quest.id, 'the job is hers').toBe('faerie');
   expect(taken.quest.phase, 'and it starts with the hammer').toBe('hammer');
-  expect(taken.quest.offering, 'nobody is offering anything any more').toBeNull();
-  expect(taken.quest.marker, 'so the bubble has gone').toBe(false);
+  expect(taken.quest.offers, 'nobody is offering anything any more').toEqual([]);
+  expect(taken.quest.markers, 'so both bubbles have gone').toBe(0);
   expect(taken.quest.instruction, 'and the job is a line he can say again').toBe(
     'sneak_quest_hammer',
   );
@@ -735,8 +738,11 @@ test('the yellow button remembers, the wrong tool cannot spoil it, a doorway doe
   await standAt(page, 'playroom');
   expect(await walkThroughDoorway(page), 'out into the new day').toBe('outside');
   const newDay = await readHooks(page);
-  expect(newDay.quest.offering, 'and the job is going again').toBe('sneak');
-  expect(newDay.quest.marker, 'with the thought bubble back over his head').toBe(true);
+  expect(newDay.quest.offers.sort(), 'and both jobs are going again').toEqual([
+    'hazel',
+    'sneak',
+  ]);
+  expect(newDay.quest.markers, 'with the thought bubbles back over their heads').toBe(2);
   expect(
     newDay.trees.find((t) => t.id === tree.id)?.state,
     'the tree she felled grew back while she slept',
