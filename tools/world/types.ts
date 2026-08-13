@@ -221,6 +221,22 @@ export interface ZoneLayout {
   openings?: Iterable<Cell>;
   /** Sprites: buildings, trees, dressing. Collision comes from the catalog. */
   place: Placement[];
+  /**
+   * Catalog images this zone must carry even though nothing in `place` draws
+   * one — pictures the *game* puts down at runtime.
+   *
+   * A map file lists the rectangles it uses so the scene can queue exactly those
+   * textures, which means a picture nobody placed is a picture nothing can draw.
+   * That is fine for a felled tree's stump, because the generator can see there
+   * are choppable trees and register it. It is not fine for a quest's furniture:
+   * a quest spawns things that were not there when the world was built, and the
+   * generator has never heard of a quest. So the zone says so out loud.
+   *
+   * One line in a layout is also the honest place for it. "The world may grow
+   * these" is a fact about a *place* — the woods can sprout a pen of tiny trees;
+   * the kitchen cannot — and a reader of the layout can see which.
+   */
+  images?: string[];
   /** Blocked outright, whatever is drawn there — the map's own edge, mostly. */
   block?: Iterable<Cell>;
   /**

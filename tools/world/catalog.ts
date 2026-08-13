@@ -508,7 +508,34 @@ export const IMAGES: Record<string, ImageDef> = {
     file: `${A}/Trees/Medium_Spruce_Tree.png`, x: 32, y: 0, w: 32, h: 48,
     blocks: { x: 0.5, y: 1, w: 1, h: 1 }, tree: true,
   },
-  oakSmall: { file: `${A}/Trees/Small_Oak_Tree.png`, x: 32, y: 0, w: 32, h: 64 },
+  /**
+   * The size class below `oakMed`: twelve pixels of art in a two-tile slot, and
+   * the only tree in the world she can bring down in two swings.
+   *
+   * `Small_*_Tree.png` is three 32x64 slots — a stump, the tree with its shadow,
+   * the tree without — so slot 1 is the tree and slot 0 is the stump it leaves,
+   * and the pair costs one file. The trunk is centred on the slot like every
+   * other tree in the pack, hence the half tile; the base is the four opaque rows
+   * at y 44..47, so the block's foot is three tiles down. `world:footings` reads
+   * both as level to the pixel.
+   */
+  oakSmall: {
+    file: `${A}/Trees/Small_Oak_Tree.png`, x: 32, y: 0, w: 32, h: 64,
+    blocks: { x: 0.5, y: 2, w: 1, h: 1 }, tree: true,
+  },
+  /**
+   * What one of those leaves behind: 7x9 of stump at (13, 41) of slot 0.
+   *
+   * Bottom-aligned the same way the big `stump` below is — the rectangle starts
+   * above the art so the drawn foot lands on the bottom of its tile — and the
+   * seven-pixel width centres exactly, because the shadowed right-hand column is
+   * not opaque enough to count as base. Every one of the four small-tree sheets
+   * carries the identical stump at the identical offset.
+   */
+  smallStump: {
+    file: `${A}/Trees/Small_Oak_Tree.png`, x: 8, y: 34, w: 16, h: 16,
+    blocks: { x: 0, y: 0, w: 1, h: 1 },
+  },
   /**
    * What a felled tree leaves behind, and the one picture in the world that is
    * put down by the game rather than by the generator.

@@ -473,6 +473,13 @@ function buildZone(zone: ZoneLayout, sheets: Map<string, Sheet>): BuiltMap {
   // the map file never mentioned.
   if (trees.some((t) => t.chop)) useImage('stump');
 
+  // And whatever else the layout says the game may put down here on its own —
+  // a quest's furniture, which was not standing when the world was built. Same
+  // reason as the stump above; the difference is only that the generator can
+  // work the stump out and cannot work a quest out. See `images` on a
+  // ZoneLayout.
+  for (const key of zone.images ?? []) useImage(key);
+
   const props: BuiltProp[] = zone.props.map((prop) => {
     const def = useImage(prop.image);
     const spot = place(def, prop.x, prop.y);

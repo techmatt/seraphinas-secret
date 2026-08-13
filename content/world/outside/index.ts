@@ -95,6 +95,15 @@ export const OUTSIDE: ZoneLayout = {
     // Last, so a book left on a doorstep is on top of the doorstep.
     ...PEOPLE_DRESSING,
   ],
+  /**
+   * The tiny trees and their stumps: not planted anywhere, and the wood has to
+   * be able to grow them anyway.
+   *
+   * Hazel's quest pens three bunnies behind a ring of these, and the ring does
+   * not exist until she has taken the job — so the layout cannot place them and
+   * the map still has to carry their rectangles. See `images` on a ZoneLayout.
+   */
+  images: ['oakSmall', 'smallStump'],
   block: EDGE,
   /**
    * The world is fenced off by things she can see, and the build says so.
