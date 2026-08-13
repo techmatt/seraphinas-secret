@@ -22,6 +22,67 @@ import type { TileWorld, WorldSprite } from './TileWorld';
 export const WHACKS_TO_FELL = 3;
 export const WHACKS_TO_CLEAR = 2;
 
+/**
+ * How big a tree this is, as everything that differs between one and another.
+ *
+ * There are two: the wood's, and the one a quest pens bunnies behind. They are
+ * the same object doing the same four things — shake, fall, stump, gone — and
+ * the only honest differences between them are how many blows each step takes,
+ * which picture is left standing, and how much noise it makes on the way. So
+ * those are what a style is, and there is exactly one code path for both.
+ *
+ * `juice` scales the mess: the leaves, the wobble, and (through `juiceScale`)
+ * the shake the scene puts on the camera. A tiny tree that threw sixty leaves
+ * and rocked the screen would be claiming to be a tree it is not, and the size
+ * of the celebration is the only thing telling her which one she just felled.
+ */
+export interface TreeStyle {
+  /** Blows to bring it down, and to knock the stump out after. */
+  fell: number;
+  clears: number;
+  /** The catalog picture left standing where the trunk was. */
+  stump: string;
+  /** How much of a big tree's mess and wobble this one makes. */
+  juice: number;
+  /** How long it takes to go over. A small tree goes over quickly. */
+  fallMs: number;
+  /** Where the leaves live, as a fraction down the sprite. See `canopyY`. */
+  canopy: number;
+}
+
+/** The wood's own: three blows down, two more to clear, and a proper crash. */
+export const BIG_TREE: TreeStyle = {
+  fell: WHACKS_TO_FELL,
+  clears: WHACKS_TO_CLEAR,
+  stump: 'stump',
+  juice: 1,
+  fallMs: 620,
+  canopy: 0.3,
+};
+
+/**
+ * The quest's: two blows down, two more to clear, and everything else at a
+ * little under half.
+ *
+ * Two rather than three because sixteen of them stand in a ring and she is four:
+ * the phase asks for four falls, which is eight swings, and at the wood's count
+ * it would be twelve. The stump still takes two, because clearing one is
+ * optional — the bunnies hop over them — and a thing she does not have to do
+ * should not be the thing that got cheaper.
+ *
+ * Its canopy sits low in a tall slot: the art is twelve pixels in a sixty-four
+ * pixel picture, three fifths of the way down, so leaves thrown at a big tree's
+ * fraction would come off the empty air above it.
+ */
+export const TINY_TREE: TreeStyle = {
+  fell: 2,
+  clears: 2,
+  stump: 'smallStump',
+  juice: 0.45,
+  fallMs: 380,
+  canopy: 0.62,
+};
+
 /** What is left of it. `gone` means the tile has been handed back. */
 export type TreeState = 'standing' | 'stump' | 'gone';
 
@@ -48,8 +109,7 @@ const STUMP_LEAVES = 24;
 /** Sparkles for the moment itself. This is the big one, so it is generous. */
 const CELEBRATION = 70;
 
-/** How long the tree takes to go over, and how far past upright it ends up. */
-const FALL_MS = 620;
+/** How far past upright a tree ends up. Every size falls the same way over. */
 const FALL_ANGLE = 84;
 
 export interface TreeJuice {
@@ -101,6 +161,12 @@ export class Tree {
      * the way she left it.
      */
     was?: TreeMemory,
+    /**
+     * How big a tree this is. The wood's, unless somebody says otherwise — a
+     * zone builds two hundred of these off a map file and none of them has an
+     * opinion about it. See TreeStyle.
+     */
+    readonly style: TreeStyle = BIG_TREE,
   ) {
     this.sprite = world.addSprite(def.key, def.x, def.y);
     if (was) this.restore(was);
@@ -123,7 +189,11 @@ export class Tree {
       // Straight to full size. `raiseStump` grows it out of the mess the tree
       // left, and there is no mess here — this stump has been standing since
       // before she went indoors.
-      this.sprite = this.world.addSprite('stump', this.def.cells.x * TILE, this.def.cells.y * TILE);
+      this.sprite = this.world.addSprite(
+        this.style.stump,
+        this.def.cells.x * TILE,
+        this.def.cells.y * TILE,
+      );
       this.sprite?.setOrigin(0, 1).setY(this.sprite.y + this.sprite.displayHeight);
       return;
     }
@@ -200,7 +270,7 @@ export class Tree {
       return 'shake';
     }
 
-    const needed = this.what === 'standing' ? WHACKS_TO_FELL : WHACKS_TO_CLEAR;
+    const needed = this.what === 'standing' ? this.style.fell : this.style.clears;
     this.blows++;
 
     if (this.blows < needed) {
@@ -226,8 +296,8 @@ export class Tree {
    */
   private shudder(step: number): void {
     const sprite = this.sprite;
-    const throwBy = SHAKE[Math.min(step, SHAKE.length - 1)]!;
-    const leaves = LEAVES[Math.min(step, LEAVES.length - 1)]!;
+    const throwBy = SHAKE[Math.min(step, SHAKE.length - 1)]! * this.style.juice;
+    const leaves = Math.round(LEAVES[Math.min(step, LEAVES.length - 1)]! * this.style.juice);
 
     if (sprite) {
       this.scene.tweens.killTweensOf(sprite);
@@ -295,13 +365,13 @@ export class Tree {
     this.scene.tweens.add({
       targets: sprite,
       angle: away * FALL_ANGLE,
-      duration: FALL_MS,
+      duration: this.style.fallMs,
       // Slow at the top, quick at the bottom: the way a tree actually goes.
       ease: 'Quad.easeIn',
       onComplete: () => {
         this.falling = false;
-        this.juice.leaves.explode(FALL_LEAVES, this.x, this.y);
-        this.juice.sparkles.explode(CELEBRATION, this.x, this.y);
+        this.juice.leaves.explode(Math.round(FALL_LEAVES * this.style.juice), this.x, this.y);
+        this.juice.sparkles.explode(Math.round(CELEBRATION * this.style.juice), this.x, this.y);
         this.scene.tweens.add({
           targets: sprite,
           alpha: 0,
@@ -314,7 +384,11 @@ export class Tree {
 
   /** What is left standing, in the tile the trunk was standing in. */
   private raiseStump(): void {
-    const stump = this.world.addSprite('stump', this.def.cells.x * TILE, this.def.cells.y * TILE);
+    const stump = this.world.addSprite(
+      this.style.stump,
+      this.def.cells.x * TILE,
+      this.def.cells.y * TILE,
+    );
     this.sprite = stump;
     if (!stump) return;
 
@@ -340,7 +414,7 @@ export class Tree {
     // tree. One it shares with a fence post stays solid, and the stump popping
     // is still the right picture — the post is the thing she is up against now.
     this.world.clear(this.def.clears);
-    this.juice.leaves.explode(STUMP_LEAVES, this.x, this.y);
+    this.juice.leaves.explode(Math.round(STUMP_LEAVES * this.style.juice), this.x, this.y);
 
     if (!sprite) return;
     this.world.forget(sprite);
@@ -358,7 +432,7 @@ export class Tree {
   /** Roughly where the leaves live, so a burst comes off the canopy. */
   private canopyY(): number {
     if (this.what !== 'standing' || !this.sprite) return this.y;
-    return this.sprite.y + this.sprite.displayHeight * 0.3;
+    return this.sprite.y + this.sprite.displayHeight * this.style.canopy;
   }
 }
 

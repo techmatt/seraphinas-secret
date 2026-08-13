@@ -252,6 +252,35 @@ export class TileWorld {
     return changed;
   }
 
+  /**
+   * Take these tiles away. Something has been put down that was not here when
+   * the world was built.
+   *
+   * `clear`'s twin, and the only thing that ever calls it is a quest: the
+   * generator resolves collision for everything a *layout* places, and the one
+   * kind of thing it cannot see is a thing that appears halfway through an
+   * afternoon. Returns whether anything actually changed, so a caller that has
+   * spawned onto open ground can tell that from one that has spawned onto a
+   * fence — see `RoomScene.buildPen`, which refuses the second.
+   */
+  block(cells: Iterable<readonly [number, number]>): boolean {
+    let changed = false;
+    for (const [col, row] of cells) {
+      if (col < 0 || row < 0 || col >= this.cols || row >= this.rows) continue;
+      const i = row * this.cols + col;
+      if (this.blocked[i]) continue;
+      this.blocked[i] = 1;
+      changed = true;
+    }
+    return changed;
+  }
+
+  /** Is this cell solid right now? In tiles, unlike `solidAt`. */
+  solidCell(col: number, row: number): boolean {
+    if (col < 0 || row < 0 || col >= this.cols || row >= this.rows) return true;
+    return this.blocked[row * this.cols + col] === 1;
+  }
+
   /** The live collision grid, written the way the map file writes it. */
   get blockedString(): string {
     return Array.from(this.blocked, (b) => (b ? '1' : '0')).join('');
