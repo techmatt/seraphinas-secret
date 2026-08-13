@@ -30,15 +30,22 @@ import { makeGlow } from '../ui/ButtonDot';
 /** How long the room takes to go dark. */
 export const DUSK_MS = 900;
 
-/** How long the night sky is held before the day turns over. */
+/** How long the night sky is held when there is nothing to say over it. */
 export const NIGHT_MS = 1500;
 
 /** How long the morning takes to arrive, and then to get out of the way. */
 const BLOOM_MS = 460;
 const CLEAR_MS = 780;
 
-/** Over the HUD, which is over everything else. The night covers the game. */
-const CURTAIN_DEPTH = DEPTH.hud + 50;
+/**
+ * Over the HUD, which is over everything else. The night covers the game.
+ *
+ * Exported because the recap has to be *on* the night rather than under it: a
+ * speech balloon lives at `DEPTH.speech`, which is a hundred and fifty short of
+ * this, so a line spoken over the starfield would be behind the starfield. See
+ * `RoomScene.sayRecap`.
+ */
+export const CURTAIN_DEPTH = DEPTH.hud + 50;
 
 /** Deep blue-violet: a night sky in a picture book, never black. */
 const NIGHT = 0x0d0b2b;
@@ -81,6 +88,23 @@ function onScreen(scene: Phaser.Scene, x: number, y: number): { x: number; y: nu
 }
 
 /**
+ * The two halves of the night that are not this file's.
+ *
+ * `onSky` is the beat the stars are up for, and it hands back *how long to hold
+ * them* — which is the whole reason it is a callback and not a number. What
+ * fills that beat is the bedtime recap, and how long the recap runs is a
+ * property of which sentences got picked and how long those clips are. Neither
+ * of those is something the sky can be told in advance, and neither is anything
+ * this file should have to know: it draws a moon.
+ */
+export interface NightBeat {
+  /** Called once the sky is up. Returns how long to hold it, in milliseconds. */
+  onSky?: () => number;
+  /** The darkest moment: the day is reset and the zone rebuilt here. */
+  onDark: () => void;
+}
+
+/**
  * The light goes out, the sky comes up, and then `onDark` — which is where the
  * day is actually reset and the zone rebuilt.
  *
@@ -90,11 +114,7 @@ function onScreen(scene: Phaser.Scene, x: number, y: number): { x: number; y: nu
  * thing nobody can see. Everything drawn here goes away with the scene it was
  * drawn in.
  */
-export function playNightfall(
-  scene: Phaser.Scene,
-  target: NightTarget,
-  onDark: () => void,
-): void {
+export function playNightfall(scene: Phaser.Scene, target: NightTarget, beat: NightBeat): void {
   const night = curtain(scene, NIGHT, 0);
   playSleepChime();
 
@@ -106,7 +126,10 @@ export function playNightfall(
     onComplete: () => {
       drawSky(scene);
       drawMotes(scene, target);
-      scene.time.delayedCall(NIGHT_MS, onDark);
+      // A quiet night is the short one it always was; a night she has something
+      // to say about lasts exactly as long as she takes to say it.
+      const hold = beat.onSky?.() ?? NIGHT_MS;
+      scene.time.delayedCall(Math.max(NIGHT_MS, hold), beat.onDark);
     },
   });
 }

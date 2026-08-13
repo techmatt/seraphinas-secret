@@ -25,3 +25,18 @@ export const STARTING_ZONE: ZoneId = 'outside';
 export function isZoneId(id: string): id is ZoneId {
   return (ZONE_IDS as readonly string[]).includes(id);
 }
+
+/**
+ * The zones with a sky over them.
+ *
+ * The day cycle runs everywhere — it is a clock, and a clock does not stop
+ * because she went indoors — but only these have an *evening*: the tint, the
+ * lamps coming on and the fireflies are all things that happen outside. Matt's
+ * rule for the rest is that the house stays warm and the cave keeps its own
+ * light, which is exactly the same thing as not being in this list.
+ */
+export const OUTDOOR_ZONES: readonly ZoneId[] = ['outside'];
+
+export function isOutdoors(id: ZoneId): boolean {
+  return OUTDOOR_ZONES.includes(id);
+}

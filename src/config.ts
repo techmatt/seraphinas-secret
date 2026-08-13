@@ -41,6 +41,21 @@ export const DEPTH = {
   /** Light on the floor: under the things standing on it. */
   doorLight: -50,
   /** ...y-sorted world objects live here, at their own base y... */
+  /**
+   * The evening, laid over the world outdoors: above every standing thing, so
+   * the whole place dims together rather than a house at a time.
+   *
+   * Three layers, because the point of the evening is what it makes visible.
+   * `dusk` is the sheet of blue that takes the light out; `duskLight` is the
+   * halo a lamp post throws once there is something for it to throw it *into*;
+   * `fireflies` are the motes that come out over both. Everything above this —
+   * the overlay, the faeries, the green dot, the balloon, the row along the
+   * bottom — is deliberately out of reach of it: nothing she is being asked to
+   * press may ever be dimmed.
+   */
+  dusk: 79_000,
+  duskLight: 79_001,
+  fireflies: 79_002,
   /** The hitbox overlay: over everything in the world, under everything in the UI. */
   debug: 80_000,
   /**

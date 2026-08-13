@@ -20,6 +20,7 @@
 
 import { quests } from '../quest/QuestEngine';
 import { toolBelt } from '../world/ToolBelt';
+import { dayClock } from './dayClock';
 import { session } from './session';
 
 /**
@@ -33,15 +34,22 @@ import { session } from './session';
  *    including a quest abandoned mid-phase, which is the case nothing else
  *    cleans up;
  *  - the **offer counters**, so a pitch she was one press into starts again from
- *    its first line.
+ *    its first line;
+ *  - the **day clock**, which is the light: she wakes into a morning, however
+ *    late in the evening she went to bed, and Dad has not called her in yet.
  *
  * A quest cleared out of the store is a quest with nobody halfway through it,
  * which is the same thing as a quest on offer again — so the giver's thought
  * bubble comes back by itself, and finishing the faerie quest is a thing she can
  * do again tomorrow.
+ *
+ * **Anything wanting the day it just ended has to read it before this runs.**
+ * That is the bedtime recap, and it is the only thing so far: see
+ * `state/recap.ts` and the ordering in `RoomScene.goToSleep`.
  */
 export function nightPasses(): void {
   session.resetForSleep();
   toolBelt.clear();
   quests.forgetOffers();
+  dayClock.wake();
 }

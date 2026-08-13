@@ -63,6 +63,15 @@ interface Occluder {
   base: number;
 }
 
+/**
+ * How much bigger a lamp's evening halo is than the pool it throws in daylight,
+ * and how bright it gets. A light that only brightened would read as the same
+ * light turned up; one that also *reaches further* reads as a light that has
+ * something to do.
+ */
+const NIGHT_HALO_SCALE = 2.1;
+const NIGHT_HALO_ALPHA = 0.72;
+
 export class TileWorld {
   readonly widthPx: number;
   readonly heightPx: number;
@@ -71,6 +80,8 @@ export class TileWorld {
   private readonly cols: number;
   private readonly rows: number;
   private readonly occluders: Occluder[] = [];
+  /** The evening halo of every `glow`-flagged picture standing in this zone. */
+  private readonly lights: Phaser.GameObjects.Image[] = [];
 
   /** How many sprites have been placed, so animations can be staggered. */
   private placed = 0;
@@ -244,6 +255,27 @@ export class TileWorld {
   /** The live collision grid, written the way the map file writes it. */
   get blockedString(): string {
     return Array.from(this.blocked, (b) => (b ? '1' : '0')).join('');
+  }
+
+  /**
+   * Bring the lamps up, by how far into the evening it is.
+   *
+   * The pictures that are lights say so in the catalog — `glow`, measured
+   * there — so this needs no list of which sprites are lamp posts and no zone
+   * that knows it has any. A wood with no lamps in it gets an empty loop.
+   */
+  setDusk(level: number): void {
+    const lit = Phaser.Math.Clamp(level, 0, 1) * NIGHT_HALO_ALPHA;
+    for (const light of this.lights) light.setAlpha(lit);
+  }
+
+  /** How many lights this zone has, and how bright their evening halo is. */
+  get lightCount(): number {
+    return this.lights.length;
+  }
+
+  get lightLevel(): number {
+    return (this.lights[0]?.alpha ?? 0) / NIGHT_HALO_ALPHA;
   }
 
   /**
@@ -452,10 +484,11 @@ export class TileWorld {
     // Centred on the middle of the picture rather than its corner, because what
     // gives off the light is the flame and not the bracket under it.
     if (image.glow) {
+      const at = { x: x + width / 2, y: y + height / 2 };
       const light = makeGlow(
         this.scene,
-        x + width / 2,
-        y + height / 2,
+        at.x,
+        at.y,
         image.glow.radius * WORLD_SCALE,
         image.glow.color,
         0.55,
@@ -471,6 +504,29 @@ export class TileWorld {
         repeat: -1,
         ease: 'Sine.easeInOut',
       });
+
+      // And the same light again, for the evening — bigger, brighter, and drawn
+      // *over* the sheet of blue rather than under it.
+      //
+      // It is a second image rather than the same one moved, and that is the
+      // whole trick. The daylight pool lies on the floor under everything
+      // standing on it, which is where a pool of light belongs at noon and is
+      // also exactly where the evening would dim it: a lamp that got fainter as
+      // the light went would be the opposite of a lamp. Lifting the one image
+      // over the sheet would mean it popping from behind the world to in front
+      // of it at whatever instant dusk began. So there are two, the second sits
+      // at zero all day, and a day with no evening in it looks exactly as it
+      // always did. See `setDusk`.
+      this.lights.push(
+        makeGlow(
+          this.scene,
+          at.x,
+          at.y,
+          image.glow.radius * WORLD_SCALE * NIGHT_HALO_SCALE,
+          image.glow.color,
+          0,
+        ).setDepth(DEPTH.duskLight),
+      );
     }
 
     // A rug is drawn lying on the floor, so it sorts below everything that

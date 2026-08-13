@@ -10,7 +10,7 @@
  */
 
 import Phaser from 'phaser';
-import { DEPTH, GAME_WIDTH } from '../config';
+import { DEPTH, GAME_HEIGHT, GAME_WIDTH } from '../config';
 import type { VoiceBank, VoiceLine, VoicePlayback } from '../voice/VoiceBank';
 
 const MAX_WIDTH = 620;
@@ -323,9 +323,16 @@ export class SpeechBubble extends Phaser.GameObjects.Container {
     // Sit above the speaker, but never off the edge of what is on screen. The
     // world scrolls now, so "the edge" is the camera's view of it and not the
     // canvas — a balloon clamped to the canvas would drift off in a big zone.
+    //
+    // Both axes, and the vertical one is newer and load-bearing: Dad calls her
+    // in from a front door that may be right across the village, and a balloon
+    // that honoured his position exactly would be a line spoken with no words on
+    // screen — which is the one thing this game may never do. Clamped, it slides
+    // to the edge of the view nearest the house, still leaning its tail that
+    // way. See CLAUDE.md, "Every piece of on-screen text speaks aloud".
     const view = this.scene.cameras.main.worldView;
-    const [viewLeft, viewRight] =
-      view.width > 0 ? [view.left, view.right] : [0, GAME_WIDTH];
+    const [viewLeft, viewRight] = view.width > 0 ? [view.left, view.right] : [0, GAME_WIDTH];
+    const [viewTop, viewBottom] = view.height > 0 ? [view.top, view.bottom] : [0, GAME_HEIGHT];
 
     this.setPosition(
       Phaser.Math.Clamp(
@@ -333,7 +340,11 @@ export class SpeechBubble extends Phaser.GameObjects.Container {
         viewLeft + w / 2 + SCREEN_MARGIN,
         viewRight - w / 2 - SCREEN_MARGIN,
       ),
-      this.speaker.y - SPEAKER_GAP - h / 2,
+      Phaser.Math.Clamp(
+        this.speaker.y - SPEAKER_GAP - h / 2,
+        viewTop + h / 2 + SCREEN_MARGIN,
+        viewBottom - h / 2 - SCREEN_MARGIN,
+      ),
     );
 
     this.balloon.clear();

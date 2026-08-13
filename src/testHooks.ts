@@ -72,6 +72,32 @@ export interface QuestHooks {
   step: string | null;
 }
 
+/**
+ * What time of day it is, and what the evening has done about it.
+ *
+ * The clock itself is a single number — milliseconds since she woke — and every
+ * other field here is something drawn *because* of that number, which is the
+ * only reason they are worth reporting separately: a test that only saw the
+ * clock could not tell "dusk arrived" from "dusk arrived and nothing happened".
+ * See `state/dayClock.ts` and `world/dusk.ts`.
+ */
+export interface DayHooks {
+  /** Milliseconds since she last woke up. */
+  elapsed: number;
+  /** 0 in full daylight, 1 once the evening has finished coming in. */
+  dusk: number;
+  /** Whether this zone is one the evening happens in at all. */
+  outdoors: boolean;
+  /** How many fireflies are out. Zero indoors, and zero in daylight. */
+  fireflies: number;
+  /** How many `glow`-flagged pictures are standing in this zone. */
+  lamps: number;
+  /** How far up their evening halo is, 0 to 1. */
+  lampGlow: number;
+  /** Whether Dad has called her in from the house yet today. */
+  dadCalled: boolean;
+}
+
 export interface DoorwayMarker extends Marker {
   /** Room id on the far side. */
   to: string;
@@ -278,6 +304,27 @@ export interface TestHooks {
    * lands.
    */
   sleeps: number;
+  /** What time of day it is, and what the light is doing about it. See DayHooks. */
+  day: DayHooks;
+  /**
+   * Skip the day forward. Strictly for the suite.
+   *
+   * The evening arrives eight minutes after she wakes and takes two more to
+   * finish arriving, and no test is waiting ten minutes for it. Shortening those
+   * constants under a test would be testing a day she never plays, so this
+   * pushes the same clock along instead and every threshold stays where it
+   * really is. See `dayClock.warp`.
+   */
+  warpDay: (ms: number) => void;
+  /**
+   * The lines she said at bedtime, in order, most recent night.
+   *
+   * The one part of the recap worth pinning: *which* sentences a day earns is
+   * logic, and it is decided once from a store snapshot taken before the night
+   * clears it — see `state/recap.ts`. How they are paced over the starfield is
+   * Matt's eyes, not a number a test should be guarding.
+   */
+  recap: string[];
   /**
    * Wrong buttons pressed inside the spell circle.
    *
@@ -428,6 +475,17 @@ export const hooks: TestHooks = {
   fps: 0,
   sparkles: 0,
   sleeps: 0,
+  day: {
+    elapsed: 0,
+    dusk: 0,
+    outdoors: false,
+    fireflies: 0,
+    lamps: 0,
+    lampGlow: 0,
+    dadCalled: false,
+  },
+  warpDay: () => undefined,
+  recap: [],
   ritualMisses: 0,
   faeries: [],
   aliveParticles: 0,

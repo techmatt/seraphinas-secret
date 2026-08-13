@@ -87,6 +87,19 @@ export class QuestEngine {
     return this.active?.giver ?? null;
   }
 
+  /**
+   * Is the quest she is on over?
+   *
+   * A parked phase is the definition, and it is the general one rather than a
+   * name: `park` is the goal that cannot be finished, so a quest sitting in one
+   * has run out of phases to move to — see `PhaseGoal`. Written here rather than
+   * worked out by whoever asks, because the alternative is the bedtime recap
+   * knowing that the faerie quest's last phase happens to be called "done".
+   */
+  get finished(): boolean {
+    return this.active !== null && this.phase?.goal.kind === 'park';
+  }
+
   // --- being offered one ----------------------------------------------------
 
   /**

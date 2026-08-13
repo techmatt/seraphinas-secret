@@ -18,6 +18,8 @@ import { unlockAudio } from '../audio/context';
 import { DEPTH, GAME_HEIGHT, TILE, TILE_SIZE, WORLD_SCALE } from '../config';
 import { itemOf, rocksOf, type RitualStep } from '../quest/Quest';
 import { quests } from '../quest/QuestEngine';
+import { dayClock } from '../state/dayClock';
+import { recapFor, snapshotDay } from '../state/recap';
 import { nightPasses } from '../state/sleep';
 import { session } from '../state/session';
 import { makeButtonDot, padColor, type PadColorName } from '../ui/ButtonDot';
@@ -39,6 +41,7 @@ import {
 import { SERAPHINA } from '../world/characterSheets';
 import { DebugHitboxes } from '../world/DebugHitboxes';
 import { Doorway } from '../world/Doorway';
+import { Dusk } from '../world/dusk';
 import { Faeries } from '../world/Faeries';
 import { GemRock, makeChipEmitter } from '../world/GemRock';
 import { GroundItem } from '../world/GroundItem';
@@ -52,12 +55,12 @@ import {
 } from '../world/mapData';
 import { Npc, sheetFor } from '../world/Npc';
 import { SpellCircle } from '../world/SpellCircle';
-import { playNightfall, playSunrise } from '../world/nightfall';
+import { CURTAIN_DEPTH, playNightfall, playSunrise } from '../world/nightfall';
 import { makeProp, nudgeProp, type Prop } from '../world/scenery';
 import { TileWorld } from '../world/TileWorld';
 import { toolBelt, type ToolId } from '../world/ToolBelt';
 import { makeLeafEmitter, Tree } from '../world/Tree';
-import { STARTING_ZONE, type ZoneId } from '../world/zones';
+import { isOutdoors, STARTING_ZONE, type ZoneId } from '../world/zones';
 import { playArrivalFlourish, playExitFlourish } from '../world/transition';
 import { hooks, syncAudioHook } from '../testHooks';
 
@@ -147,6 +150,9 @@ interface Interactable {
  */
 const BED = 'bed';
 
+/** What Dad calls out of the house when the light starts going. */
+const DAD_BEDTIME = 'dad_bedtime';
+
 /** What clears a prop: half its picture and a bit. */
 const DOT_LIFT = 58;
 
@@ -162,6 +168,27 @@ const ITEM_LIFT = TILE_SIZE + 30;
  * game and the first sentence over the top of it would take the size off it.
  */
 const SUMMONING_BEAT = 1200;
+
+/**
+ * How the bedtime recap is paced over the starfield.
+ *
+ * `LEAD` is the stars getting themselves up before she says anything — they
+ * arrive over about a second each, staggered, and a sentence laid over the top
+ * of that would be two things at once. `GAP` is the breath between her
+ * sentences; short, because they are one thought and not three. `TAIL` is the
+ * beat after the last word, which is what stops the morning arriving on top of
+ * "goodnight" — it is the only one of the three that is really about the
+ * *next* thing rather than this one.
+ *
+ * Everything between them is measured off the clips themselves, so a line
+ * re-cut a second longer paces itself. See `sayRecap`.
+ */
+const RECAP_LEAD = 650;
+const RECAP_GAP = 420;
+const RECAP_TAIL = 900;
+
+/** What a clip is assumed to run to when the voice bank never loaded. */
+const RECAP_FALLBACK_SECONDS = 1.6;
 
 /** What the title screen — or the zone she just left — hands over. */
 export interface RoomSceneData {
@@ -250,6 +277,12 @@ export class RoomScene extends Phaser.Scene {
    * flag in the session store, so they cross every doorway with her. See Faeries.
    */
   private faeries: Faeries | null = null;
+
+  /**
+   * The evening, if this zone has one. Null indoors and in the cave, which is
+   * the whole of the rule — see `isOutdoors`.
+   */
+  private dusk: Dusk | null = null;
 
   private sparkles!: Phaser.GameObjects.Particles.ParticleEmitter;
   private leaves!: Phaser.GameObjects.Particles.ParticleEmitter;
@@ -345,6 +378,7 @@ export class RoomScene extends Phaser.Scene {
     this.circle = null;
     this.inCircle = false;
     this.faeries = null;
+    this.dusk = null;
     this.leaving = false;
     this.doorwaysArmed = false;
     this.padWasDown = { a: false, b: false, x: false, y: false };
@@ -518,6 +552,13 @@ export class RoomScene extends Phaser.Scene {
     // rebuilt beside her in whatever zone she walks into next.
     if (session.faeries) this.faeries = new Faeries(this, this.player.x, this.player.y);
 
+    // And the evening, where there is a sky to have one in. Built at whatever
+    // the clock already says rather than from zero, so walking out of the house
+    // at dusk opens on the evening she left rather than fading into it — the
+    // clock crosses doorways and the zone drawing it does not.
+    if (isOutdoors(this.zoneId)) this.dusk = new Dusk(this, this.player.x, this.player.y);
+    this.applyDusk();
+
     this.setupInput();
     this.drawHud();
     this.refreshQuestHud();
@@ -611,6 +652,10 @@ export class RoomScene extends Phaser.Scene {
       return taken;
     };
     hooks.session = () => session.snapshot();
+    hooks.warpDay = (ms) => {
+      dayClock.warp(ms);
+      this.applyDusk();
+    };
     hooks.scene = 'room';
     hooks.transitioning = false;
     hooks.ready = true;
@@ -653,6 +698,12 @@ export class RoomScene extends Phaser.Scene {
       }
       this.handleHelp(button.yellow);
     }
+    // The afternoon runs whatever she is doing with it, including standing in a
+    // doorway. It changes nothing she can lose, so there is nothing to pause.
+    dayClock.tick(delta);
+    this.applyDusk();
+    this.dusk?.update(delta, this.player.x, this.player.y);
+    this.dadCallsHer();
     this.faeries?.update(delta, this.player.x, this.player.y);
     this.player.setDepth(this.player.y);
     this.world.revealBehind(this.player.x, this.player.y);
@@ -1927,6 +1978,84 @@ export class RoomScene extends Phaser.Scene {
     hooks.sparkles += 1;
   }
 
+  // --- the evening -----------------------------------------------------------
+
+  /**
+   * Push the light to wherever the clock says it is.
+   *
+   * Called every frame and also the instant anything jumps the clock, which is
+   * what makes the test hook honest: the suite warps eight minutes forward and
+   * the very next reading is of a village at dusk, rather than of a village that
+   * will be at dusk once it has had a frame.
+   *
+   * Two things get told, and they are both idempotent: the sheet of blue over
+   * the world, and the lamps standing in it. The lamps are told even indoors,
+   * where the answer is always zero, because the cave's torches are `glow`
+   * pictures too and "the cave keeps its current look" is exactly what telling
+   * them nothing achieves — see `isOutdoors`.
+   */
+  private applyDusk(): void {
+    const level = isOutdoors(this.zoneId) ? dayClock.dusk : 0;
+    this.dusk?.setLevel(level);
+    this.world?.setDusk(level);
+    this.syncDayHooks();
+  }
+
+  private syncDayHooks(): void {
+    hooks.day = {
+      elapsed: Math.round(dayClock.elapsedMs),
+      dusk: this.dusk?.dusk ?? 0,
+      outdoors: isOutdoors(this.zoneId),
+      fireflies: this.dusk?.flyCount ?? 0,
+      lamps: this.world?.lightCount ?? 0,
+      lampGlow: this.world?.lightLevel ?? 0,
+      dadCalled: dayClock.dadCalled,
+    };
+  }
+
+  /**
+   * Dad, calling her in from indoors, once the light starts going.
+   *
+   * He is a voice and not a person: there is no Dad standing in the world and
+   * this prompt is explicit that there is not going to be one today. So the
+   * balloon is anchored at the front door — the words come out of the *house* —
+   * and it is his voice rather than hers, which is the one place the narrative
+   * rule in CLAUDE.md does not apply, because this is somebody actually talking.
+   *
+   * Asked every frame and nearly always a no. Four things have to be true, and
+   * each of them is a different kind of restraint:
+   *
+   *  - the light has started going, and he has not called yet today — the latch
+   *    lives on the clock rather than here, because dusk can arrive while she is
+   *    down the cave and the call belongs to the yard she comes back up into;
+   *  - she is outdoors, so there is a house to be called from. Indoors he simply
+   *    waits, and calls on the evening she next steps out;
+   *  - nobody is mid-sentence. He is the only thing in the game that speaks
+   *    without being asked to, so he is also the only thing that could talk over
+   *    a line she was listening to;
+   *  - and it is not a nag, which is the whole of the last one: once a day.
+   */
+  private dadCallsHer(): void {
+    if (this.leaving || !dayClock.isDusk || dayClock.dadCalled) return;
+    if (!isOutdoors(this.zoneId)) return;
+    if (this.bubble.lineId !== null) return;
+
+    const door = this.doorways.find((d) => d.def.to === 'house');
+    if (!door) return;
+    // And there is something to *show*. The manifest is still loading for the
+    // first second of a page and may never arrive at all — the game plays on
+    // mute either way — and a call spent while there were no words to put on
+    // screen would be a call she never got. The latch is burnt below this line
+    // on purpose.
+    if (!this.voice.get(DAD_BEDTIME)) return;
+
+    dayClock.dadCalls();
+    unlockAudio();
+    this.bubble.say(DAD_BEDTIME, { id: 'dad', x: door.x, y: door.y });
+    this.syncVoiceHooks();
+    this.syncDayHooks();
+  }
+
   // --- going to bed ----------------------------------------------------------
 
   /**
@@ -1961,12 +2090,20 @@ export class RoomScene extends Phaser.Scene {
   /**
    * She said yes. The day ends.
    *
-   * Three beats and a seam. `playNightfall` takes the light out of the room and
-   * puts a sky up; at the darkest moment — a flat sheet of one colour, with
-   * nothing on screen that could show a join — the day is swept and this zone is
-   * rebuilt from the empty store it leaves behind. The zone on the far side
-   * opens on the same sheet of the same colour and comes up into morning. See
-   * `world/nightfall.ts`, and `state/sleep.ts` for what a night actually clears.
+   * Four beats and a seam. `playNightfall` takes the light out of the room and
+   * puts a sky up; she says what her day was, over the stars; and at the darkest
+   * moment — a flat sheet of one colour, with nothing on screen that could show
+   * a join — the day is swept and this zone is rebuilt from the empty store it
+   * leaves behind. The zone on the far side opens on the same sheet of the same
+   * colour and comes up into morning. See `world/nightfall.ts`, and
+   * `state/sleep.ts` for what a night actually clears.
+   *
+   * **The recap is decided here, before any of that runs.** A night wipes the
+   * store, and the store is the only record of what the day was — so the last
+   * possible moment to ask is the first line of this method, and asking a line
+   * later would be asking a day that has already been deleted. The lines
+   * themselves are chosen by `recapFor` and paced by `sayRecap`; nothing about
+   * either is in flight yet when this is written down.
    *
    * She is handed back to herself standing exactly where she went to bed, which
    * is beside the bed, because that is the only place this can have been pressed
@@ -1979,6 +2116,10 @@ export class RoomScene extends Phaser.Scene {
     hooks.transitioning = true;
     hooks.sleeps += 1;
 
+    // Read off the store while there is still a day in it.
+    const recap = recapFor(snapshotDay());
+    hooks.recap = [...recap];
+
     this.bubble.stop();
     this.prompt.setVisible(false);
     this.stickHint?.dismiss();
@@ -1986,20 +2127,64 @@ export class RoomScene extends Phaser.Scene {
 
     const wakeAt = { x: this.player.x, y: this.player.y, facing: 'down' as const };
 
-    playNightfall(this, { x: this.player.x, y: this.player.y, sparkles: this.sparkles }, () => {
-      // Everything a day is kept in, gone — store, belt and offer counters. The
-      // picture catches up by being built again from scratch, which is the same
-      // thing a doorway does and is why the wood regrows and the thought bubble
-      // comes back over his head without a line of code apiece.
-      nightPasses();
-      this.scene.restart({
-        voice: this.voice,
-        room: this.zoneId,
-        map: this.mapData,
-        waking: true,
-        wakeAt,
-      } satisfies RoomSceneData);
-    });
+    playNightfall(
+      this,
+      { x: this.player.x, y: this.player.y, sparkles: this.sparkles },
+      {
+        onSky: () => this.sayRecap(recap),
+        onDark: () => {
+          // Everything a day is kept in, gone — store, belt, offer counters and
+          // the clock. The picture catches up by being built again from scratch,
+          // which is the same thing a doorway does and is why the wood regrows
+          // and the thought bubble comes back over his head without a line of
+          // code apiece.
+          nightPasses();
+          this.scene.restart({
+            voice: this.voice,
+            room: this.zoneId,
+            map: this.mapData,
+            waking: true,
+            wakeAt,
+          } satisfies RoomSceneData);
+        },
+      },
+    );
+  }
+
+  /**
+   * Her day, said out loud over the starfield. Returns how long that will take.
+   *
+   * Every line is scheduled up front off the clip lengths the voice bank already
+   * knows, rather than each one being started by the one before it finishing.
+   * Chaining would be the obvious shape and it is the wrong one here: the night
+   * has to be told how long to hold *before* the first word is spoken, and a
+   * chain cannot answer that until it is over.
+   *
+   * The balloon is lifted over the night curtain for the duration. It is welded
+   * to the screen and the curtain is a flat sheet above the whole game — see
+   * `world/nightfall.ts` — so a balloon at its usual depth would be a sentence
+   * spoken behind the sky. Nothing puts it back, and nothing needs to: this
+   * scene is a few seconds from being restarted from scratch.
+   */
+  private sayRecap(lines: string[]): number {
+    this.bubble.setDepth(CURTAIN_DEPTH + 3);
+
+    let at = RECAP_LEAD;
+    for (const line of lines) {
+      const when = at;
+      this.time.delayedCall(when, () => {
+        if (!this.scene.isActive()) return;
+        // Hers, over her own head — she is the one remembering. The camera has
+        // not moved since she lay down, so "over her head" is still somewhere on
+        // screen even though she herself is behind a night sky.
+        this.bubble.say(line, this.speaking());
+        this.syncVoiceHooks();
+      });
+      at += (this.voice.get(line)?.duration ?? RECAP_FALLBACK_SECONDS) * 1000 + RECAP_GAP;
+    }
+
+    // The last gap is not a gap, it is the tail.
+    return at - RECAP_GAP + RECAP_TAIL;
   }
 
   /**
