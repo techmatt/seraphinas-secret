@@ -145,9 +145,10 @@ missing. That is the only case in which a report is ever written into the repo.
 
 ### The two test suites
 
-`npm test` is the **fast suite**: thirteen tests, everything that fails when the
-code is wrong. Around two and a half minutes. This is what to run while working, and what
-has to be green before a commit.
+`npm test` is the **fast suite**: fourteen tests, everything that fails when the
+code is wrong. Around four and a half minutes, most of it the three quest
+end-to-ends. This is what to run while working, and what has to be green before
+a commit.
 
 The tests are deliberately few and long. Page startup is the dominant cost in
 this suite, so a test is one boot with every question that zone can answer asked

@@ -36,7 +36,11 @@ to its own shadow, 0 when a box comes out spanning the sheet.
   96×64 = three 32×64 slots: slot 0 a small stump (art 7×9 at 13,41), slot 1 the
   tree with its shadow, slot 2 the tree without. Identical layout for oak,
   spruce, birch and fruit — so a small tree and a matching small stump are two
-  slots of one file.
+  slots of one file. Catalogued as `oakSmall` (blocks `x 0.5, y 2`) and
+  `smallStump` (rect 8,34,16,16), both level to the pixel: the stump's opaque
+  base is only six columns wide, so the seven-pixel art centres exactly, and the
+  bottom two rows are shadow — which is why the rect bottom-aligns two rows low,
+  exactly as the big `stump` does.
 - **`Crops/Crops.png` is 7 columns × 22 crops, two 16-px rows each** (112×704).
   Per crop: sign, seed jar, sprout, two growing stages, the mature plant in the
   ground (column 5), the harvested item icon with a cream outline (column 6). So
@@ -46,6 +50,14 @@ to its own shadow, 0 when a box comes out spanning the sheet.
   its first row is five filled / half / empty triples — heart, star, coin,
   lightning, shield. The gold coin is frame 6. There is no rabbit, hare or bunny
   anywhere in any of the twelve packs.
+- **The bunnies are frogs, and `src/world/Bunny.ts` is the only file that knows.**
+  `Animals/Frog/Frog_06.png` is the palest of six colourways (mean luminance 99
+  against the green one's 80) and the frog is the only animal in any pack that
+  *hops*. 320×128 = ten columns × four rows of 32 px: row 0 is two frames of
+  idle, row 1 eight frames of the hop, row 2 a tongue lashing at a fly, row 3 a
+  hurt flash. Only the first two are used. The animal is drawn 11 px square in
+  the middle of its cell with its feet at 21/32 down. Every id, key, line and
+  slot in the game says *bunny*; swapping in real art is four constants.
 - The mirror is whole folders: `CATEGORIES` in `tools/assets/config.ts`, copied
   into the gitignored `public/assets/` by `npm run assets:sync` (a `predev` and
   `prebuild` step). Pack pixels never enter the repo.
@@ -111,6 +123,16 @@ to its own shadow, 0 when a box comes out spanning the sheet.
 - Quest furniture (`src/quest/quests.ts`) is **not** in `content/world/`, so the
   build gate never sees it. `tests/quest.spec.ts` stands in, over the same
   collision grid.
+- **A picture nobody placed is a picture nothing can draw.** A map file lists the
+  rectangles it uses so the scene can queue exactly those textures, so anything
+  the *game* puts down at runtime has to be registered anyway: the generator
+  works the felled-tree stump out for itself, and a quest's furniture is named by
+  the layout — see `images` on a ZoneLayout, which is how `outside` carries
+  `oakSmall` and `smallStump` without planting one.
+- **The Mystic Woods has exactly three road-free 5×5 placements and they are all
+  the same clearing** (top-left 12–14, 26). The bunny pen is the middle one. The
+  wood is 85% open ground and 151 of its 654 interior cells are road, which is
+  the constraint — not density.
 - `npm run typecheck` is two projects: `tsconfig.json` (src) and
   `tsconfig.tools.json` (tools + content). `npm run build` runs it first.
 
@@ -120,6 +142,12 @@ to its own shadow, 0 when a box comes out spanning the sheet.
   second.** The suite is latency-bound, not throughput-bound: `workers: 1` is
   measured, not cautious — two workers dropped a walking test, four turned
   ten-second tests into five-minute timeouts.
+- **A phase ends with its next instruction spoken a beat later**, so
+  `waitForQuiet` alone can pass in the gap *before* it starts and whatever the
+  test does next gets talked over a second afterwards. Barks are dropped rather
+  than queued while a real line is in the air, so for anything asserting a bark
+  the wait has to be "that line was said, and then quiet" — `afterInstruction`
+  in `quest.spec`.
 - **Page startup dominates the fast suite.** A test is one boot with every
   question that zone can answer asked inside it. Before writing a new test, look
   for the boot that already goes where it belongs.

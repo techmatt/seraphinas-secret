@@ -13,7 +13,7 @@ Three halves, split by what they are *about*:
 
 | Half | Holds | Cleared by |
 | --- | --- | --- |
-| `run` | the quest, items in hand, tools a quest lent her, whether the faeries are out | a night |
+| `run` | the quest, items in hand, tools a quest lent her, whether the faeries are out, which bunny is following her | a night |
 | `world` | per-zone deltas — which trees are felled, keyed by zone id | a night |
 | `persistent` | coins (`COIN_SLOTS` = 3) | only `reset()` |
 
@@ -25,18 +25,32 @@ returns. The seam between "cleared by a night" and "kept" is
 ## Quest engine
 
 `src/quest/QuestEngine.ts` (rules, no Phaser), `src/quest/Quest.ts` (types),
-`src/quest/quests.ts` (the table — one quest, `faerie`).
+`src/quest/quests.ts` (the table — `faerie` and `bunny`).
 
-One quest at a time; there is no quest log. A quest is phases with a `goal` of
-kind `fetch` / `collect` / `travel` / `ritual` / `park`. `park` is the goal that
-cannot finish, which is what `finished` reads. Progress lives in the store, so
-walking through a doorway rebuilds the picture and never the progress. The
-engine also owns the *offer* counter (`nextOfferLine`, `forgetOffers`) and
-`gather`, which moves NPCs into a zone for named phases.
+One quest at a time; there is no quest log. **Two quests do mean two thought
+bubbles before either is taken** — Sneak's and Hazel's — and accepting either
+takes both off the sky. A quest is phases with a `goal` of kind `fetch` /
+`collect` / `travel` / `ritual` / `fell` / `gather` / `lure` / `park`. `park` is
+the goal that cannot finish, which is what `finished` reads. Progress lives in
+the store, so walking through a doorway rebuilds the picture and never the
+progress. The engine also owns the *offer* counter (`nextOfferLine`,
+`forgetOffers`) and `gather`, which moves NPCs into a zone for named phases —
+applied at the next zone build, or immediately by `RoomScene.moveGuestsIn` when
+the job is taken in the same field it happens in.
 
-Quest furniture (where a stone stands) is in `quests.ts`, deliberately not in
-`content/world/` — so `world:build`'s reachability gate never sees it, and
-`tests/quest.spec.ts` stands in for that gate over the same collision grid.
+Quest furniture (where a stone stands, where the bunny pen goes) is in
+`quests.ts`, deliberately not in `content/world/` — so `world:build`'s
+reachability gate never sees it, and `tests/quest.spec.ts` stands in for that
+gate over the same collision grid. A zone that a quest may *draw* into still has
+to carry the pictures: see `images` on a ZoneLayout.
+
+## Bunnies
+
+`src/world/Bunny.ts` — three of them, off the grid entirely: no collision, no
+tile, no route, the faeries' rule. What each one is doing (`penned` / `loose` /
+`following` / `home`) is worked out from the quest on every zone build rather
+than stored; the store holds one string, which bunny is at her heels. **The art
+is a frog** and that file is the only one that knows — see `engineering.md`.
 
 ## Sleep
 
@@ -89,6 +103,14 @@ Content-time, never at runtime:
 `src/voice/barks.ts` — the low kind of speech: one word, her own voice, dropped
 rather than queued. Naming barks are derived from ids (`ruby` → `seraphina_ruby`),
 so a new stone is a line in `lines.json` and nothing else.
+
+## Trees
+
+`src/world/Tree.ts` — shake, fall, stump, gone. Two sizes, `BIG_TREE` and
+`TINY_TREE`, and a `TreeStyle` is the whole difference between them: blows to
+fell, blows to clear, which stump is left, and how much mess it makes. One code
+path for both. The wood's come out of the map file; the bunny pen's are
+synthesised by `RoomScene.buildPen` and are otherwise identical.
 
 ## Footings and collision
 
