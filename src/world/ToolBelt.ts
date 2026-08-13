@@ -79,6 +79,22 @@ export class ToolBelt {
   }
 
   /**
+   * Every borrowed tool, back at once. What a night's sleep does to the row.
+   *
+   * Not a loop of `take` on the outside, because the caller would have to know
+   * what is in the boxes to write that loop — and the one thing that is certain
+   * about the row after a quest was abandoned halfway is that nobody knows what
+   * is in it. The axe is untouched, here as everywhere: slot one is welded shut
+   * and this is not the thing that unwelds it.
+   */
+  clear(): void {
+    for (let i = 0; i < SLOTS; i++) {
+      if (this.boxes[i] !== PERMANENT) this.boxes[i] = null;
+    }
+    this.settle();
+  }
+
+  /**
    * Put a tool in her hand outright.
    *
    * What a quest does the moment it grants one, so the thing she was just given

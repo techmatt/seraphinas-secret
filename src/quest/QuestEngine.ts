@@ -129,6 +129,21 @@ export class QuestEngine {
     return { line, accepted: last };
   }
 
+  /**
+   * Forget how far through an offer she is, everywhere.
+   *
+   * The night sweep's, and the only part of it that is not in the session store:
+   * this counter is the engine's because it is about a conversation rather than
+   * about a quest, and a conversation does not survive going to bed in the
+   * middle of it. Taking the job already forgets its own counter — see
+   * `nextOfferLine` — so this is exactly the half-finished case: one press in,
+   * asleep, and in the morning he starts his pitch from the top rather than from
+   * the sentence she never heard the beginning of.
+   */
+  forgetOffers(): void {
+    this.offerAt.clear();
+  }
+
   // --- doing it -------------------------------------------------------------
 
   /**

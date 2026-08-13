@@ -12,19 +12,22 @@
  * game and this is not the file that adds one — a reload is a fresh morning, and
  * that is the same deal a chopped tree has always had.
  *
- * **The shape is the point.** It is split into two halves that answer to
- * different clocks:
+ * **The shape is the point.** It is split into two halves, by what they are
+ * about rather than by how long they last:
  *
  *  - **`run`** — the quest, what she is carrying for it, and what it has lent
- *    her. Quests reset at sleep (Matt), so this is exactly the set a night's
- *    sleep clears, and `resetForSleep` clears exactly this.
- *  - **`world`** — what she has changed about a place. A tree she felled stays
- *    felled, because it is a fact about the wood rather than a fact about the
- *    quest, and sleeping does not grow it back.
+ *    her.
+ *  - **`world`** — what she has changed about a place: the trees she has felled,
+ *    keyed by zone.
  *
- * The day-cycle era builds sleep itself. All this file owes it is somewhere
- * obvious to cut, and a promise that the cut is along a seam rather than through
- * the middle of something.
+ * Both are cleared by a night's sleep (Matt, 2026-08-12: *everything* resets, no
+ * exceptions — the world regenerates overnight, so the wood she cleared is
+ * standing again in the morning). That was not always true of `world`, and the
+ * old split was drawn around the difference; there is no difference now, and the
+ * halves earn their keep on shape alone. Anything a later prompt wants to *keep*
+ * across a night — coins, a count of days, which quests she has ever finished —
+ * is a third half, and the point of `resetForSleep` naming the event rather than
+ * the extent is that such a thing has an obvious side to land on.
  */
 
 import type { TreeState } from '../world/Tree';
@@ -68,7 +71,7 @@ export interface ZoneDelta {
  * and both of those want to be able to point at the seam.
  */
 export interface SessionData {
-  /** Cleared by sleep. */
+  /** The quest and everything it handed her. Cleared by sleep. */
   run: {
     quest: QuestState | null;
     /** Quest items in hand, in the order she picked them up. */
@@ -80,13 +83,13 @@ export interface SessionData {
      *
      * A flag rather than a list of three, because there is nothing to remember
      * about one: they have no positions worth keeping — they are wherever she
-     * is — and no state that outlives a zone. In `run` because the seam is the
-     * right one: they came out of a quest, and the night that resets the quest
-     * is the night they go home. Sleep is the day cycle's to build.
+     * is — and no state that outlives a zone. In `run` because that is what they
+     * are about: they came out of a quest, and the night that resets the quest
+     * is the night they go home.
      */
     faeries: boolean;
   };
-  /** Survives sleep. Keyed by zone id. */
+  /** The marks she has left on places, keyed by zone id. Cleared by sleep. */
   world: Record<string, ZoneDelta>;
 }
 
@@ -183,7 +186,7 @@ export class SessionState {
     return this.data.run.faeries;
   }
 
-  /** They are out. Nothing puts them back but a page reload — or, later, sleep. */
+  /** They are out. Nothing puts them back but a night's sleep, or a page reload. */
   summonFaeries(): void {
     this.data.run.faeries = true;
   }
@@ -236,15 +239,20 @@ export class SessionState {
   // --- the seam -------------------------------------------------------------
 
   /**
-   * A night's sleep: the quest, what it gave her and what she was carrying for
-   * it, all gone. The world keeps its scars.
+   * A night's sleep: the quest, what it gave her, what she was carrying for it,
+   * and every mark she left on the world — all gone. She wakes to the morning
+   * the generator wrote.
    *
-   * Nothing calls this yet — sleep is the day-cycle era's to build. It exists
-   * because "the schema can be cut here" is a claim, and a method is the only
-   * honest way to make one.
+   * It clears the whole store today, which makes it the same code as `reset`,
+   * and it is still its own method: the two are the same *extent* and different
+   * *events*, and the first thing that has to survive a night without surviving
+   * a page reload will need somewhere to be excluded, which is here. The store
+   * is what the sweep is written against; the belt and the offer counters live
+   * elsewhere and are swept beside it — see `src/state/sleep.ts`, which is the
+   * one place that knows what a night clears.
    */
   resetForSleep(): void {
-    this.data.run = SessionState.empty().run;
+    this.data = SessionState.empty();
   }
 
   /** Everything, gone. For a test that wants a clean page without reloading. */
