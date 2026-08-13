@@ -82,14 +82,18 @@ async function crack(page: Page, id: string) {
  * there is nothing here a repeat could break: an offer already accepted is an
  * npc with nothing to offer, so the extra press is only ever him saying the job
  * again.
+ *
+ * Waits on the id of the job rather than on there being one, because a day can
+ * have two: the second one is taken while the first is still sitting in the
+ * store, finished, and "she has a quest" is true before the first press.
  */
-async function acceptQuest(page: Page) {
-  await standNear(page, 'sneak', { y: 72 });
+async function acceptQuest(page: Page, who = 'sneak', becomes = 'faerie') {
+  await standNear(page, who, { y: 72 });
   for (let press = 0; press < 6; press++) {
-    if ((await readHooks(page)).quest.id) return;
+    if ((await readHooks(page)).quest.id === becomes) return;
     await tap(page, 'KeyZ');
   }
-  throw new Error('he never handed the job over');
+  throw new Error(who + ' never handed the job over');
 }
 
 /**
@@ -796,8 +800,17 @@ test('the yellow button remembers, the wrong tool cannot spoil it, a doorway doe
  * The two refusals are asked as hard as the successes. One bunny at a time is
  * *enforced*, and a test that only counted the boxes filling up would pass just
  * as well against a phase that let her tag all three and walk home once.
+ *
+ * And then the other job, in the same boot, because a two-quest day is the only
+ * place two of this game's claims can be asked at all: that finishing one quest
+ * hands the other one back rather than ending the afternoon (Matt, 2026-08-13),
+ * and that what the first one left in the world survives the second one being
+ * taken. It ends on the recap, which is the only sentence that can say both
+ * halves of a day like that happened.
  */
-test('the bunny rescue, from the offer to the den', async ({ page }) => {
+test('the bunny rescue, the faerie quest after it, and a night that says both', async ({
+  page,
+}) => {
   const { errors } = await bootGame(page);
   await waitForVoice(page);
 
@@ -1041,7 +1054,13 @@ test('the bunny rescue, from the offer to the den', async ({ page }) => {
   const done = await readHooks(page);
   expect(done.quest.phase, 'the quest parks').toBe('done');
   expect(done.quest.instruction, 'so the yellow button has nothing left to say').toBeNull();
-  expect(done.quest.offers, 'and nobody is offering it again today').toEqual([]);
+  expect(done.session.run.completed, 'the day has it down as done').toEqual(['bunny']);
+  // Hazel is standing right here and is not asking again — that is what a
+  // finished job looks like. Sneak is across the village and *is*: finishing one
+  // quest must not cost her the other, so his cloud comes back the instant this
+  // one parks, rather than tomorrow morning.
+  expect(done.quest.offers, 'and the other one is going again').toEqual(['sneak']);
+  expect(done.quest.markers, 'with his thought bubble actually rebuilt').toBe(1);
   expect(done.bunnies.every((b) => b.state === 'home'), 'all three live at the den').toBe(true);
   // The coin is hers the instant the third one is home, whatever she does next —
   // the split the first quest established. See `RoomScene.bunniesAllHome`.
@@ -1084,14 +1103,83 @@ test('the bunny rescue, from the offer to the den', async ({ page }) => {
     'and she is back where the map put her',
   ).toBeLessThan(tile);
 
+  // --- and then the other job, on the same afternoon ------------------------
+  //
+  // The whole faerie quest, on top of a finished one, because the ruling is that
+  // an afternoon holds both in either order — and the cheap half of proving it,
+  // his cloud coming back, was asserted sixty lines up. What is left is that the
+  // offer *grammar* came back with it: two presses and she is on an errand
+  // again, with the store carrying this morning's finished job beside the live
+  // one.
+  //
+  // Folded into this boot rather than given one of its own for the suite's own
+  // rule: page startup is the dominant cost, and the second quest of a two-quest
+  // day cannot be reached from a fresh page anyway.
+  await acceptQuest(page);
+  const second = await readHooks(page);
+  expect(second.quest.id, 'the second job of the day is hers').toBe('faerie');
+  expect(second.quest.phase, 'and it starts where it always starts').toBe('hammer');
+  expect(second.quest.giver, 'his, to repeat').toBe('sneak');
+  expect(second.session.run.completed, 'with the morning still down as done').toEqual(['bunny']);
+  expect(second.quest.offers, 'and nothing left on offer while it runs').toEqual([]);
+
+  await fetchHammer(page);
+  for (const stone of ['ruby', 'malachite', 'sapphire']) await crack(page, stone);
+  await page.waitForFunction(
+    () => (window as unknown as { __seraphina: Hooks }).__seraphina.quest.phase === 'meetAtCave',
+    undefined,
+    { timeout: 20_000 },
+  );
+
+  // Teleported to the cave mouth, the way the faerie test does it: that the
+  // mountain path is walkable is `world.spec`'s claim and not this one's.
+  await standByProp(page, 'outside_to_cave');
+  expect(await walkThroughDoorway(page, 'outside_to_cave'), 'in through the mouth').toBe('cave');
+  await standAt(page, 'cave_fire');
+  await page.waitForFunction(
+    () => (window as unknown as { __seraphina: Hooks }).__seraphina.quest.inCircle,
+    undefined,
+    { timeout: 20_000 },
+  );
+  await ritualPress(page, 'KeyC', 'green');
+  await ritualPress(page, 'KeyZ', 'blue');
+  await tap(page, 'KeyX');
+  await page.waitForFunction(
+    () => (window as unknown as { __seraphina: Hooks }).__seraphina.quest.phase === 'done',
+    undefined,
+    { timeout: 20_000 },
+  );
+
+  const bothDone = await readHooks(page);
+  expect(bothDone.session.run.completed, 'both jobs, in the order she did them').toEqual([
+    'bunny',
+    'faerie',
+  ]);
+  expect(bothDone.faeries.length, 'three faeries out of the fire').toBe(3);
+  expect(bothDone.coins, 'and a coin apiece, which is two of her three boxes').toBe(2);
+  expect(bothDone.quest.offers, 'nobody has anything left to ask today').toEqual([]);
+  expect(bothDone.quest.markers, 'so there is not a cloud in the sky').toBe(0);
+
+  // Out of the cave, and back to the wood she cleared this morning. This is the
+  // rebuild that would have swallowed it: the ring and the bunnies belong to a
+  // quest that is not the active one any more, and they are still hers.
+  expect(await walkThroughDoorway(page), 'back out under the sky').toBe('outside');
+  const wood = await readHooks(page);
+  expect(penTrees(wood).length, 'the ring is still standing in the clearing').toBe(16);
+  expect(fallen(wood), 'four of it still down').toBe(4);
+  expect(
+    wood.bunnies.every((b) => b.state === 'home'),
+    'and the three she walked home still live at the den',
+  ).toBe(true);
+
   // --- and then she goes to bed and says what her day was ------------------
   //
   // Folded in here rather than booted on its own, for the reason the faerie
   // night test gives: everything above exists to build a day worth reciting,
-  // and this is the only afternoon in the suite that has bunnies in it. Two
-  // things happened — three bunnies went home, and four trees came down — and
-  // only two are ever said, so this also settles that the new line sits *above*
-  // the tree line rather than beside it.
+  // and this is the only afternoon in the suite that has bunnies in it. Three
+  // things happened — the faeries, the bunnies, and four trees down — and only
+  // two are ever said, so this settles the order as well as the count: both
+  // finished jobs are said and the wood is the one that gets cut.
   await standByProp(page, 'outside_to_house');
   expect(await walkThroughDoorway(page, 'outside_to_house'), 'indoors for the night').toBe('house');
   await standByProp(page, 'bed');
@@ -1106,11 +1194,10 @@ test('the bunny rescue, from the offer to the den', async ({ page }) => {
     undefined,
     { timeout: 30_000 },
   );
-  expect((await readHooks(page)).recap, 'the bunnies first, then the wood, then goodnight').toEqual([
-    'seraphina_recap_bunnies',
-    'seraphina_recap_trees',
-    'seraphina_goodnight',
-  ]);
+  expect(
+    (await readHooks(page)).recap,
+    'the faeries, then the bunnies, then goodnight — and the wood cut for room',
+  ).toEqual(['seraphina_recap_faeries', 'seraphina_recap_bunnies', 'seraphina_goodnight']);
 
   expect(errors, 'no uncaught page errors').toEqual([]);
 });
