@@ -658,13 +658,20 @@ export const IMAGES: Record<string, ImageDef> = {
   // --- street furniture ---------------------------------------------------
   // Lamp posts are six styles across by six down, in 16x48 slots; the base is
   // the bottom tile, so only that one blocks and she walks behind the lamp.
+  // A lamp is a light, the same as a torch on the cave wall: it gets the pool
+  // of `glow` that says so. Wider than the torch's and a little paler, because
+  // this one is three tiles up and what it lights is the ground at its foot —
+  // and the pool is drawn on the middle of the picture, which for a 16x48 post
+  // is the road under the lantern rather than the lantern itself.
   lampPost: {
     file: `${A}/Outdoor decoration/Lanter_Posts.png`, x: 0, y: 0, w: 16, h: 48,
     blocks: { x: 0, y: 2, w: 1, h: 1 },
+    glow: { color: 0xffd9a0, radius: 40 },
   },
   lampPostWarm: {
     file: `${A}/Outdoor decoration/Lanter_Posts.png`, x: 0, y: 144, w: 16, h: 48,
     blocks: { x: 0, y: 2, w: 1, h: 1 },
+    glow: { color: 0xffbe63, radius: 40 },
   },
   // A board with a post holding it up. The post is the *right* half of the slot
   // and the board hangs off to its left, which the footprint used to have the
