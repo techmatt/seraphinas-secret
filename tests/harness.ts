@@ -105,6 +105,8 @@ export type Hooks = {
   tools: { slots: (string | null)[]; held: number; holding: string | null };
   giveTool: (tool: string) => number | null;
   takeTool: (tool: string) => boolean;
+  coins: number;
+  grantCoin: () => boolean;
   quest: {
     id: string | null;
     phase: string | null;
@@ -127,6 +129,7 @@ export type Hooks = {
       faeries: boolean;
     };
     world: Record<string, { trees: Record<string, { state: string; landed: number }> }>;
+    persistent: { coins: number };
   };
   swings: number;
   whacks: number;
@@ -183,6 +186,7 @@ export const readHooks = (page: Page) =>
       debugHitboxes,
       giveTool,
       takeTool,
+      grantCoin,
       session,
       warpDay,
       voice,

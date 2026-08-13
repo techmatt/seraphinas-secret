@@ -29,14 +29,15 @@ const ROUND = 14;
 /**
  * Where the row sits, as the bottom-left corner of the leftmost box.
  *
- * The row above it is deliberately empty. A three-slot coin row goes there when
- * there are coins — near enough that the two read as one pocket, far enough that
- * neither has to move when the other arrives.
+ * The coin row is on the shelf above, sharing this left edge so the two line up
+ * as one pocket — near enough to read as one thing, far enough that neither has
+ * to move when the other changes. See `ui/CoinRow.ts`.
  */
-const LEFT = 34;
+export const HUD_LEFT = 34;
+const LEFT = HUD_LEFT;
 const BOTTOM = GAME_HEIGHT - 24;
 
-/** How far above the tool row the coin row will sit. Reserved, not drawn. */
+/** The bottom edge of the coin row, one shelf up. Drawn from the first frame. */
 export const COIN_ROW_BOTTOM = BOTTOM - BOX - 20;
 
 /** The deep purple everything in this game's UI sits on. */

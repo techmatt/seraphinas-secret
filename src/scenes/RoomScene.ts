@@ -1,6 +1,8 @@
 import Phaser from 'phaser';
 import {
   playChopThunk,
+  playCoin,
+  playCoinBounce,
   playFanfare,
   playFizzle,
   playGemBreak,
@@ -23,12 +25,13 @@ import { recapFor, snapshotDay } from '../state/recap';
 import { nightPasses } from '../state/sleep';
 import { session } from '../state/session';
 import { makeButtonDot, padColor, type PadColorName } from '../ui/ButtonDot';
+import { makeCoinRow, type CoinRow } from '../ui/CoinRow';
 import { makeQuestMarker, type QuestMarker } from '../ui/QuestMarker';
 import { makeQuestRow, type QuestRow } from '../ui/QuestRow';
 import { makeShimmer, type Shimmer } from '../ui/shimmer';
 import { makeStickHint, type StickHint } from '../ui/StickHint';
 import { makeToolRow, preloadToolIcons, type ToolRow } from '../ui/ToolRow';
-import { GEM_ICONS } from '../ui/toolIcons';
+import { COIN_ICON, GEM_ICONS } from '../ui/toolIcons';
 import { SpeechBubble, type Speaker } from '../ui/SpeechBubble';
 import { NEEDS, nameOf } from '../voice/barks';
 import { VoiceBank } from '../voice/VoiceBank';
@@ -291,6 +294,7 @@ export class RoomScene extends Phaser.Scene {
   private stickHint?: StickHint;
   private toolRow!: ToolRow;
   private questRow!: QuestRow;
+  private coinRow!: CoinRow;
   private bubble!: SpeechBubble;
   private voice!: VoiceBank;
 
@@ -651,6 +655,11 @@ export class RoomScene extends Phaser.Scene {
       this.syncToolHooks();
       return taken;
     };
+    // The same standing-in, for coins. Only one thing in the game hands one over
+    // so far and it is at the end of a whole quest, so this is what lets the
+    // night test have a coin worth keeping — and what lets a fourth coin be
+    // offered to a full pocket at all, which is otherwise unreachable.
+    hooks.grantCoin = () => this.grantCoin();
     hooks.session = () => session.snapshot();
     hooks.warpDay = (ms) => {
       dayClock.warp(ms);
@@ -881,6 +890,17 @@ export class RoomScene extends Phaser.Scene {
   }
 
   /**
+   * How many coins she has.
+   *
+   * Off the store rather than off the row, because the store is what survives a
+   * night and the row is a picture of it — and the one claim worth making about
+   * coins is that the picture agrees with the thing that survived.
+   */
+  private syncCoinHooks(): void {
+    hooks.coins = session.coins;
+  }
+
+  /**
    * What the quest thinks is true, and what this zone has put on the ground
    * because of it.
    *
@@ -943,6 +963,7 @@ export class RoomScene extends Phaser.Scene {
     this.syncCameraHooks();
     this.syncTreeHooks();
     this.syncToolHooks();
+    this.syncCoinHooks();
 
     this.syncNpcHooks();
 
@@ -1786,16 +1807,132 @@ export class RoomScene extends Phaser.Scene {
     this.refreshInteractables();
     this.syncQuestHooks();
 
-    // "Faeries. Real faeries!", then Hazel, then the thank-you — each one after
-    // the last has finished, on its own measured length. Three sentences at once
-    // is no sentences at all.
+    // And the coin. It goes into the *store* here, with the rest of the settled
+    // state, so that walking out of the cave in the middle of the celebration
+    // cannot cost her it — the row is drawn from the store every time a zone is
+    // built, so it is on screen whichever way she leaves. What waits for the end
+    // of the chain is only the flourish and the boy handing it over.
+    const earned = session.addCoin();
+    this.syncCoinHooks();
+
+    // "Faeries. Real faeries!", then Hazel, then the thank-you, then the coin —
+    // each one after the last has finished, on its own measured length. Four
+    // sentences at once is no sentences at all.
     this.time.delayedCall(SUMMONING_BEAT, () => {
       if (!this.scene.isActive() || this.leaving) return;
       this.sayFrom('sneak', 'sneak_faeries_real');
       this.sayNext('sneak_faeries_real', 'hazel', 'hazel_pretty', () => {
-        this.sayNext('hazel_pretty', 'sneak', 'sneak_thanks');
+        this.sayNext('hazel_pretty', 'sneak', 'sneak_thanks', () => {
+          this.sayNext('sneak_thanks', 'sneak', 'sneak_coin', () => this.payUp(earned));
+        });
       });
     });
+  }
+
+  /**
+   * The coin, out of Sneak's hand and into the corner of the screen.
+   *
+   * Split off `summon` because the two halves happen a good six seconds apart:
+   * the coin is *hers* the instant the spell works, and this is only the picture
+   * of her being given it, thrown as he says the words so that the sentence and
+   * the gold flying across the screen are one event rather than two — the same
+   * arrangement a gem coming out of a stone has.
+   *
+   * `earned` is whether the store took it back at `summon`. It is false only if
+   * she already had three, in which case this bounces one off a full pocket
+   * instead — the honest picture of what just happened, and not a failure. The
+   * store was told either way, so nothing here can get the count wrong.
+   */
+  private payUp(earned: boolean): void {
+    const from = this.npcs.find((npc) => npc.id === 'sneak');
+    if (!earned) {
+      this.coinBouncesOff();
+      return;
+    }
+    this.coinArrives(from ? { x: from.x, y: from.y - HEAD_GAP } : undefined);
+  }
+
+  /**
+   * A coin, into her pocket.
+   *
+   * `from` is where in the world it came from — somebody's hand, usually — and
+   * the coin is thrown from there to its box. Left out, the box simply lands,
+   * which is what a coin with nowhere to have come from should do.
+   *
+   * **The full pocket is not a failure.** Three coins and a fourth offered means
+   * the last box thumps, a coin bounces off it and falls away, and a bright
+   * little noise says so. Nothing is taken, nothing is said, nothing is blocked
+   * and there is no counter anywhere that has gone wrong — she has all three
+   * coins, which is the best thing that can be true of her. See CLAUDE.md, "No
+   * fail states", and `SessionState.addCoin`.
+   *
+   * Returns whether it landed, for the sake of a caller that wants to know.
+   */
+  private grantCoin(from?: { x: number; y: number }): boolean {
+    const landed = session.addCoin();
+    this.syncCoinHooks();
+    if (landed) this.coinArrives(from);
+    else this.coinBouncesOff();
+    return landed;
+  }
+
+  /**
+   * The picture of a coin arriving, with no bookkeeping in it.
+   *
+   * Its own method because the summoning needs the two halves apart: the coin is
+   * hers the instant the spell works, and the flourish waits six seconds for the
+   * boy to hand it over. Everywhere else the two happen together, which is what
+   * `grantCoin` is.
+   *
+   * It fills the last box the store says is full, so it is right whether it runs
+   * immediately or a chain of sentences later.
+   */
+  private coinArrives(from?: { x: number; y: number }): void {
+    const index = session.coins - 1;
+    const slot = this.coinRow.slotAt(index);
+    const camera = this.cameras.main;
+
+    const arrive = () => {
+      this.coinRow.refresh(session.coins);
+      this.coinRow.land(index);
+      playCoin();
+      hooks.sparkles += 1;
+    };
+
+    if (!from || !slot || !this.textures.exists(COIN_ICON.file)) {
+      arrive();
+      return;
+    }
+
+    // Thrown across the screen rather than through the world, for `takeGem`'s
+    // reason: the row it is aimed at is welded to the camera, so the coin has to
+    // be too, or it lands wherever the village has scrolled to.
+    const flying = this.add
+      .image(from.x - camera.scrollX, from.y - camera.scrollY, COIN_ICON.file, COIN_ICON.slot)
+      .setScrollFactor(0)
+      .setScale(WORLD_SCALE)
+      .setDepth(DEPTH.hud + 1);
+
+    this.tweens.add({
+      targets: flying,
+      x: slot.x,
+      y: slot.y,
+      scale: 2,
+      angle: 380,
+      duration: 520,
+      ease: 'Cubic.easeIn',
+      onComplete: () => {
+        flying.destroy();
+        if (!this.scene.isActive()) return;
+        arrive();
+      },
+    });
+  }
+
+  /** And the picture of one she had no room for. Happy, and over in a second. */
+  private coinBouncesOff(): void {
+    playCoinBounce();
+    this.coinRow.bounceOff();
   }
 
   /**
@@ -2360,6 +2497,11 @@ export class RoomScene extends Phaser.Scene {
     // And what she is collecting, along from it. Hidden until a phase wants
     // something; see QuestRow.
     this.questRow = makeQuestRow(this);
+    // And what she has kept, on the shelf above the tools. Always on screen,
+    // empty boxes and all, and drawn from the store rather than from the scene:
+    // a coin outlives the zone it was earned in and outlives the night as well.
+    this.coinRow = makeCoinRow(this);
+    this.coinRow.refresh(session.coins);
 
     // The zone used to caption itself "Walk: left stick or arrow keys". She
     // cannot read it, so it is a picture now — and it leaves once she walks.

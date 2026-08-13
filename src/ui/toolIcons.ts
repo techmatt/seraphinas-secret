@@ -8,7 +8,7 @@
  * places; this describes the things she carries, and the two small pictures a
  * quest puts on the ground for her to pick up.
  *
- * Both sheets here are exact grids of 16-pixel cells, which is why they are
+ * Every sheet here is an exact grid of 16-pixel cells, which is why they are
  * loaded as Phaser spritesheets and addressed by frame number rather than by
  * rectangle. That is also what lets one entry serve both jobs a gem has: the
  * lump of rock standing in the grass and the gem drawn in its slot on the HUD
@@ -40,6 +40,22 @@ const ORES = 'assets/Cute_Fantasy/Outdoor decoration/Ores.png';
 
 const ORE_COLUMNS = 8;
 
+/**
+ * The UI pack's icon sheet — 39 columns by 16 rows of 16x16 cells, and the only
+ * thing in this game drawn from a pack other than the base one.
+ *
+ * Its first row is five things in filled / half / empty triples: heart, star,
+ * coin, lightning, shield. The coin is the third triple, so a whole gold coin is
+ * column 6 of row 0 and the sheet is 39 wide — hence the frame number below,
+ * which is `0 * 39 + 6`. Measured with `world:measure`; the pack ships a
+ * license-only readme, as they all do.
+ *
+ * The empty coin at column 8 is deliberately unused. An empty slot in this game
+ * is a *ghost of the thing itself* — see QuestRow — and the pack's empty coin is
+ * near enough black to disappear into the dark box it would be drawn on.
+ */
+const UI_ICONS = 'assets/Cute_Fantasy_UI/UI/UI_Icons.png';
+
 /** One icon on a sheet: the file, and which 16-pixel slot along it. */
 export interface IconDef {
   /** Phaser texture key. One key per sheet; the slot is a frame inside it. */
@@ -54,6 +70,9 @@ export const TOOL_ICONS = {
   axe: { file: ICONS, slot: 1 },
   hammer: { file: ICONS, slot: 3 },
 } as const satisfies Record<string, IconDef>;
+
+/** The one coin picture: gold, whole, 16x16. Both a filled slot and a ghost. */
+export const COIN_ICON: IconDef = { file: UI_ICONS, slot: 6 };
 
 /**
  * The three magic stones, by the names Sneak calls them.
@@ -88,13 +107,14 @@ export type GemId = keyof typeof GEM_ICONS;
 export const GEM_IDS = Object.keys(GEM_ICONS) as GemId[];
 
 /**
- * Every sheet an icon comes off, so a scene can queue them in one line. Both are
- * cut on the same 16-pixel grid, which is the only reason one loader call does
- * for both.
+ * Every sheet an icon comes off, so a scene can queue them in one line. All
+ * three are cut on the same 16-pixel grid, which is the only reason one loader
+ * call does for all of them.
  */
 export const ICON_SHEETS = [
   ...new Set([
     ...Object.values(TOOL_ICONS).map((i) => i.file),
     ...Object.values(GEM_ICONS).map((i) => i.file),
+    COIN_ICON.file,
   ]),
 ];

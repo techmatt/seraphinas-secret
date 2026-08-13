@@ -174,6 +174,7 @@ test('the faerie quest, from the offer to the cave', async ({ page }) => {
     null,
     null,
   ]);
+  expect(idle.coins, 'and an empty purse, on a row that is on screen anyway').toBe(0);
 
   await acceptQuest(page);
 
@@ -358,6 +359,30 @@ test('the faerie quest, from the offer to the cave', async ({ page }) => {
   ]);
   expect(summoned.tools.holding, 'so she is holding her own axe again').toBe('axe');
   expect(summoned.session.run.granted, 'and the store has let go of it too').toEqual([]);
+
+  // The coin is hers the instant the spell works, whatever she does next — see
+  // `RoomScene.summon`. The flourish waits for the boy to hand it over.
+  expect(summoned.coins, 'and finishing the job is worth a coin').toBe(1);
+  expect(
+    summoned.session.persistent.coins,
+    'kept on the far side of the seam, where a night cannot reach it',
+  ).toBe(1);
+
+  // ...which he does, at the end of the celebration, out loud. Waited for here
+  // rather than walked away from, because the chain stops if she leaves, and the
+  // last sentence of the game's first quest is worth proving arrives.
+  await page.waitForFunction(
+    () =>
+      (window as unknown as { __seraphina: Hooks }).__seraphina.voice.lineId === 'sneak_coin',
+    undefined,
+    { timeout: 30_000 },
+  );
+  const paid = await readHooks(page);
+  expect(paid.voice.bubble.speaker, 'out of his own mouth — he is giving her something').toBe(
+    'sneak',
+  );
+  expect(paid.voice.words.length, 'with words on screen to light up').toBeGreaterThan(0);
+  expect(paid.coins, 'and the count did not move again on the way past').toBe(1);
 
   // Out of the cave. The faeries are a session flag, not a zone's furniture.
   expect(await walkThroughDoorway(page), 'back out under the sky').toBe('outside');
@@ -575,6 +600,31 @@ test('the yellow button remembers, the wrong tool cannot spoil it, a doorway doe
     'and the ground it was standing on is still hers',
   ).toBe(false);
 
+  // --- a pocketful of coins, which is the one thing a night leaves alone ----
+  //
+  // Handed over rather than earned: the only thing in the game that gives her a
+  // coin is the end of a whole quest, and this test deliberately never finishes
+  // one. `grantCoin` is the same standing-in as `giveTool` and it drives the
+  // real path — store, row and noise — so what survives the night below is a
+  // coin that arrived the way coins arrive.
+  //
+  // Four of them, because three is the whole purse and the fourth is the only
+  // way to ask what happens when there is no room. Nothing is lost, nothing is
+  // said, and nothing anywhere is a failure — see CLAUDE.md, "No fail states".
+  const purse = await page.evaluate(() => {
+    const h = (window as unknown as { __seraphina: Hooks }).__seraphina;
+    return [h.grantCoin(), h.grantCoin(), h.grantCoin(), h.grantCoin()];
+  });
+  expect(purse, 'three land, and the fourth bounces off a full pocket').toEqual([
+    true,
+    true,
+    true,
+    false,
+  ]);
+  const rich = await readHooks(page);
+  expect(rich.coins, 'three is all there is room for').toBe(3);
+  expect(rich.session.persistent.coins, 'and the store agrees with the row').toBe(3);
+
   // --- and then she goes to bed, and none of it survives the night ----------
   //
   // The other half of the same claim, and the reason it is folded in here
@@ -670,6 +720,14 @@ test('the yellow button remembers, the wrong tool cannot spoil it, a doorway doe
   expect(morning.quest.phase, 'no phase, so no row and nothing to remember').toBeNull();
   expect(morning.quest.slots).toEqual([]);
   expect(morning.quest.instruction, 'and the yellow button has nothing to say').toBeNull();
+
+  // And the one exception, which is the whole point of coins: everything else
+  // she had yesterday is gone and her three are still in her pocket. The row is
+  // drawn from the store on every zone build, so `coins` here is the picture and
+  // `persistent.coins` is the thing the night was supposed to leave alone —
+  // asserting both is what tells a surviving coin from a stale HUD.
+  expect(morning.coins, 'her coins are the one thing the night leaves her').toBe(3);
+  expect(morning.session.persistent.coins, 'on both sides of the seam').toBe(3);
 
   // Teleported across the house to the front door rather than walked. That she
   // can get from her bedroom to the yard is not this test's claim and it costs

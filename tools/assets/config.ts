@@ -42,6 +42,11 @@ export const CATEGORIES = [
   // `tools/world/catalog.ts`, because the HUD is not a place in the world and
   // the generator has no business knowing what an axe looks like in a box.
   'Cute_Fantasy/Icons',
+  // The UI pack's icon sheet, for the coin. A separate download from the base
+  // pack and the first folder here that is not `Cute_Fantasy/` — the coin is the
+  // one thing in the game the base pack has no picture of at all. Only `UI/` is
+  // mirrored; the sibling `Fonts/` is a TTF nothing loads.
+  'Cute_Fantasy_UI/UI',
 ];
 
 /** For the failure message and the README attribution. */

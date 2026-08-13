@@ -12,22 +12,25 @@
  * game and this is not the file that adds one — a reload is a fresh morning, and
  * that is the same deal a chopped tree has always had.
  *
- * **The shape is the point.** It is split into two halves, by what they are
- * about rather than by how long they last:
+ * **The shape is the point.** It is split into three, by what they are about
+ * rather than by how long they last:
  *
  *  - **`run`** — the quest, what she is carrying for it, and what it has lent
  *    her.
  *  - **`world`** — what she has changed about a place: the trees she has felled,
  *    keyed by zone.
+ *  - **`persistent`** — what she *keeps*. Coins, so far.
  *
- * Both are cleared by a night's sleep (Matt, 2026-08-12: *everything* resets, no
- * exceptions — the world regenerates overnight, so the wood she cleared is
- * standing again in the morning). That was not always true of `world`, and the
- * old split was drawn around the difference; there is no difference now, and the
- * halves earn their keep on shape alone. Anything a later prompt wants to *keep*
- * across a night — coins, a count of days, which quests she has ever finished —
- * is a third half, and the point of `resetForSleep` naming the event rather than
- * the extent is that such a thing has an obvious side to land on.
+ * The first two are cleared by a night's sleep (Matt, 2026-08-12: the world
+ * regenerates overnight, so the wood she cleared is standing again in the
+ * morning). The third is the thing this file said was coming: `resetForSleep`
+ * names the *event* rather than the extent precisely so that something which has
+ * to outlive a night has an obvious side to land on, and coins are the first
+ * thing to land there.
+ *
+ * "Persistent" means across a night, not across a reload. Nothing here touches
+ * disk and this is still not the file that adds one — close the page and the
+ * coins go with it, the same deal a chopped tree has always had.
  */
 
 import type { TreeState } from '../world/Tree';
@@ -91,13 +94,39 @@ export interface SessionData {
   };
   /** The marks she has left on places, keyed by zone id. Cleared by sleep. */
   world: Record<string, ZoneDelta>;
+  /**
+   * What she keeps. Survives a night; a page reload is still a fresh morning.
+   *
+   * Its own half rather than a field on `run`, because the whole reason it
+   * exists is that it is on the other side of the seam — see `resetForSleep`.
+   */
+  persistent: {
+    /** Never more than `COIN_SLOTS`. See `addCoin`. */
+    coins: number;
+  };
 }
+
+/**
+ * How many coins she can have.
+ *
+ * A number rather than a purse that grows, because the row on screen is three
+ * boxes she can count and a fourth box appearing is a row that changed shape —
+ * the tool belt's argument exactly. It lives here rather than in the HUD for the
+ * same reason `SLOTS` lives on the belt: the cap is the *purse's*, and a row
+ * that had to be asked how full it was allowed to get would be a row deciding
+ * the rules. See `ui/CoinRow.ts`.
+ */
+export const COIN_SLOTS = 3;
 
 export class SessionState {
   private data: SessionData = SessionState.empty();
 
   private static empty(): SessionData {
-    return { run: { quest: null, items: [], granted: [], faeries: false }, world: {} };
+    return {
+      run: { quest: null, items: [], granted: [], faeries: false },
+      world: {},
+      persistent: { coins: 0 },
+    };
   }
 
   /** A deep copy, for anyone who only wants to look. */
@@ -115,6 +144,7 @@ export class SessionState {
           { trees: { ...delta.trees } },
         ]),
       ),
+      persistent: { ...this.data.persistent },
     };
   }
 
@@ -236,26 +266,52 @@ export class SessionState {
     this.zone(zoneId).trees[treeId] = { ...delta };
   }
 
+  // --- what she keeps -------------------------------------------------------
+
+  get coins(): number {
+    return this.data.persistent.coins;
+  }
+
+  /**
+   * One more coin, if there is room for it. Returns whether it landed.
+   *
+   * The full purse is not a failure and the caller must not treat it as one:
+   * "no" here means "she already has all three", which is the best possible
+   * answer to being given a coin. What the scene does with a `false` is bounce
+   * the coin off the last box and make a happy noise — see `RoomScene.grantCoin`
+   * and CLAUDE.md, "No fail states".
+   */
+  addCoin(): boolean {
+    if (this.data.persistent.coins >= COIN_SLOTS) return false;
+    this.data.persistent.coins += 1;
+    return true;
+  }
+
   // --- the seam -------------------------------------------------------------
 
   /**
    * A night's sleep: the quest, what it gave her, what she was carrying for it,
    * and every mark she left on the world — all gone. She wakes to the morning
-   * the generator wrote.
+   * the generator wrote, with her coins still in her pocket.
    *
-   * It clears the whole store today, which makes it the same code as `reset`,
-   * and it is still its own method: the two are the same *extent* and different
-   * *events*, and the first thing that has to survive a night without surviving
-   * a page reload will need somewhere to be excluded, which is here. The store
-   * is what the sweep is written against; the belt and the offer counters live
-   * elsewhere and are swept beside it — see `src/state/sleep.ts`, which is the
-   * one place that knows what a night clears.
+   * The coins are the whole reason this is not the same code as `reset`. The two
+   * were once the same extent and different *events*, written apart against the
+   * day something had to survive a night without surviving a page reload; this
+   * is that day. Everything but `persistent` is swept. The store is what the
+   * sweep is written against; the belt and the offer counters live elsewhere and
+   * are swept beside it — see `src/state/sleep.ts`, which is the one place that
+   * knows what a night clears.
    */
   resetForSleep(): void {
+    const kept = { ...this.data.persistent };
     this.data = SessionState.empty();
+    this.data.persistent = kept;
   }
 
-  /** Everything, gone. For a test that wants a clean page without reloading. */
+  /**
+   * Everything, gone — coins included. For a test that wants a clean page
+   * without reloading, and the one sweep that is wider than a night's.
+   */
   reset(): void {
     this.data = SessionState.empty();
   }

@@ -4,8 +4,12 @@
  * One function, and it is the whole of the answer to "what does sleeping
  * reset" — deliberately, because the alternative is three files each clearing
  * their own corner and nobody able to say whether the corners add up. Matt
- * (2026-08-12): **everything** resets, no exceptions. She wakes into the morning
- * the generator wrote, with an axe and nothing else.
+ * (2026-08-12): **everything** resets. She wakes into the morning the generator
+ * wrote, with an axe and nothing else — and, since coins, with her coins. That
+ * is the one exception and it is the point of them: a coin she earned yesterday
+ * that was gone this morning would be a thing the day took off her, and the day
+ * in this game does not take things off her. The exclusion lives in
+ * `SessionState.resetForSleep`, on the store, where the seam is.
  *
  * It lives here rather than on `SessionState` because it reaches past the store:
  * the belt and the offer counters are not session data, and a store that knew
@@ -37,6 +41,8 @@ import { session } from './session';
  *    its first line;
  *  - the **day clock**, which is the light: she wakes into a morning, however
  *    late in the evening she went to bed, and Dad has not called her in yet.
+ *
+ * And the one thing it does *not* clear: her coins. See `resetForSleep`.
  *
  * A quest cleared out of the store is a quest with nobody halfway through it,
  * which is the same thing as a quest on offer again — so the giver's thought

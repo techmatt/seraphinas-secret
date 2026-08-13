@@ -219,7 +219,13 @@
     "speaker": "sneak",
     "text": "We did it! Thank you, Seraphina.",
     "say": "We did it. Thank you, Seraphina.",
-    "note": "The last line of the quest. Same mid-line '!' fix."
+    "note": "Same mid-line '!' fix."
+  },
+  {
+    "id": "sneak_coin",
+    "speaker": "sneak",
+    "text": "And this shiny gold coin is for you!",
+    "note": "The last line of the quest, and the first coin in the game. His, out of his own mouth — he is handing her something. One sentence with no punctuation in the middle of it, so edge-tts has nowhere to put a second of silence, and the trailing '!' is free. 'Gold coin' is the pair of words the whole line exists to teach: it is said as the coin flies across the screen into the row, so the words and the picture are one event. See RoomScene.payUp."
   },
   {
     "id": "seraphina_recap_faeries",

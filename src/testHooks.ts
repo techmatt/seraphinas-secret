@@ -233,6 +233,21 @@ export interface TestHooks {
   giveTool: (tool: string) => number | null;
   /** Take one back. Returns false for the axe, whoever asks. */
   takeTool: (tool: string) => boolean;
+  /**
+   * How many coins she has, off the store rather than off the row.
+   *
+   * It is also in `session().persistent`, and both are worth having: this is the
+   * number the picture was drawn from, and that one is the number a night is
+   * supposed to leave alone. A test that only read one could not tell "the coin
+   * survived" from "the HUD remembers a coin the store has forgotten".
+   */
+  coins: number;
+  /**
+   * Give her one, the whole way — store, flourish and noise — standing in for
+   * whatever hands one over later. Returns whether it landed; a fourth bounces
+   * off and returns false. The same standing-in as `giveTool`.
+   */
+  grantCoin: () => boolean;
   /** Where she is in the one quest that can be running. See QuestHooks. */
   quest: QuestHooks;
   /**
@@ -449,6 +464,8 @@ export const hooks: TestHooks = {
   tools: { slots: [], held: 0, holding: null },
   giveTool: () => null,
   takeTool: () => false,
+  coins: 0,
+  grantCoin: () => false,
   quest: {
     id: null,
     phase: null,
@@ -463,7 +480,11 @@ export const hooks: TestHooks = {
     inCircle: false,
     step: null,
   },
-  session: () => ({ run: { quest: null, items: [], granted: [], faeries: false }, world: {} }),
+  session: () => ({
+    run: { quest: null, items: [], granted: [], faeries: false },
+    world: {},
+    persistent: { coins: 0 },
+  }),
   swings: 0,
   whacks: 0,
   treeGaps: 0,

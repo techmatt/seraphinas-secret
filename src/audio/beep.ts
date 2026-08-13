@@ -200,6 +200,39 @@ export function playPickup(): void {
 }
 
 /**
+ * A coin landing in the pocket: two bright notes a fifth apart, and a third one
+ * on top of them that rings on.
+ *
+ * Higher and thinner than anything else in the file on purpose — a coin is small
+ * and metal, and everything else here is wood, stone or magic. It is meant to be
+ * the sound she recognises before she has looked at the corner of the screen.
+ */
+export function playCoin(): void {
+  playNotes([
+    { freq: 1318.5, at: 0, dur: 0.1, peak: 0.15 },
+    { freq: 1975.5, at: 0.06, dur: 0.14, peak: 0.13 },
+    { freq: 2637, at: 0.11, dur: 0.3, peak: 0.09 },
+  ]);
+}
+
+/**
+ * A coin she has no room for, bouncing off a full pocket.
+ *
+ * The same metal, going the other way: down rather than up, and shorter. It has
+ * to be unmistakably *not* the sound above — she has three coins and this one
+ * did not go in — while being just as pleased about it. There is no fourth box
+ * to look at and nothing is said; the noise and the bounce are the whole of the
+ * answer. See CLAUDE.md, "No fail states".
+ */
+export function playCoinBounce(): void {
+  playNotes([
+    { freq: 1975.5, at: 0, dur: 0.08, peak: 0.12 },
+    { freq: 1318.5, at: 0.07, dur: 0.1, peak: 0.11 },
+    { freq: 1567.98, at: 0.15, dur: 0.18, peak: 0.09 },
+  ]);
+}
+
+/**
  * The big one: a rising run with a chord on the end of it. For the moments the
  * whole quest turns over — the job being taken, and the last stone cracking.
  */

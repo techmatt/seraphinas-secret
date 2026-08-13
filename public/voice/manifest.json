@@ -1246,6 +1246,55 @@
       "duration": 3.293
     },
     {
+      "id": "sneak_coin",
+      "speaker": "sneak",
+      "text": "And this shiny gold coin is for you!",
+      "audio": "voice/sneak_coin.mp3",
+      "words": [
+        {
+          "word": "And",
+          "start": 0.098,
+          "end": 0.29
+        },
+        {
+          "word": "this",
+          "start": 0.302,
+          "end": 0.495
+        },
+        {
+          "word": "shiny",
+          "start": 0.507,
+          "end": 0.951
+        },
+        {
+          "word": "gold",
+          "start": 0.963,
+          "end": 1.336
+        },
+        {
+          "word": "coin",
+          "start": 1.348,
+          "end": 1.721
+        },
+        {
+          "word": "is",
+          "start": 1.733,
+          "end": 1.925
+        },
+        {
+          "word": "for",
+          "start": 1.937,
+          "end": 2.165
+        },
+        {
+          "word": "you!",
+          "start": 2.177,
+          "end": 2.466
+        }
+      ],
+      "duration": 2.466
+    },
+    {
       "id": "seraphina_recap_faeries",
       "speaker": "seraphina",
       "text": "We called real faeries out of the fire.",

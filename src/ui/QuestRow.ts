@@ -10,7 +10,7 @@
  * It sits to the right of the tool row on the same line, with a gap. Near enough
  * that the two read as one pocket, far enough that they are two answers to two
  * questions: what am I holding, and what am I looking for. The row above the tool
- * row is left alone — that is the coin row's, reserved and still empty.
+ * row is the coin row's, and answers a third: what have I kept.
  *
  * At the end of it, a yellow dot: the button that says the job again. The same
  * grammar as the blue dot at the end of the tool row, and the same rule as every
