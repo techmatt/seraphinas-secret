@@ -157,36 +157,36 @@
       "duration": 2.441
     }
   },
-  "dad_sparkle": {
-    "hash": "39f5249e372b5715",
+  "seraphina_well": {
+    "hash": "3327e76c0c200371",
     "entry": {
-      "id": "dad_sparkle",
-      "speaker": "dad",
-      "text": "Hm, did something sparkle?",
-      "audio": "voice/dad_sparkle.mp3",
+      "id": "seraphina_well",
+      "speaker": "seraphina",
+      "text": "Ooh, did something sparkle?",
+      "audio": "voice/seraphina_well.mp3",
       "words": [
         {
-          "word": "Hm,",
-          "start": 0.106,
-          "end": 0.744
+          "word": "Ooh,",
+          "start": 0.102,
+          "end": 0.428
         },
         {
           "word": "did",
-          "start": 0.981,
-          "end": 1.161
+          "start": 0.754,
+          "end": 0.958
         },
         {
           "word": "something",
-          "start": 1.189,
-          "end": 1.606
+          "start": 0.972,
+          "end": 1.447
         },
         {
           "word": "sparkle?",
-          "start": 1.633,
-          "end": 2.244
+          "start": 1.461,
+          "end": 2.14
         }
       ],
-      "duration": 2.244
+      "duration": 2.14
     }
   },
   "dad_bedtime": {
@@ -216,100 +216,110 @@
       "duration": 1.147
     }
   },
-  "dad_apple": {
-    "hash": "6892b857d16ab700",
+  "seraphina_apple": {
+    "hash": "fb334671599cbfb1",
     "entry": {
-      "id": "dad_apple",
-      "speaker": "dad",
-      "text": "Can you bring me an apple?",
-      "audio": "voice/dad_apple.mp3",
+      "id": "seraphina_apple",
+      "speaker": "seraphina",
+      "text": "I want to pick an apple!",
+      "audio": "voice/seraphina_apple.mp3",
       "words": [
         {
-          "word": "Can",
-          "start": 0.106,
-          "end": 0.314
+          "word": "I",
+          "start": 0.104,
+          "end": 0.267
         },
         {
-          "word": "you",
-          "start": 0.342,
-          "end": 0.467
+          "word": "want",
+          "start": 0.281,
+          "end": 0.593
         },
         {
-          "word": "bring",
-          "start": 0.481,
-          "end": 0.772
+          "word": "to",
+          "start": 0.607,
+          "end": 0.729
         },
         {
-          "word": "me",
-          "start": 0.786,
-          "end": 0.939
+          "word": "pick",
+          "start": 0.743,
+          "end": 1.015
         },
         {
           "word": "an",
-          "start": 0.967,
-          "end": 1.078
+          "start": 1.028,
+          "end": 1.191
         },
         {
-          "word": "apple?",
-          "start": 1.106,
-          "end": 1.592
+          "word": "apple!",
+          "start": 1.205,
+          "end": 1.762
         }
       ],
-      "duration": 1.592
+      "duration": 1.762
     }
   },
-  "sister_book": {
-    "hash": "6965e62872074226",
+  "seraphina_book": {
+    "hash": "14ca46c14a54eddc",
     "entry": {
-      "id": "sister_book",
-      "speaker": "sister",
-      "text": "Read me a book!",
-      "audio": "voice/sister_book.mp3",
+      "id": "seraphina_book",
+      "speaker": "seraphina",
+      "text": "I want to read a book!",
+      "audio": "voice/seraphina_book.mp3",
       "words": [
         {
-          "word": "Read",
-          "start": 0.097,
-          "end": 0.404
+          "word": "I",
+          "start": 0.104,
+          "end": 0.267
         },
         {
-          "word": "me",
-          "start": 0.416,
-          "end": 0.581
+          "word": "want",
+          "start": 0.281,
+          "end": 0.593
+        },
+        {
+          "word": "to",
+          "start": 0.607,
+          "end": 0.729
+        },
+        {
+          "word": "read",
+          "start": 0.743,
+          "end": 1.001
         },
         {
           "word": "a",
-          "start": 0.592,
-          "end": 0.663
+          "start": 1.015,
+          "end": 1.096
         },
         {
           "word": "book!",
-          "start": 0.675,
-          "end": 1.041
+          "start": 1.11,
+          "end": 1.531
         }
       ],
-      "duration": 1.041
+      "duration": 1.531
     }
   },
-  "sister_again": {
-    "hash": "2ada0b4370d49749",
+  "seraphina_again": {
+    "hash": "5c6f328311094c2d",
     "entry": {
-      "id": "sister_again",
-      "speaker": "sister",
+      "id": "seraphina_again",
+      "speaker": "seraphina",
       "text": "Again! Again!",
-      "audio": "voice/sister_again.mp3",
+      "audio": "voice/seraphina_again.mp3",
       "words": [
         {
           "word": "Again!",
-          "start": 0.099,
-          "end": 0.629
+          "start": 0.103,
+          "end": 0.647
         },
         {
           "word": "Again!",
-          "start": 1.428,
-          "end": 1.959
+          "start": 0.891,
+          "end": 1.408
         }
       ],
-      "duration": 1.959
+      "duration": 1.408
     }
   },
   "seraphina_wardrobe": {

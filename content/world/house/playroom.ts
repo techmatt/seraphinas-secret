@@ -49,7 +49,7 @@ export const FURNITURE: Placement[] = [
 ];
 
 export const PROPS: PropLayout[] = [
-  { id: 'toybox', image: 'chest', x: 26, y: 22, line: 'sister_again' },
+  { id: 'toybox', image: 'chest', x: 26, y: 22, line: 'seraphina_again' },
 ];
 
 export const LANDMARK = { id: 'playroom', x: 28, y: 22 };

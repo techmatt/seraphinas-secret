@@ -122,8 +122,8 @@ export const STREET_FURNITURE: Placement[] = [
  * first thing she ever walks up to should be one hop from where she starts.
  */
 export const VILLAGE_PROPS = [
-  { id: 'apple_tree', image: 'fruitBig', x: 22, y: 26, line: 'dad_apple' },
-  { id: 'well', image: 'well', x: 28, y: 28, line: 'dad_sparkle' },
+  { id: 'apple_tree', image: 'fruitBig', x: 22, y: 26, line: 'seraphina_apple' },
+  { id: 'well', image: 'well', x: 28, y: 28, line: 'seraphina_well' },
 ];
 
 /**

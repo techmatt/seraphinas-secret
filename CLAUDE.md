@@ -75,6 +75,13 @@ button-name text, anywhere.
 She can't read, so audio-first *is* the UI. Any text that appears must have a voice
 line and must highlight each word as it is spoken. Text with no voice is a bug.
 
+### Narrative lines are spoken by Seraphina
+
+A prop line, a bed, a sign — anything not coming out of a specific character's
+mouth — is voiced as the `seraphina` speaker, first person where it reads
+naturally (Matt, 2026-08-12). Borrowing another speaker's clip for the world's
+own voice is a bug. Lines a character genuinely says stay theirs.
+
 ### No fail states
 
 A game-design rule: no timers, no death, no lives, no wrong-answer buzzers, no

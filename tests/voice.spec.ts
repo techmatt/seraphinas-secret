@@ -29,7 +29,7 @@ const STONE_LINE = 'seraphina_secret';
  * tile world; the well is what stands near her front door now.
  */
 const POKED_PROP = 'well';
-const POKED_LINE = 'dad_sparkle';
+const POKED_LINE = 'seraphina_well';
 
 test('the manifest has a timed word for every word that will be shown', () => {
   expect(manifest.lines.length, 'a manifest entry per authored line').toBe(authored.length);

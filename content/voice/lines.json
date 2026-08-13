@@ -25,9 +25,10 @@
     "text": "Mmm — Munchy wants the mango."
   },
   {
-    "id": "dad_sparkle",
-    "speaker": "dad",
-    "text": "Hm, did something sparkle?"
+    "id": "seraphina_well",
+    "speaker": "seraphina",
+    "text": "Ooh, did something sparkle?",
+    "note": "The well. Hers, not Dad's: nobody is standing at the well, so what she hears is herself wondering. See the narrative-voice rule in CLAUDE.md."
   },
   {
     "id": "dad_bedtime",
@@ -35,19 +36,21 @@
     "text": "Time for bed!"
   },
   {
-    "id": "dad_apple",
-    "speaker": "dad",
-    "text": "Can you bring me an apple?"
+    "id": "seraphina_apple",
+    "speaker": "seraphina",
+    "text": "I want to pick an apple!"
   },
   {
-    "id": "sister_book",
-    "speaker": "hazel",
-    "text": "Read me a book!"
+    "id": "seraphina_book",
+    "speaker": "seraphina",
+    "text": "I want to read a book!"
   },
   {
-    "id": "sister_again",
-    "speaker": "hazel",
-    "text": "Again! Again!"
+    "id": "seraphina_again",
+    "speaker": "seraphina",
+    "text": "Again! Again!",
+    "say": "Again, again!",
+    "note": "Spoken with a comma: edge-tts leaves a full second of silence after a mid-line '!', which on screen is a second with no word lit. Same trick as seraphina_hello."
   },
   {
     "id": "seraphina_wardrobe",

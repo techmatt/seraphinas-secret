@@ -49,7 +49,7 @@ export const FURNITURE: Placement[] = [
 export const PROPS: PropLayout[] = [
   // Against the wall past the second window. She reads it standing on the
   // floor in front of it, not inside it.
-  { id: 'bookshelf', image: 'bookshelf', x: 35, y: STANDS, at: { x: 36, y: 4.5 }, line: 'sister_book' },
+  { id: 'bookshelf', image: 'bookshelf', x: 35, y: STANDS, at: { x: 36, y: 4.5 }, line: 'seraphina_book' },
 ];
 
 export const LANDMARK = { id: 'living_room', x: 28, y: 8 };
