@@ -6,9 +6,11 @@ import {
   standAt,
   standByProp,
   tap,
+  waitForVoice,
   walk,
   walkToLandmark,
   walkToProp,
+  warpDay,
   type Hooks,
 } from './harness';
 
@@ -29,6 +31,11 @@ const teleport = (page: Page, x: number, y: number) =>
  * chosen deliberately: the well, because a prop she cannot reach is a prop that
  * does not exist, and Joey's door, because the road past the facades is the one
  * she walks most. Everything else is stood at.
+ *
+ * The evening is folded in at the end for the same reason and takes the same
+ * shape: it is a fact about the exterior, this is the boot that is standing in
+ * the exterior, and everything before it is the daylight control the dusk
+ * assertions are read against.
  */
 test('the world she wakes up in', async ({ page }) => {
   const { errors } = await bootGame(page);
@@ -179,6 +186,67 @@ test('the world she wakes up in', async ({ page }) => {
   expect(knocked.sparkles, 'Joey’s door reacts').toBe(poked.sparkles + 1);
   expect(knocked.voice.lineId, 'but says nothing — there is no text to speak').toBeNull();
   expect(knocked.room, 'and it is not a way in').toBe('outside');
+
+  // --- and then the light goes -----------------------------------------------
+  //
+  // The evening, folded in here rather than booted on its own: it is a fact
+  // about the exterior, and this is the test that is standing in the exterior.
+  // Everything above happened in broad daylight, which is the control.
+  //
+  // Warped rather than waited for. Full daylight is eight minutes and the ramp
+  // is two more, and the alternative to skipping the clock is either ten minutes
+  // of suite or a shorter day than the one she actually plays. See `warpDay`.
+  await waitForVoice(page);
+  const noon = await readHooks(page);
+  expect(noon.day.dusk, 'she has not been up long: full daylight').toBe(0);
+  expect(noon.day.outdoors, 'and this is a zone with a sky over it').toBe(true);
+  expect(noon.day.fireflies, 'so there is nothing out').toBe(0);
+  expect(noon.day.lamps, 'the village has lamp posts standing in it').toBeGreaterThan(0);
+  expect(noon.day.lampGlow, 'unlit, because at noon a lamp is a pole').toBe(0);
+  expect(noon.day.dadCalled, 'and nobody has called her in').toBe(false);
+
+  // Half a minute into the two-minute ramp. Measured off the clock rather than
+  // guessed at, because the test has already spent some of the afternoon itself.
+  await warpDay(page, 8 * 60_000 + 30_000 - noon.day.elapsed);
+  const dimming = await readHooks(page);
+  expect(dimming.day.dusk, 'the light has started to go').toBeGreaterThan(0);
+  expect(dimming.day.dusk, 'but it is still going, not gone').toBeLessThan(1);
+  expect(dimming.day.lampGlow, 'and the lamps have come on with it').toBeGreaterThan(0);
+  expect(dimming.day.fireflies, 'and the fireflies are out').toBeGreaterThan(0);
+
+  // Dad calls once, from a house that may be right across the village — so what
+  // has to be true is that his words are *on screen*, not merely spoken. This is
+  // the only line in the game with nobody standing behind it, and the balloon is
+  // still his: it is anchored at his own front door and leans that way.
+  await page.waitForFunction(
+    () => (window as unknown as { __seraphina: Hooks }).__seraphina.day.dadCalled === true,
+    undefined,
+    { timeout: 10_000 },
+  );
+  const called = await readHooks(page);
+  expect(called.voice.lineId, 'Dad calls her in as the light goes').toBe('dad_bedtime');
+  expect(called.voice.bubble.speaker, 'in his voice, not hers').toBe('dad');
+  expect(called.voice.bubble.visible, 'with a balloon to put the words in').toBe(true);
+  expect(called.voice.words.length, 'and words in it to light up').toBeGreaterThan(0);
+  const view = { left: called.camera.x, top: called.camera.y };
+  expect(
+    called.voice.bubble.x - view.left,
+    'which is on screen however far from the house she is standing',
+  ).toBeGreaterThan(0);
+  expect(called.voice.bubble.x - view.left).toBeLessThan(called.camera.width);
+  expect(called.voice.bubble.y - view.top).toBeGreaterThan(0);
+  expect(called.voice.bubble.y - view.top).toBeLessThan(called.camera.height);
+
+  // All the way to the cozy floor, and it stops there. Dusk holds rather than
+  // becoming night: there is no hour at which the game is too dark to play, and
+  // nothing here has ended her day for her.
+  await warpDay(page, 5 * 60_000);
+  const evening = await readHooks(page);
+  expect(evening.day.dusk, 'the evening is all the way in').toBe(1);
+  expect(evening.day.lampGlow, 'the lamps are at full').toBe(1);
+  expect(evening.day.dadCalled, 'and he has not called twice').toBe(true);
+  expect(evening.sleeps, 'nothing put her to bed').toBe(0);
+  expect(evening.transitioning, 'and nothing took the game off her').toBe(false);
 
   expect(errors, 'no uncaught page errors').toEqual([]);
 });

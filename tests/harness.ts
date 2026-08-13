@@ -139,6 +139,17 @@ export type Hooks = {
   fps: number;
   sparkles: number;
   sleeps: number;
+  day: {
+    elapsed: number;
+    dusk: number;
+    outdoors: boolean;
+    fireflies: number;
+    lamps: number;
+    lampGlow: number;
+    dadCalled: boolean;
+  };
+  warpDay: (ms: number) => void;
+  recap: string[];
   ritualMisses: number;
   faeries: { x: number; y: number }[];
   aliveParticles: number;
@@ -173,6 +184,7 @@ export const readHooks = (page: Page) =>
       giveTool,
       takeTool,
       session,
+      warpDay,
       voice,
       ...rest
     } = h;
@@ -837,6 +849,25 @@ export async function withHitboxes(page: Page, take: () => Promise<unknown>) {
   await framesPass(page, 2, 200);
   await take();
   await pin(false);
+}
+
+/**
+ * Skip the day forward, in milliseconds.
+ *
+ * The evening arrives eight minutes after she wakes and takes two more to
+ * finish arriving. Nothing in the suite is waiting ten minutes for that, and
+ * shortening the constants under a test would be testing a day she never
+ * plays — so the same clock is pushed along instead and every threshold in the
+ * game stays exactly where it really is. See `state/dayClock.ts`.
+ */
+export async function warpDay(page: Page, ms: number) {
+  await page.evaluate(
+    (by) => (window as unknown as { __seraphina: Hooks }).__seraphina.warpDay(by),
+    ms,
+  );
+  // The warp applies the new light itself, so this is only the fireflies, which
+  // are placed by the next update.
+  await framesPass(page, 2, 200);
 }
 
 /**

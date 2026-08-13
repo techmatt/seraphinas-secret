@@ -608,6 +608,37 @@ test('the yellow button remembers, the wrong tool cannot spoil it, a doorway doe
     if ((await readHooks(page)).sleeps > 0) break;
     await tap(page, 'KeyZ');
   }
+
+  // The day gets read back to her before it is taken away.
+  //
+  // Which sentences she gets is the only part of the recap worth pinning, and
+  // this is the one place in the suite with a day worth reciting: she is halfway
+  // through a quest, carrying a stone she cracked, and there is a hole in the
+  // wood where a tree used to be. The store is snapshotted before the night
+  // clears it — that ordering is the whole contract of `state/recap.ts` — so a
+  // recap that came back empty here would mean it was read a moment too late.
+  //
+  // Three of the four things she did qualify and only two are said: the tree is
+  // the one dropped, because the order is fixed and a felled tree is the least
+  // of what happened today. Then goodnight, which is said every night whatever
+  // else was. How the three are *paced* over the starfield is Matt's eyes.
+  await page.waitForFunction(
+    () =>
+      (window as unknown as { __seraphina: Hooks }).__seraphina.voice.lineId ===
+      'seraphina_goodnight',
+    undefined,
+    { timeout: 30_000 },
+  );
+  const bedtime = await readHooks(page);
+  expect(bedtime.recap, 'two things that happened, then goodnight').toEqual([
+    'seraphina_recap_errand',
+    'seraphina_recap_stones',
+    'seraphina_goodnight',
+  ]);
+  expect(bedtime.voice.bubble.visible, 'said out loud over the stars').toBe(true);
+  expect(bedtime.voice.bubble.speaker, 'in her own voice — it is her day').toBe('seraphina');
+  expect(bedtime.voice.words.length, 'with words on screen to light up').toBeGreaterThan(0);
+
   await page.waitForFunction(
     () => {
       const h = (window as unknown as { __seraphina: Hooks }).__seraphina;
