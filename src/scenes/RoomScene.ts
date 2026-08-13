@@ -415,6 +415,21 @@ export class RoomScene extends Phaser.Scene {
       );
     }
 
+    // The ring on the floor, where the map says there is one. It is the zone's
+    // furniture and not a phase's: somebody scratched it into this rock long
+    // before she walked in, and it is still there when the spell is over. What
+    // the ritual borrows is the *rule* — inside it the face buttons are the
+    // spell's — and the quest's own numbers are checked against these by
+    // `quest.spec`, standing in the ring and pressing them. See SpellCircle.
+    if (map.circle) {
+      this.circle = new SpellCircle(
+        this,
+        map.circle.x * WORLD_SCALE,
+        map.circle.y * WORLD_SCALE,
+        map.circle.r * WORLD_SCALE,
+      );
+    }
+
     // Whatever the quest has put out here, and the light on it. Before the
     // interactable list, because a thing lying in the grass is in it.
     this.buildQuestObjects();
@@ -1315,19 +1330,6 @@ export class RoomScene extends Phaser.Scene {
       else this.shimmers.push(makeShimmer(this, rock.x, rock.midY, GEM_ICONS[spot.id].tint));
     }
 
-    // And the ring on the floor, which is the edge of a rule as much as it is a
-    // picture: inside it the face buttons are the spell's. Drawn at exactly the
-    // radius the quest data gives, so what she can see and what the buttons do
-    // are one number. See SpellCircle.
-    const site = quests.site;
-    if (site && site.zone === this.zoneId) {
-      this.circle = new SpellCircle(
-        this,
-        site.x * TILE_SIZE,
-        site.y * TILE_SIZE,
-        site.r * TILE_SIZE,
-      );
-    }
   }
 
   private clearQuestObjects(): void {
@@ -1335,9 +1337,6 @@ export class RoomScene extends Phaser.Scene {
     this.shimmers = [];
     this.lying?.destroy();
     this.lying = null;
-    this.circle?.destroy();
-    this.circle = null;
-    this.inCircle = false;
     // The rocks' own sprites go with the scene; only the list has to be dropped.
     this.rocks = [];
   }
@@ -1500,7 +1499,13 @@ export class RoomScene extends Phaser.Scene {
       return;
     }
 
-    const inside = circle.contains(this.player.x, this.player.y) && quests.step !== null;
+    // The ring is the cave's and is on the floor at all hours; what makes it
+    // *live* is a ritual phase that names this zone. Any other time she walks
+    // through a circle painted on some rock, which is what it is.
+    const inside =
+      quests.ritualZone === this.zoneId &&
+      quests.step !== null &&
+      circle.contains(this.player.x, this.player.y);
     circle.setLive(inside);
     if (inside === this.inCircle) return;
     this.inCircle = inside;

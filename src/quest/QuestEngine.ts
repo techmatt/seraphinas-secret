@@ -20,7 +20,6 @@ import {
   type Quest,
   type QuestGuest,
   type QuestPhase,
-  type RitualSite,
   type RitualStep,
 } from './Quest';
 import { QUESTS } from './quests';
@@ -158,9 +157,13 @@ export class QuestEngine {
 
   // --- the ritual -----------------------------------------------------------
 
-  /** Where the current phase's ritual happens, or null for any other phase. */
-  get site(): RitualSite | null {
-    return ritualOf(this.phase)?.site ?? null;
+  /**
+   * The zone the current phase's ritual happens in, or null for any other
+   * phase. Which *part* of that zone is the zone's own business: it is the ring
+   * on its floor, and the scene measures her against the ring it drew.
+   */
+  get ritualZone(): string | null {
+    return ritualOf(this.phase)?.zone ?? null;
   }
 
   /** Has she reached the fire? Until she has, the buttons mean what they always do. */

@@ -185,6 +185,23 @@ export interface LandmarkLayout {
   y: number;
 }
 
+/**
+ * A ring painted on the floor: the spell circle in the Secret Cave.
+ *
+ * It is the zone's furniture and not a quest's. Somebody scratched it into the
+ * rock long before she walked in, and it is still there when the spell is over
+ * — which is what makes the cave a place with a circle in it rather than a
+ * room that grows one when a quest needs it. A quest that wants to *use* it
+ * writes the same three numbers down itself; see `site` on a ritual goal.
+ */
+export interface CircleLayout {
+  /** The middle, in tiles. */
+  x: number;
+  y: number;
+  /** How far the ring stands from the middle, in tiles. */
+  r: number;
+}
+
 export interface ZoneLayout {
   id: string;
   cols: number;
@@ -226,6 +243,8 @@ export interface ZoneLayout {
   /** The people who live here. Absent is a zone with nobody in it. */
   npcs?: NpcLayout[];
   landmarks: LandmarkLayout[];
+  /** A ring on the floor. Absent in every zone that has not got one. */
+  circle?: CircleLayout;
   /** What shows through where there are no tiles at all. */
   backdrop: number;
 }
@@ -411,4 +430,6 @@ export interface BuiltMap {
   props: BuiltProp[];
   npcs: BuiltNpc[];
   landmarks: BuiltMarker[];
+  /** The ring on this zone's floor, in pack pixels. Absent in most zones. */
+  circle?: { x: number; y: number; r: number };
 }

@@ -185,6 +185,13 @@ export interface MapData {
   /** The people who live here. Absent in a map built before there were any. */
   npcs?: MapNpc[];
   landmarks: MapMarker[];
+  /**
+   * A ring painted on this zone's floor — the Secret Cave's spell circle, and
+   * nowhere else so far. Middle and radius in pack pixels. It is the zone's own
+   * furniture: the scene draws it on every visit, and a quest that wants the
+   * face buttons inside it says so separately. See `src/world/SpellCircle.ts`.
+   */
+  circle?: { x: number; y: number; r: number };
 }
 
 /**

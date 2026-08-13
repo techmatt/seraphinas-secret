@@ -515,6 +515,16 @@ function buildZone(zone: ZoneLayout, sheets: Map<string, Sheet>): BuiltMap {
     y: Math.round(mark.y * TILE),
   }));
 
+  // The ring on the floor, if this zone has one. Not rounded down to a tile:
+  // it is a circle drawn at a radius, not a thing standing on a square.
+  const circle = zone.circle
+    ? {
+        x: Math.round(zone.circle.x * TILE),
+        y: Math.round(zone.circle.y * TILE),
+        r: Math.round(zone.circle.r * TILE),
+      }
+    : undefined;
+
   const spawns: BuiltMap['spawns'] = {};
   for (const [name, spawn] of Object.entries(zone.spawns)) {
     spawns[name] = {
@@ -559,6 +569,7 @@ function buildZone(zone: ZoneLayout, sheets: Map<string, Sheet>): BuiltMap {
     props,
     npcs,
     landmarks,
+    ...(circle ? { circle } : {}),
   };
 }
 

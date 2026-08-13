@@ -57,14 +57,30 @@ const STANDS = FLOOR.y - 2;
  * The fire, and therefore the room — the point every other thing in here is
  * arranged around, in tiles, at the foot of the flame.
  *
- * It is not only scenery: the ritual's spell circle is drawn around this point
- * and its two guests stand beside it. The quest writes the same two numbers down
+ * It is not only scenery: the spell circle below is drawn around this point and
+ * the ritual's two guests stand beside it. The quest writes the same two numbers down
  * itself rather than importing them — `content/` is build-time source and the
  * game only reads what the generator wrote — so if this moves, `FIRE` in
  * `src/quest/quests.ts` moves with it, and `quest.spec` is what notices if it
  * does not.
  */
 export const FIRE = { x: 10.5, y: 11.5 } as const;
+
+/**
+ * How far the ring on the floor stands from the fire, in tiles.
+ *
+ * Two and a half — big enough that a four-year-old aiming a thumbstick lands in
+ * it without having to mean to, and small enough that the rest of the chamber is
+ * unmistakably outside it.
+ *
+ * The ring is the cave's, not the quest's: it is scratched into this floor
+ * whether or not anybody is casting anything, which is why it is written here
+ * and drawn for every visit. What the *ritual* does is agree to use it — the
+ * quest writes the same numbers down itself, for the same reason `FIRE` is
+ * written down twice, and `quest.spec` stands in the ring and presses the
+ * buttons, which is what notices if the two ever stop meaning the same circle.
+ */
+const CIRCLE = 2.5;
 
 /** The opening in the bottom wall, which is the way back out to the cliff. */
 const MOUTH = rect(10, 18, 2, 1);
@@ -171,4 +187,6 @@ export const CAVE: ZoneLayout = {
     { id: 'cave_fire', x: FIRE.x, y: FIRE.y + 2 },
     { id: 'cave_chamber', x: 10.9, y: 15 },
   ],
+  // Round the fire, and the reason the middle of the floor was left clear.
+  circle: { x: FIRE.x, y: FIRE.y, r: CIRCLE },
 };

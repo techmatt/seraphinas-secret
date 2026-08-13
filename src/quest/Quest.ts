@@ -64,21 +64,6 @@ export interface RitualStep {
 }
 
 /**
- * Where a ritual happens: a spot in a zone, and how close counts as being at it.
- *
- * `r` is in tiles, and it is doing two jobs that have to be the same number —
- * where the circle is drawn, and where the face buttons change meaning. A ring
- * on the floor that is not exactly the place the buttons work would be the
- * game lying about its own rules.
- */
-export interface RitualSite {
-  zone: string;
-  x: number;
-  y: number;
-  r: number;
-}
-
-/**
  * Somebody the quest has moved. See `gather` on a Quest.
  *
  * They carry their own sheet and lines because a scene only ever has one zone's
@@ -106,16 +91,19 @@ export interface QuestGuest {
  *  - **travel** — go somewhere. It ends the moment she is standing in the zone
  *    it names, which is a thing the scene notices on its way up rather than
  *    anything she has to do when she gets there.
- *  - **ritual** — a fixed order of coloured buttons, pressed at one spot in the
- *    world. The one goal that takes the face buttons over, and only while she is
- *    standing inside `site`.
+ *  - **ritual** — a fixed order of coloured buttons, pressed standing in the
+ *    ring on the floor of `zone`. The one goal that takes the face buttons
+ *    over, and only in there. A quest does not say where the ring is or how big
+ *    it is: the ring belongs to the zone, which is what draws it and what the
+ *    scene measures her against — see `circle` in the map data. All a ritual
+ *    picks is which floor it is standing on.
  *  - **park** — it does not. Where a quest waits, and where it stops for good.
  */
 export type PhaseGoal =
   | { kind: 'fetch'; item: QuestItem }
   | { kind: 'collect'; rocks: QuestRock[] }
   | { kind: 'travel'; zone: string }
-  | { kind: 'ritual'; site: RitualSite; steps: RitualStep[] }
+  | { kind: 'ritual'; zone: string; steps: RitualStep[] }
   | { kind: 'park' };
 
 export interface QuestPhase {
@@ -168,6 +156,6 @@ export function itemOf(phase: QuestPhase | null): QuestItem | null {
 /** The ritual a phase is, or null for one that is not a ritual. */
 export function ritualOf(
   phase: QuestPhase | null,
-): { site: RitualSite; steps: RitualStep[] } | null {
+): { zone: string; steps: RitualStep[] } | null {
   return phase?.goal.kind === 'ritual' ? phase.goal : null;
 }

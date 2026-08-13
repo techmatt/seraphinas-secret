@@ -34,17 +34,6 @@ import type { Quest } from './Quest';
  */
 const FIRE = { x: 10.5, y: 11.5 } as const;
 
-/**
- * How close to the fire counts as being in the circle, in tiles.
- *
- * Two and a half — big enough that a four-year-old aiming a thumbstick lands in
- * it without having to mean to, and small enough that the rest of the chamber is
- * unmistakably outside it. The ring on the floor is drawn at exactly this
- * radius: the picture and the rule are one number, because a circle that is not
- * the place the buttons work would be the game lying about itself.
- */
-const CIRCLE = 2.5;
-
 export const FAERIE_QUEST: Quest = {
   id: 'faerie',
   giver: 'sneak',
@@ -105,7 +94,11 @@ export const FAERIE_QUEST: Quest = {
       instruction: 'sneak_cave_greet',
       goal: {
         kind: 'ritual',
-        site: { zone: 'cave', x: FIRE.x, y: FIRE.y, r: CIRCLE },
+        // The cave, and no more than that. The ring she has to stand in is
+        // scratched into the cave's own floor whatever this quest is doing —
+        // see `circle` in `content/world/cave/index.ts` — so the spot and the
+        // size of it are not the quest's to give.
+        zone: 'cave',
         steps: [
           { id: 'red', gem: 'ruby', press: 'sneak_press_red', retry: 'sneak_try_red' },
           {
