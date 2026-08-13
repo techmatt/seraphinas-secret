@@ -414,8 +414,14 @@ test('the faerie quest, from the offer to the cave', async ({ page }) => {
  * afternoon. Four things have to survive one doorway: how far through the quest
  * she is, what she is carrying, what the quest lent her, and the two holes she
  * has actually made in the world.
+ *
+ * And then she goes to bed, and none of the four survives that — which is the
+ * same claim from the other end, and is why it is asked here rather than from a
+ * boot of its own. A night's sleep is the one thing in the game that undoes an
+ * afternoon on purpose, and the only honest way to prove it undid one is to
+ * have had one.
  */
-test('the yellow button remembers, the wrong tool cannot spoil it, and a doorway does not undo it', async ({
+test('the yellow button remembers, the wrong tool cannot spoil it, a doorway does not undo it, and a night does', async ({
   page,
 }) => {
   const { errors } = await bootGame(page);
@@ -568,6 +574,89 @@ test('the yellow button remembers, the wrong tool cannot spoil it, and a doorway
     isBlocked(back, tree.x, tree.y),
     'and the ground it was standing on is still hers',
   ).toBe(false);
+
+  // --- and then she goes to bed, and none of it survives the night ----------
+  //
+  // The other half of the same claim, and the reason it is folded in here
+  // rather than booted on its own: everything above exists to build a state
+  // worth destroying. She is halfway through a quest, carrying a stone it gave
+  // her, holding a hammer it lent her, and there is a hole in the wood where a
+  // tree used to be. A night takes all four (Matt, 2026-08-12: everything
+  // resets, no exceptions) and the axe stays, because the axe is hers.
+  //
+  // Two presses on the bed, and the first one has to *not* be enough — a bed
+  // that ends the day the moment she leans on it is a bed she will stop walking
+  // past. See `poke`.
+  await standByProp(page, 'outside_to_house');
+  expect(await walkThroughDoorway(page, 'outside_to_house'), 'indoors for the night').toBe('house');
+
+  await standByProp(page, 'bed');
+  await tap(page, 'KeyZ');
+  await page.waitForFunction(
+    () => (window as unknown as { __seraphina: Hooks }).__seraphina.voice.lineId === 'seraphina_bed',
+    undefined,
+    { timeout: 20_000 },
+  );
+  const asked = await readHooks(page);
+  expect(asked.sleeps, 'one press asks the question and nothing else').toBe(0);
+  expect(asked.voice.bubble.speaker, 'in her own voice, over her own head').toBe('seraphina');
+
+  // Pressed until it takes rather than exactly once, the same as `acceptQuest`:
+  // a press that lands inside a frame the page skipped is gone, and a repeat
+  // only ever asks again.
+  for (let press = 0; press < 5; press++) {
+    if ((await readHooks(page)).sleeps > 0) break;
+    await tap(page, 'KeyZ');
+  }
+  await page.waitForFunction(
+    () => {
+      const h = (window as unknown as { __seraphina: Hooks }).__seraphina;
+      return h.sleeps > 0 && h.ready && !h.transitioning;
+    },
+    undefined,
+    { timeout: 20_000 },
+  );
+
+  const morning = await readHooks(page);
+  expect(morning.room, 'she wakes in the room she went to sleep in').toBe('house');
+  const bed = morning.interactables.find((p) => p.id === 'bed')!;
+  expect(
+    Math.hypot(bed.x - morning.player.x, bed.y - morning.player.y),
+    'standing beside her own bed',
+  ).toBeLessThanOrEqual(morning.interactRadius);
+
+  expect(morning.session.run.quest, 'the quest she was halfway through is gone').toBeNull();
+  expect(morning.session.run.items, 'and so is the stone she was carrying for it').toEqual([]);
+  expect(morning.session.run.granted, 'and the record of what it lent her').toEqual([]);
+  expect(morning.session.world, 'and every mark she left on the world').toEqual({});
+  expect(morning.tools.slots, 'the hammer went back overnight; the axe never does').toEqual([
+    'axe',
+    null,
+    null,
+    null,
+  ]);
+  expect(morning.tools.holding, 'so the axe is what she wakes up holding').toBe('axe');
+  expect(morning.quest.phase, 'no phase, so no row and nothing to remember').toBeNull();
+  expect(morning.quest.slots).toEqual([]);
+  expect(morning.quest.instruction, 'and the yellow button has nothing to say').toBeNull();
+
+  // Teleported across the house to the front door rather than walked. That she
+  // can get from her bedroom to the yard is not this test's claim and it costs
+  // twenty-odd tiles of hopping to make; what is on the far side of the door is.
+  await standAt(page, 'playroom');
+  expect(await walkThroughDoorway(page), 'out into the new day').toBe('outside');
+  const newDay = await readHooks(page);
+  expect(newDay.quest.offering, 'and the job is going again').toBe('sneak');
+  expect(newDay.quest.marker, 'with the thought bubble back over his head').toBe(true);
+  expect(
+    newDay.trees.find((t) => t.id === tree.id)?.state,
+    'the tree she felled grew back while she slept',
+  ).toBe('standing');
+  expect(isBlocked(newDay, tree.x, tree.y), 'and its tile is solid again').toBe(true);
+  expect(
+    newDay.quest.objects,
+    'and the quest has taken its stones home with it',
+  ).toEqual([]);
 
   expect(errors, 'no uncaught page errors').toEqual([]);
 });

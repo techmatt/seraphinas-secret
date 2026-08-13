@@ -146,10 +146,11 @@ inside it, rather than one boot per question — and anything the test is not
 actually about is teleported to rather than walked to. When adding a claim, look
 for the test that already boots where it belongs before writing a new one.
 
-`npm run test:slow` is the four tests tagged `@slow`, about a minute:
+`npm run test:slow` is the five tests tagged `@slow`, about a minute:
 
-- `landmarks.spec` — both tours. Twenty framings, two assertions. They exist
-  to regenerate `tests/screenshots/`, not to catch bugs.
+- `landmarks.spec` — all three tours: the exterior, the cave and the house.
+  Twenty-one framings, six assertions. They exist to regenerate
+  `tests/screenshots/`, not to catch bugs.
 - `hitboxes.spec` — *the wood, with its hitboxes showing*. Seven framings, same
   reason. The overlay's own behaviour is tested in `world.spec`.
 - `world.spec` — *the Mystic Woods can be reached on foot*. The one tagged for

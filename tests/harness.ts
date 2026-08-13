@@ -138,6 +138,7 @@ export type Hooks = {
   debugHitboxes: (on: boolean) => void;
   fps: number;
   sparkles: number;
+  sleeps: number;
   ritualMisses: number;
   faeries: { x: number; y: number }[];
   aliveParticles: number;
