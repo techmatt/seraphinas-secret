@@ -1244,6 +1244,246 @@
         }
       ],
       "duration": 3.293
+    },
+    {
+      "id": "seraphina_recap_faeries",
+      "speaker": "seraphina",
+      "text": "We called real faeries out of the fire.",
+      "audio": "voice/seraphina_recap_faeries.mp3",
+      "words": [
+        {
+          "word": "We",
+          "start": 0.104,
+          "end": 0.308
+        },
+        {
+          "word": "called",
+          "start": 0.322,
+          "end": 0.716
+        },
+        {
+          "word": "real",
+          "start": 0.729,
+          "end": 1.083
+        },
+        {
+          "word": "faeries",
+          "start": 1.096,
+          "end": 1.776
+        },
+        {
+          "word": "out",
+          "start": 1.789,
+          "end": 1.979
+        },
+        {
+          "word": "of",
+          "start": 1.993,
+          "end": 2.115
+        },
+        {
+          "word": "the",
+          "start": 2.129,
+          "end": 2.224
+        },
+        {
+          "word": "fire.",
+          "start": 2.238,
+          "end": 2.808
+        }
+      ],
+      "duration": 2.808
+    },
+    {
+      "id": "seraphina_recap_errand",
+      "speaker": "seraphina",
+      "text": "I helped my friend look for magic stones.",
+      "audio": "voice/seraphina_recap_errand.mp3",
+      "words": [
+        {
+          "word": "I",
+          "start": 0.104,
+          "end": 0.281
+        },
+        {
+          "word": "helped",
+          "start": 0.295,
+          "end": 0.675
+        },
+        {
+          "word": "my",
+          "start": 0.689,
+          "end": 0.865
+        },
+        {
+          "word": "friend",
+          "start": 0.879,
+          "end": 1.327
+        },
+        {
+          "word": "look",
+          "start": 1.341,
+          "end": 1.599
+        },
+        {
+          "word": "for",
+          "start": 1.613,
+          "end": 1.789
+        },
+        {
+          "word": "magic",
+          "start": 1.803,
+          "end": 2.292
+        },
+        {
+          "word": "stones.",
+          "start": 2.305,
+          "end": 3.026
+        }
+      ],
+      "duration": 3.026
+    },
+    {
+      "id": "seraphina_recap_stones",
+      "speaker": "seraphina",
+      "text": "I cracked a magic stone right open.",
+      "audio": "voice/seraphina_recap_stones.mp3",
+      "words": [
+        {
+          "word": "I",
+          "start": 0.104,
+          "end": 0.281
+        },
+        {
+          "word": "cracked",
+          "start": 0.295,
+          "end": 0.757
+        },
+        {
+          "word": "a",
+          "start": 0.77,
+          "end": 0.824
+        },
+        {
+          "word": "magic",
+          "start": 0.838,
+          "end": 1.381
+        },
+        {
+          "word": "stone",
+          "start": 1.395,
+          "end": 1.884
+        },
+        {
+          "word": "right",
+          "start": 1.898,
+          "end": 2.197
+        },
+        {
+          "word": "open.",
+          "start": 2.21,
+          "end": 2.699
+        }
+      ],
+      "duration": 2.699
+    },
+    {
+      "id": "seraphina_recap_trees",
+      "speaker": "seraphina",
+      "text": "I chopped a whole tree down with my axe.",
+      "audio": "voice/seraphina_recap_trees.mp3",
+      "words": [
+        {
+          "word": "I",
+          "start": 0.104,
+          "end": 0.295
+        },
+        {
+          "word": "chopped",
+          "start": 0.308,
+          "end": 0.729
+        },
+        {
+          "word": "a",
+          "start": 0.743,
+          "end": 0.797
+        },
+        {
+          "word": "whole",
+          "start": 0.811,
+          "end": 1.123
+        },
+        {
+          "word": "tree",
+          "start": 1.137,
+          "end": 1.504
+        },
+        {
+          "word": "down",
+          "start": 1.517,
+          "end": 1.857
+        },
+        {
+          "word": "with",
+          "start": 1.871,
+          "end": 2.047
+        },
+        {
+          "word": "my",
+          "start": 2.061,
+          "end": 2.265
+        },
+        {
+          "word": "axe.",
+          "start": 2.278,
+          "end": 2.835
+        }
+      ],
+      "duration": 2.835
+    },
+    {
+      "id": "seraphina_goodnight",
+      "speaker": "seraphina",
+      "text": "Goodnight, world. See you in the morning.",
+      "audio": "voice/seraphina_goodnight.mp3",
+      "words": [
+        {
+          "word": "Goodnight,",
+          "start": 0.104,
+          "end": 0.648
+        },
+        {
+          "word": "world.",
+          "start": 0.661,
+          "end": 1.123
+        },
+        {
+          "word": "See",
+          "start": 1.436,
+          "end": 1.694
+        },
+        {
+          "word": "you",
+          "start": 1.708,
+          "end": 1.898
+        },
+        {
+          "word": "in",
+          "start": 1.911,
+          "end": 2.088
+        },
+        {
+          "word": "the",
+          "start": 2.102,
+          "end": 2.183
+        },
+        {
+          "word": "morning.",
+          "start": 2.197,
+          "end": 2.808
+        }
+      ],
+      "duration": 2.808
     }
   ]
 }

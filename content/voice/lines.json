@@ -33,7 +33,8 @@
   {
     "id": "dad_bedtime",
     "speaker": "dad",
-    "text": "Time for bed!"
+    "text": "Time for bed!",
+    "note": "Called from inside the house when the light starts going, once a day and never again — see the day clock. He is not a person standing in the world and there is no plan for him to be one, so the balloon is anchored at the front door instead: the words come out of the house. The one line in the game not spoken by somebody on screen, and the one exception to the narrative-voice rule in CLAUDE.md — this is Dad talking, not the world."
   },
   {
     "id": "seraphina_apple",
@@ -219,5 +220,36 @@
     "text": "We did it! Thank you, Seraphina.",
     "say": "We did it. Thank you, Seraphina.",
     "note": "The last line of the quest. Same mid-line '!' fix."
+  },
+  {
+    "id": "seraphina_recap_faeries",
+    "speaker": "seraphina",
+    "text": "We called real faeries out of the fire.",
+    "note": "The bedtime recap: what she says lying in the dark with the stars up, chosen by what the day's store says actually happened. See src/state/recap.ts, which owns the order they are picked in. All of these are hers and first person — she is remembering her own day, so the narrative-voice rule is not even a question here. None of them has a mid-line '!', which is the one thing that costs a second of silence with no word lit."
+  },
+  {
+    "id": "seraphina_recap_errand",
+    "speaker": "seraphina",
+    "text": "I helped my friend look for magic stones.",
+    "note": "A day she took the job and did not finish it. 'My friend' rather than his name: nobody in the game has ever said it out loud, and bedtime is not where a name should be introduced."
+  },
+  {
+    "id": "seraphina_recap_stones",
+    "speaker": "seraphina",
+    "text": "I cracked a magic stone right open.",
+    "note": "A day with a hammer in it."
+  },
+  {
+    "id": "seraphina_recap_trees",
+    "speaker": "seraphina",
+    "text": "I chopped a whole tree down with my axe.",
+    "note": "A day in the wood. Last in the order, because felling one is a thing she can do all afternoon."
+  },
+  {
+    "id": "seraphina_goodnight",
+    "speaker": "seraphina",
+    "text": "Goodnight, world. See you in the morning.",
+    "say": "Goodnight world, see you in the morning.",
+    "note": "Always the last thing said, every night, whatever else happened. A day with nothing in it is only this line — which is why it has to work alone, and why it says goodnight to the world rather than to whatever she just did. Spoken with the full stop moved to a comma: edge-tts leaves nearly a second of silence after a mid-line '.', which measured at 0.94s here — a second of a lit-up sentence with no word lit, at the one moment she is meant to be watching it. Same fix the mid-line '!' lines use."
   }
 ]
