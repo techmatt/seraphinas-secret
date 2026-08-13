@@ -62,8 +62,17 @@ const WALK_SPEED = 300;
 /** Analog sticks rest slightly off-centre; ignore anything inside this. */
 const STICK_DEADZONE = 0.25;
 
-/** How close she must be to a prop before it will sparkle. Two tiles-ish. */
-const INTERACT_RADIUS = 140;
+/**
+ * How close she must be to a prop before it will sparkle. About a tile and a
+ * half.
+ *
+ * It was two tiles-ish, and that was too generous: a dot came on while she was
+ * still walking past a thing, and in the village two things are often within
+ * that of each other, so the dot hopped between them without her having gone
+ * anywhere. Down 30% (Matt, 2026-08-12), which is close enough that the dot
+ * means *this* one.
+ */
+const INTERACT_RADIUS = 98;
 
 /** How long the first zone takes to arrive out of the title screen's flash. */
 const FADE_IN = 260;
