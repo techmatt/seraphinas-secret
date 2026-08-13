@@ -8,9 +8,11 @@ import {
   standByRock,
   standByTree,
   standNear,
+  standOnTile,
   tap,
   waitForQuiet,
   waitForVoice,
+  walk,
   walkThroughDoorway,
   type Hooks,
   type Snapshot,
@@ -138,6 +140,26 @@ function pickTree(hooks: Snapshot) {
 }
 
 const rock = (hooks: Snapshot, id: string) => hooks.quest.objects.find((o) => o.id === id);
+
+/**
+ * Wait for a phase's instruction to have been said, and then for the quiet
+ * after it.
+ *
+ * A phase ends with its new instruction spoken *a beat later* — see
+ * `sayInstructionAfter` — so "wait until nobody is talking" on its own can pass
+ * in the gap before it starts, and whatever the test says next gets talked over
+ * a second afterwards. The little things she says to herself are dropped rather
+ * than queued while a real line is in the air, so for any test about a bark this
+ * is not tidiness, it is the difference between asking the question and not.
+ */
+async function afterInstruction(page: Page, line: string) {
+  await page.waitForFunction(
+    (want) => (window as unknown as { __seraphina: Hooks }).__seraphina.voice.lineId === want,
+    line,
+    { timeout: 20_000 },
+  );
+  await waitForQuiet(page);
+}
 
 /**
  * The whole quest, end to end, in an order the quest did not ask for.
@@ -752,6 +774,343 @@ test('the yellow button remembers, the wrong tool cannot spoil it, a doorway doe
     newDay.quest.objects,
     'and the quest has taken its stones home with it',
   ).toEqual([]);
+
+  expect(errors, 'no uncaught page errors').toEqual([]);
+});
+
+/**
+ * The bunny rescue, end to end: a ring that was not there this morning, four
+ * trees down, three carrots, and three walks home.
+ *
+ * One test for the whole quest, the way the faerie one is, and for the same
+ * reason: what is worth proving is that the three layers — store, engine, scene
+ * — agree with each other from the offer to the coin, and there is no way to ask
+ * that of a phase in isolation. Page startup is the dominant cost in this suite,
+ * so this is one boot with every question the wood can answer asked inside it.
+ *
+ * The walking is teleported past wherever the walk is not the claim. One place
+ * it is: she is put down five tiles west of the ring and walks the rest, because
+ * arriving is the whole of that phase's job and a teleport into the circle would
+ * be asserting on the teleport.
+ *
+ * The two refusals are asked as hard as the successes. One bunny at a time is
+ * *enforced*, and a test that only counted the boxes filling up would pass just
+ * as well against a phase that let her tag all three and walk home once.
+ */
+test('the bunny rescue, from the offer to the den', async ({ page }) => {
+  const { errors } = await bootGame(page);
+  await waitForVoice(page);
+
+  const penTrees = (hooks: Snapshot) => hooks.trees.filter((t) => t.id.startsWith('pen_'));
+  const bunnyState = (hooks: Snapshot, id: string) => {
+    const found = hooks.bunnies.find((b) => b.id === id);
+    if (!found) throw new Error(`no bunny ${id}`);
+    return found.state;
+  };
+
+  // Before anything: a clearing with nothing in it. The pen is the quest's
+  // furniture, so it must not exist on an afternoon nobody took the job.
+  const morning = await readHooks(page);
+  expect(morning.quest.offers, 'she is one of the two asking').toContain('hazel');
+  expect(penTrees(morning), 'and there is no ring in the wood yet').toEqual([]);
+  expect(morning.bunnies, 'and no bunnies anywhere').toEqual([]);
+
+  const pond = morning.npcs.find((n) => n.id === 'hazel')!;
+
+  // Take it. Two presses, both of them her talking.
+  await standNear(page, 'hazel', { y: 72 });
+  for (let press = 0; press < 6; press++) {
+    if ((await readHooks(page)).quest.id) break;
+    await tap(page, 'KeyZ');
+  }
+
+  const taken = await readHooks(page);
+  expect(taken.quest.id, 'the job is hers').toBe('bunny');
+  expect(taken.quest.phase, 'and it starts with the walk out').toBe('toThePen');
+  expect(taken.quest.giver, 'hers to repeat, in her voice').toBe('hazel');
+  expect(taken.quest.instruction).toBe('hazel_quest_pen');
+  expect(taken.quest.offers, 'and neither of them is offering anything now').toEqual([]);
+
+  // The ring, sixteen of it, standing and solid — and every one of them a tree
+  // she is allowed to fell, which is what makes the phase after this possible.
+  const ring = penTrees(taken);
+  expect(ring.length, 'a hollow five-by-five ring is sixteen trees').toBe(16);
+  expect(
+    ring.every((t) => t.choppable && t.state === 'standing'),
+    'all of them standing, and all of them hers',
+  ).toBe(true);
+  for (const tree of ring) {
+    expect(isBlocked(taken, tree.x, tree.y), tree.id + ' is solid from the moment it spawns').toBe(
+      true,
+    );
+  }
+
+  // Three bunnies inside it, and inside is inside: every one of them is nearer
+  // the middle of the ring than the ring itself is.
+  const tile = taken.world.tile;
+  const middle = {
+    x: ring.reduce((sum, t) => sum + t.x, 0) / ring.length,
+    y: ring.reduce((sum, t) => sum + t.y, 0) / ring.length,
+  };
+  expect(taken.bunnies.length, 'three of them').toBe(3);
+  expect(taken.bunnies.every((b) => b.state === 'penned'), 'all penned').toBe(true);
+  for (const b of taken.bunnies) {
+    expect(
+      Math.hypot(b.x - middle.x, b.y - middle.y),
+      b.id + ' is inside the ring, not beside it',
+    ).toBeLessThan(tile * 2);
+  }
+
+  // And Hazel has gone on ahead to the den, which is a long way from her pond.
+  const atDen = taken.npcs.find((n) => n.id === 'hazel')!;
+  expect(
+    Math.hypot(atDen.x - pond.x, atDen.y - pond.y),
+    'she is not where the map put her any more',
+  ).toBeGreaterThan(tile * 10);
+
+  // --- phase one: the walk out ---------------------------------------------
+  await standOnTile(page, Math.round(middle.x / tile) - 5, Math.round(middle.y / tile));
+  expect(
+    (await readHooks(page)).quest.phase,
+    'standing a few tiles short is not standing there',
+  ).toBe('toThePen');
+
+  for (let hop = 0; hop < 10; hop++) {
+    if ((await readHooks(page)).quest.phase !== 'toThePen') break;
+    await walk(page, 'ArrowRight', 200);
+  }
+  const arrived = await readHooks(page);
+  expect(arrived.quest.phase, 'walking up to it is the whole of that job').toBe('freeThem');
+  expect(arrived.quest.instruction, 'and the job is now the axe').toBe('hazel_quest_chop');
+  expect(
+    arrived.quest.slots.map((s) => s.kind),
+    'four boxes, one per fall, all the same picture',
+  ).toEqual(['tree', 'tree', 'tree', 'tree']);
+  expect(arrived.quest.slots.every((s) => !s.filled), 'and every one of them empty').toBe(true);
+
+  // --- phase two: four of the sixteen --------------------------------------
+  //
+  // Two blows each rather than the wood's three, which is the whole of what a
+  // TINY_TREE is.
+  //
+  // *Any* four, which is why this counts falls rather than naming trees. The
+  // sixteen stand a tile apart, so a swing aimed at one of them regularly lands
+  // on the one beside it — and that is the design working rather than a miss:
+  // a fall fills a box and no box cares which tree it was. A test that insisted
+  // on four named trees would be asserting a rule the quest does not have.
+  const fallen = (hooks: Snapshot) => penTrees(hooks).filter((t) => t.state !== 'standing').length;
+  let felling = await readHooks(page);
+  for (let round = 0; round < 10 && felling.quest.phase === 'freeThem'; round++) {
+    const standing = penTrees(felling).filter((t) => t.state === 'standing');
+    await standByTree(page, standing[round % standing.length]!.id);
+    const before = fallen(await readHooks(page));
+    for (let blow = 0; blow < 4; blow++) {
+      await whack(page);
+      felling = await readHooks(page);
+      if (fallen(felling) > before) break;
+    }
+  }
+
+  await page.waitForFunction(
+    () => (window as unknown as { __seraphina: Hooks }).__seraphina.quest.phase === 'carrots',
+    undefined,
+    { timeout: 20_000 },
+  );
+  const freed = await readHooks(page);
+  expect(
+    fallen(freed),
+    'four of them are down, and the other twelve are still standing',
+  ).toBe(4);
+  expect(
+    freed.bunnies.every((b) => b.state === 'loose'),
+    'and the bunnies are out through the gap',
+  ).toBe(true);
+  expect(freed.quest.instruction, 'the job is carrots now').toBe('hazel_quest_carrots');
+  expect(freed.quest.slots.map((s) => s.id), 'three of them, in the quest’s order').toEqual([
+    'carrot_1',
+    'carrot_2',
+    'carrot_3',
+  ]);
+  expect(freed.treeGaps, 'and no frame had a felled tree with nothing drawn for it').toBe(0);
+
+  // The gentle refusal, at the one moment it can happen: three bunnies hopping
+  // about and nothing in her pocket. It costs her nothing and it names the fix
+  // rather than the failure, which is what every "no" in this game does.
+  await afterInstruction(page, 'hazel_quest_carrots');
+  await standByProp(page, freed.bunnies[0]!.id);
+  await tap(page, 'KeyZ');
+  const empty = await readHooks(page);
+  expect(empty.voice.lineId, 'the bunny wants a carrot, says she').toBe('seraphina_need_carrot');
+  expect(empty.quest.following, 'and nothing is following her').toBeNull();
+
+  // --- phase three: three carrots, in an order the quest did not ask for ----
+  for (const id of ['carrot_2', 'carrot_1', 'carrot_3']) {
+    const before = await readHooks(page);
+    const carrot = before.quest.objects.find((o) => o.id === id);
+    expect(carrot, id + ' is lying out there').toBeDefined();
+    expect(isBlocked(before, carrot!.x, carrot!.y), id + ' is on open ground').toBe(false);
+
+    await standByProp(page, id);
+    for (let press = 0; press < 5; press++) {
+      if ((await readHooks(page)).quest.held.includes(id)) break;
+      await tap(page, 'KeyZ');
+    }
+    expect((await readHooks(page)).quest.held, id + ' is hers').toContain(id);
+  }
+
+  await page.waitForFunction(
+    () => (window as unknown as { __seraphina: Hooks }).__seraphina.quest.phase === 'lure',
+    undefined,
+    { timeout: 20_000 },
+  );
+  const carrying = await readHooks(page);
+  expect(carrying.quest.held.length, 'all three carrots').toBe(3);
+  expect(carrying.quest.instruction, 'and the job is the walk home').toBe('hazel_quest_lure');
+  expect(carrying.quest.slots.map((s) => s.kind), 'three bunny boxes now').toEqual([
+    'bunny',
+    'bunny',
+    'bunny',
+  ]);
+  expect(carrying.quest.objects, 'and there is nothing left lying in the grass').toEqual([]);
+
+  // --- phase four: one at a time, three times -------------------------------
+  await afterInstruction(page, 'hazel_quest_lure');
+  const den = { x: Math.round(atDen.x / tile), y: Math.round(atDen.y / tile) };
+
+  for (let trip = 1; trip <= 3; trip++) {
+    const loose = (await readHooks(page)).bunnies.filter((b) => b.state === 'loose');
+    expect(loose.length, String(4 - trip) + ' of them still out there').toBe(4 - trip);
+
+    await standByProp(page, loose[0]!.id);
+    for (let press = 0; press < 5; press++) {
+      if ((await readHooks(page)).quest.following) break;
+      await tap(page, 'KeyZ');
+    }
+
+    const tagged = await readHooks(page);
+    expect(tagged.quest.following, 'one of them is walking behind her').toBe(loose[0]!.id);
+    expect(bunnyState(tagged, loose[0]!.id)).toBe('following');
+    expect(tagged.quest.held.length, 'and the carrot went with it').toBe(3 - trip);
+
+    // The funny refusal, on the first trip only — once is the claim, and asking
+    // it three times is three page round trips for the same answer.
+    if (trip === 1 && loose[1]) {
+      await standByProp(page, loose[1].id);
+      await waitForQuiet(page);
+      await tap(page, 'KeyZ');
+      const second = await readHooks(page);
+      expect(second.voice.lineId, 'one bunny at a time, and she says so').toBe(
+        'seraphina_one_bunny',
+      );
+      expect(second.quest.following, 'the first one is still the one following').toBe(loose[0]!.id);
+      expect(second.quest.held.length, 'and no second carrot was spent').toBe(3 - trip);
+      expect(bunnyState(second, loose[1].id), 'the second one is still loose').toBe('loose');
+    }
+
+    // Home. Walking into the den is the whole of the deposit; there is nothing
+    // to press at the far end.
+    await standOnTile(page, den.x, den.y);
+    // Boxes filling up, until the last one — which does not fill a box, it ends
+    // the quest, and a parked phase has no row at all. That the row empties on
+    // the third arrival rather than showing three ticks is the point: the job is
+    // over, so there is nothing left to be told about it.
+    await page.waitForFunction(
+      (want) => {
+        const q = (window as unknown as { __seraphina: Hooks }).__seraphina.quest;
+        return want < 3 ? q.slots.filter((s) => s.filled).length === want : q.phase === 'done';
+      },
+      trip,
+      { timeout: 20_000 },
+    );
+
+    const dropped = await readHooks(page);
+    expect(dropped.quest.following, 'nothing is following her now').toBeNull();
+    expect(bunnyState(dropped, loose[0]!.id), 'that one lives here').toBe('home');
+
+    // ...and Hazel counts down what is left, in a clip cut knowing the number.
+    if (trip < 3) {
+      await page.waitForFunction(
+        (want) => (window as unknown as { __seraphina: Hooks }).__seraphina.voice.lineId === want,
+        trip === 1 ? 'hazel_two_more' : 'hazel_one_more',
+        { timeout: 20_000 },
+      );
+    }
+  }
+
+  // --- and the end of it ----------------------------------------------------
+  const done = await readHooks(page);
+  expect(done.quest.phase, 'the quest parks').toBe('done');
+  expect(done.quest.instruction, 'so the yellow button has nothing left to say').toBeNull();
+  expect(done.quest.offers, 'and nobody is offering it again today').toEqual([]);
+  expect(done.bunnies.every((b) => b.state === 'home'), 'all three live at the den').toBe(true);
+  // The coin is hers the instant the third one is home, whatever she does next —
+  // the split the first quest established. See `RoomScene.bunniesAllHome`.
+  expect(done.coins, 'finishing the job is worth a coin').toBe(1);
+  expect(done.session.persistent.coins, 'on the side of the seam a night cannot reach').toBe(1);
+
+  await page.waitForFunction(
+    () =>
+      (window as unknown as { __seraphina: Hooks }).__seraphina.voice.lineId === 'hazel_bunny_coin',
+    undefined,
+    { timeout: 30_000 },
+  );
+  const paid = await readHooks(page);
+  expect(paid.voice.bubble.speaker, 'out of her own mouth — she is handing it over').toBe('hazel');
+  expect(paid.voice.words.length, 'with words on screen to light up').toBeGreaterThan(0);
+  expect(paid.coins, 'and the count did not move again on the way past').toBe(1);
+
+  // The ring lingers. It is the afternoon she had, and tidying it away the
+  // instant the last bunny was home would be the game taking it back.
+  expect(penTrees(paid).length, 'twelve trees and four stumps, still standing there').toBe(16);
+
+  // A doorway undoes none of it. The bunnies live in the wood rather than in the
+  // world, so the house has none — and coming back out finds all of it as it was.
+  await standByProp(page, 'outside_to_house');
+  expect(await walkThroughDoorway(page, 'outside_to_house'), 'indoors').toBe('house');
+  expect((await readHooks(page)).bunnies, 'no bunnies in the kitchen').toEqual([]);
+  expect(await walkThroughDoorway(page), 'and back out').toBe('outside');
+
+  const back = await readHooks(page);
+  expect(back.quest.phase, 'still finished').toBe('done');
+  expect(back.bunnies.every((b) => b.state === 'home'), 'still all home').toBe(true);
+  expect(
+    fallen(back),
+    'and the four she felled are still down',
+  ).toBe(4);
+  // Hazel has walked back to her pond, now the quest has let go of her.
+  const walkedBack = back.npcs.find((n) => n.id === 'hazel')!;
+  expect(
+    Math.hypot(walkedBack.x - pond.x, walkedBack.y - pond.y),
+    'and she is back where the map put her',
+  ).toBeLessThan(tile);
+
+  // --- and then she goes to bed and says what her day was ------------------
+  //
+  // Folded in here rather than booted on its own, for the reason the faerie
+  // night test gives: everything above exists to build a day worth reciting,
+  // and this is the only afternoon in the suite that has bunnies in it. Two
+  // things happened — three bunnies went home, and four trees came down — and
+  // only two are ever said, so this also settles that the new line sits *above*
+  // the tree line rather than beside it.
+  await standByProp(page, 'outside_to_house');
+  expect(await walkThroughDoorway(page, 'outside_to_house'), 'indoors for the night').toBe('house');
+  await standByProp(page, 'bed');
+  for (let press = 0; press < 6; press++) {
+    if ((await readHooks(page)).sleeps > 0) break;
+    await tap(page, 'KeyZ');
+  }
+  await page.waitForFunction(
+    () =>
+      (window as unknown as { __seraphina: Hooks }).__seraphina.voice.lineId ===
+      'seraphina_goodnight',
+    undefined,
+    { timeout: 30_000 },
+  );
+  expect((await readHooks(page)).recap, 'the bunnies first, then the wood, then goodnight').toEqual([
+    'seraphina_recap_bunnies',
+    'seraphina_recap_trees',
+    'seraphina_goodnight',
+  ]);
 
   expect(errors, 'no uncaught page errors').toEqual([]);
 });

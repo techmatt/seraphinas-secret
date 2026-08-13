@@ -1545,6 +1545,7 @@ export class RoomScene extends Phaser.Scene {
     // press and not before — she has to be able to walk that clearing all
     // morning and find nothing in it.
     this.buildPen();
+    this.moveGuestsIn();
     this.buildQuestObjects();
     this.refreshInteractables();
     this.refreshQuestHud();
@@ -1652,6 +1653,58 @@ export class RoomScene extends Phaser.Scene {
     this.pickups = [];
     // The rocks' own sprites go with the scene; only the list has to be dropped.
     this.rocks = [];
+  }
+
+  /**
+   * Somebody the quest has just moved, moved — now, rather than the next time
+   * this zone is built.
+   *
+   * `gather` was written for the cave: Sneak and Hazel go on ahead while she is
+   * walking there, and the walk itself is a doorway, so by the time she arrives
+   * the zone has been rebuilt with them in it. The second quest is given and
+   * done in the same field. Its giver is standing a stride in front of her when
+   * she takes it, and waiting for a doorway would mean either a den with nobody
+   * at it or Hazel in two places, depending which way she went first.
+   *
+   * So the person is picked up and put down, with a burst at each end — which is
+   * the same "she went on ahead" the cave already tells, said in the one second
+   * where it can actually be watched. Nobody is copied and nobody is duplicated:
+   * this moves the Npc that is already standing here, and only builds one for a
+   * guest the zone did not have.
+   */
+  private moveGuestsIn(): void {
+    const guests = quests.guests(this.zoneId);
+    if (!guests.length) return;
+
+    for (const guest of guests) {
+      const to = { x: guest.x * TILE_SIZE, y: guest.y * TILE_SIZE };
+      const here = this.npcs.find((npc) => npc.id === guest.id);
+      if (!here) {
+        registerCharacterAnims(this, sheetFor(guest.sheet));
+        this.npcs.push(
+          new Npc(this, {
+            id: guest.id,
+            sheet: guest.sheet,
+            x: guest.x * TILE,
+            y: guest.y * TILE,
+            facing: guest.facing,
+            lines: [...guest.lines],
+          } satisfies MapNpc),
+        );
+        this.sparkles.explode(30, to.x, to.y - HEAD_GAP);
+        continue;
+      }
+
+      this.sparkles.explode(30, here.x, here.y - HEAD_GAP);
+      here.setPosition(to.x, to.y);
+      here.setDepth(to.y);
+      here.face(guest.facing);
+      this.sparkles.explode(30, to.x, to.y - HEAD_GAP);
+    }
+
+    playWhoosh();
+    hooks.sparkles += 1;
+    this.syncNpcHooks();
   }
 
   // --- the pen and the bunnies ----------------------------------------------
@@ -1875,21 +1928,25 @@ export class RoomScene extends Phaser.Scene {
         lift: ITEM_LIFT,
         press: () => this.pickUpCarrot(carrot),
       })),
-      // And the bunnies, but only while the job is to bring them home. They hop
-      // about loose for a whole phase before that with nothing to press them
-      // for, and a green dot over one then would be a promise the game has not
-      // got round to keeping.
-      ...(lureOf(quests.phase)
-        ? this.bunnies
-            .filter((bunny) => bunny.taggable)
-            .map((bunny) => ({
-              id: bunny.id,
-              x: bunny.x,
-              y: bunny.y,
-              lift: BUNNY_LIFT,
-              press: () => this.tagBunny(bunny),
-            }))
-        : []),
+      // And every loose bunny, from the moment the ring comes open — not from
+      // the moment she is *told* to bring them home.
+      //
+      // Which is the whole reason the gentle refusal exists. She frees three
+      // bunnies, presses green at one with nothing in her pocket, and is told
+      // the bunny wants a carrot — at the exact moment the job is to go and find
+      // three carrots, and in answer to a button she pressed rather than a
+      // sentence somebody said at her. Gated to the lure phase it would be a
+      // line nothing could ever reach: by the time that phase starts she has one
+      // carrot per bunny and spends them one for one.
+      ...this.bunnies
+        .filter((bunny) => bunny.taggable)
+        .map((bunny) => ({
+          id: bunny.id,
+          x: bunny.x,
+          y: bunny.y,
+          lift: BUNNY_LIFT,
+          press: () => this.tagBunny(bunny),
+        })),
     ];
 
     hooks.interactables = this.interactables.map(({ id, x, y }) => ({ id, x, y }));

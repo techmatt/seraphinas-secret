@@ -418,6 +418,13 @@ export class QuestEngine {
    * this phase: one bunny at a time is *enforced*, and enforced in this game
    * means a funny line and the world carrying on exactly as it was. No carrot
    * taken, no bunny lost, nothing to undo. See CLAUDE.md, "No fail states".
+   *
+   * Deliberately not gated on the phase. She can put a bunny on a carrot the
+   * moment she has one, which is a phase early — and all that costs is a bunny
+   * walking behind her while she finds the other two carrots, because
+   * `deposit` is the half that knows what phase it is. What it buys is that the
+   * "no carrot" answer is reachable at all: by the time the lure phase begins
+   * she has exactly one carrot per bunny.
    */
   tag(id: string): 'busy' | 'noCarrot' | 'following' {
     if (this.store.following) return 'busy';

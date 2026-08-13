@@ -30,9 +30,13 @@ const npc = (hooks: Snapshot, id: string) => {
  *
  * Hazel is the same machinery with a different child in it, which is why she is
  * asserted on at all: a person is data now — a sheet, a spot and a list of lines
- * — so the second one has to work without a line of code of her own. She is also
- * the one who still *cycles*; Sneak has a job to hand out and answers to the
- * quest's rule instead. See `quest.spec` for the offer itself.
+ * — so the second one has to work without a line of code of her own.
+ *
+ * Both of them have a job to hand out now, so the *cycle* — press again, get the
+ * next thing, wrap for ever — is asked of Hazel after Sneak's job has been taken
+ * off the board. Which is worth the reordering on its own: taking one quest is
+ * what puts the other person back to being an ordinary person, and that is the
+ * whole of "one quest at a time" seen from the pavement.
  */
 test('people can be walked through, pressed, and answer over their own heads', async ({ page }) => {
   const { errors } = await bootGame(page);
@@ -67,21 +71,14 @@ test('people can be walked through, pressed, and answer over their own heads', a
 
   await tap(page, 'KeyZ');
   const her = await readHooks(page);
-  expect(her.voice.lineId).toBe(hazel.lines[0]);
+  // Her own job, not her own chatter: she has a cloud over her head too, and the
+  // first thing a person with one says is what they want. Her lines come back
+  // below, once somebody else's job has been taken.
+  expect(her.voice.lineId, 'the first line of the job she is offering').toBe('hazel_quest_offer');
   expect(her.voice.bubble.speaker, 'her balloon, over her').toBe('hazel');
   expect(Math.abs(her.voice.bubble.x - hazel.x)).toBeLessThan(40);
 
-  // Pressing green again is the next thing somebody has to say, and it wraps for
-  // ever: there is no end to a conversation and nothing in one to get wrong.
-  await tap(page, 'KeyZ');
-  expect((await readHooks(page)).voice.lineId, 'pressing again says her second line').toBe(
-    hazel.lines[1],
-  );
-  expect(hazel.lines[1], 'which is a different line').not.toBe(hazel.lines[0]);
-  await tap(page, 'KeyZ');
-  expect((await readHooks(page)).voice.lineId, 'and then it wraps').toBe(hazel.lines[0]);
-
-  // And the boy with the job, whose first line is the offer rather than his own.
+  // And the boy with the other job, whose first line is his offer.
   await standNear(page, 'sneak', { y: 72 });
   const before = await readHooks(page);
   const him = npc(before, 'sneak');
@@ -119,6 +116,29 @@ test('people can be walked through, pressed, and answer over their own heads', a
 
   // He turns to look at whoever is talking to him.
   expect(npc(talking, 'sneak').facing, 'and he turns to face her').toBe('down');
+
+  // Take his job, which takes hers off the board — one quest at a time, and the
+  // person left over goes back to being a person.
+  for (let press = 0; press < 6; press++) {
+    if ((await readHooks(page)).quest.id) break;
+    await tap(page, 'KeyZ');
+  }
+  const busy = await readHooks(page);
+  expect(busy.quest.id, 'his job is hers now').toBe('faerie');
+  expect(busy.quest.offers, 'so neither of them is offering anything').toEqual([]);
+
+  // Pressing green at Hazel is the next thing she has to say, and it wraps for
+  // ever: there is no end to a conversation and nothing in one to get wrong.
+  await standNear(page, 'hazel', { y: 72 });
+  await tap(page, 'KeyZ');
+  expect((await readHooks(page)).voice.lineId, 'her own first line, at last').toBe(hazel.lines[0]);
+  await tap(page, 'KeyZ');
+  expect((await readHooks(page)).voice.lineId, 'pressing again says her second').toBe(
+    hazel.lines[1],
+  );
+  expect(hazel.lines[1], 'which is a different line').not.toBe(hazel.lines[0]);
+  await tap(page, 'KeyZ');
+  expect((await readHooks(page)).voice.lineId, 'and then it wraps').toBe(hazel.lines[0]);
 
   expect(errors, 'no uncaught page errors').toEqual([]);
 });

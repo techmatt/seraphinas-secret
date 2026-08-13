@@ -795,6 +795,24 @@ export async function walkThroughDoorway(page: Page, id?: string) {
 }
 
 /**
+ * Stand her on a tile, by number.
+ *
+ * For the places a quest names that the *map* does not: a quest writes its
+ * furniture in tiles and puts none of it in `content/world/`, so there is no
+ * landmark to aim at and no prop to stand by. Goes through `teleport`, so she
+ * lands on the nearest tile she can actually stand on — which for a spot inside
+ * a ring of trees is inside it, and for one under a trunk is beside it.
+ */
+export async function standOnTile(page: Page, col: number, row: number) {
+  const { tile } = (await readHooks(page)).world;
+  await page.evaluate(
+    ([x, y]) => (window as unknown as { __seraphina: Hooks }).__seraphina.teleport(x!, y!),
+    [col * tile, row * tile],
+  );
+  await framesPass(page, 4, 200);
+}
+
+/**
  * Stand her at a named place and let the camera settle. For screenshots only —
  * anything claiming a place is reachable uses `walkToLandmark`, which walks.
  */
