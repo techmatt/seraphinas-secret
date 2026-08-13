@@ -66,7 +66,11 @@ export const PROPS: PropLayout[] = [
   // Hers, and it speaks in her voice. A prop with no owner standing next to it
   // says what *she* would say about it — Dad telling her it is bedtime made the
   // bed sound like somebody else's idea, in a room that is entirely hers.
-  { id: 'bed', image: 'bed', x: 2, y: STANDS + 1, line: 'seraphina_bed' },
+  // The dot goes on the floor at the foot of it rather than in the middle of the
+  // mattress, the way the wardrobe's does. A bed is two tiles of solid picture,
+  // so the middle of it is a place she can never stand — which was close enough
+  // to the old proximity radius to work and is not close enough to this one.
+  { id: 'bed', image: 'bed', x: 2, y: STANDS + 1, at: { x: 3, y: 19.6 }, line: 'seraphina_bed' },
   { id: 'wardrobe', image: 'wardrobe', x: 6, y: STANDS, at: { x: 7, y: 18.6 }, line: 'seraphina_wardrobe' },
 ];
 

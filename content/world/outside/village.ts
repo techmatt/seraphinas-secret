@@ -123,7 +123,13 @@ export const STREET_FURNITURE: Placement[] = [
  */
 export const VILLAGE_PROPS = [
   { id: 'apple_tree', image: 'fruitBig', x: 22, y: 26, line: 'seraphina_apple' },
-  { id: 'well', image: 'well', x: 28, y: 28, line: 'seraphina_well' },
+  // The dot goes on the well's rim, at the front of it, rather than in the
+  // middle of a three-tile picture whose top tile is roof. The two tiles under
+  // that roof are solid, so the middle of the sprite is somewhere she can only
+  // ever stand a tile and a half from — which the old radius covered and this
+  // one does not. She comes down her own street from the east; this is the face
+  // she meets.
+  { id: 'well', image: 'well', x: 28, y: 28, at: { x: 29, y: 30.9 }, line: 'seraphina_well' },
 ];
 
 /**

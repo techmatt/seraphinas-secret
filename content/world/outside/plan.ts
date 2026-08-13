@@ -294,8 +294,11 @@ export const LANDMARKS: { id: string; x: number; y: number }[] = [
  * finds out what the green button is for.
  */
 export const SPAWNS = {
-  start: { x: 32.8, y: 31.6, facing: 'down' },
-  from_house: { x: 32.8, y: 31.6, facing: 'down' },
+  // Two thirds of a tile nearer the door than it was, because the dot's radius
+  // came down 30% and this spot was 1.8 tiles out — far enough to have quietly
+  // stopped doing the one job it is here for.
+  start: { x: 32.8, y: 30.9, facing: 'down' },
+  from_house: { x: 32.8, y: 30.9, facing: 'down' },
   /**
    * Back out of the cave, onto the step at the top of the mountain path. A row
    * below the mouth's own trigger, so she is standing clear of the door she has
