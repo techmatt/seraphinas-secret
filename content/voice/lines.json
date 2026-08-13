@@ -218,8 +218,8 @@
     "id": "sneak_thanks",
     "speaker": "sneak",
     "text": "We did it! Thank you, Seraphina.",
-    "say": "We did it. Thank you, Seraphina.",
-    "note": "Same mid-line '!' fix."
+    "say": "We did it, thank you Seraphina.",
+    "note": "Shown with a bang and spoken with a comma. The first attempt at this only swapped the '!' for a '.', which buys the same ~0.9 s of dead air — a full stop is not the fix, a comma is. The second comma goes too: 'thank you, Seraphina' would be a third pause in a five-word line. See engineering.md, 'Voice'."
   },
   {
     "id": "sneak_coin",

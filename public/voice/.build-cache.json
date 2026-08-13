@@ -1312,7 +1312,7 @@
     }
   },
   "sneak_thanks": {
-    "hash": "73f36f2566d89543",
+    "hash": "df9028aa61c689e2",
     "entry": {
       "id": "sneak_thanks",
       "speaker": "sneak",
@@ -1327,30 +1327,30 @@
         {
           "word": "did",
           "start": 0.326,
-          "end": 0.567
+          "end": 0.555
         },
         {
           "word": "it!",
-          "start": 0.579,
-          "end": 0.819
+          "start": 0.567,
+          "end": 0.759
         },
         {
           "word": "Thank",
-          "start": 1.647,
-          "end": 1.959
+          "start": 1.024,
+          "end": 1.288
         },
         {
           "word": "you,",
-          "start": 1.971,
-          "end": 2.2
+          "start": 1.3,
+          "end": 1.444
         },
         {
           "word": "Seraphina.",
-          "start": 2.464,
-          "end": 3.293
+          "start": 1.456,
+          "end": 2.238
         }
       ],
-      "duration": 3.293
+      "duration": 2.238
     }
   },
   "sneak_coin": {
