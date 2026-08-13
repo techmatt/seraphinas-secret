@@ -21,12 +21,17 @@
  * reach of any afternoon that did not start with a spell book. One quest at a
  * time is still absolute: the moment either is accepted, both bubbles go.
  *
+ * And the moment either is *finished*, the other one's comes back (Matt,
+ * 2026-08-13). Both of these are one afternoon's work in either order; the day
+ * only ever refuses the one she has already done.
+ *
  * The spots below are chosen so that each stone is a *walk* and none of them is
- * a search: one west into the wood off the main road, one south by the path down
- * to the green, one north-east beside the market square. Every one is within
- * sight of a road she already knows, and no two are in the same direction from
- * the well. They are written in tiles, the same units the layout is written in —
- * see `content/world/outside/plan.ts` for the town plan they are read against.
+ * a search: one west where the main road runs out into the wood, one south by
+ * the path down to the green, one north-east beside the market square. Every one
+ * is within sight of a road she already knows, and no two are in the same
+ * direction from the well. They are written in tiles, the same units the layout
+ * is written in — see `content/world/outside/plan.ts` for the town plan they are
+ * read against.
  *
  * They live here rather than in the layout because they are the *quest's*
  * furniture: the world is the same world without them, and the day a second
@@ -34,6 +39,14 @@
  * to a village. The one thing that has to be true of them — that she can stand
  * where they are — is asserted by `quest.spec` against the same collision grid
  * the game walks on.
+ *
+ * **And clear of the other quest's furniture**, which is the one thing the
+ * collision grid cannot say: the pen is planted at run time, so the generator's
+ * gate never sees it and neither does the grid this file is checked against. The
+ * west stone stood on the ring's east edge until 2026-08-13 — harmless while
+ * finishing one quest ended the day, and an unreachable stone the moment both
+ * became one afternoon's work. Anything moved into the wood from here has to be
+ * held against PEN below as well as against the map.
  */
 
 import type { Quest } from './Quest';
@@ -72,8 +85,13 @@ export const FAERIE_QUEST: Quest = {
       goal: {
         kind: 'collect',
         rocks: [
-          // West: off the main road where it runs into the wood.
-          { id: 'malachite', zone: 'outside', x: 17.5, y: 29.5 },
+          // West: in the trees off the west end of the main road, on the south
+          // side of it. South rather than north because the north side is where
+          // the bunny pen goes up — see PEN — and a stone under one of its trees
+          // is a stone she cannot swing at on a day she has already done that
+          // job. Three clear tiles all round, which is what makes it the nearest
+          // thing she can hit from where she stands.
+          { id: 'malachite', zone: 'outside', x: 20.5, y: 35.5 },
           // South: beside the path down to the green.
           { id: 'ruby', zone: 'outside', x: 26.5, y: 38.5 },
           // North-east: on the grass between the market square and the hall.
@@ -132,10 +150,11 @@ export const FAERIE_QUEST: Quest = {
        * the screen and hands Sneak back his own two idle lines, which he has not
        * been able to say since he handed the job out. See `whatTheySay`.
        *
-       * The quest stays *active* rather than being cleared, which is what stops
-       * him offering it again — a four-year-old who finishes a quest and is
-       * immediately asked to do it again has not finished anything. It is the
-       * day cycle's to reset, at a sleep that does not exist yet.
+       * Reaching it also writes the quest down as finished today, which is what
+       * stops him offering it again — a four-year-old who finishes a quest and
+       * is immediately asked to do it again has not finished anything. It says
+       * nothing about the *other* job: Hazel's bubble comes back at this
+       * instant, wherever she is standing. A night clears the list.
        */
       id: 'done',
       goal: { kind: 'park' },
