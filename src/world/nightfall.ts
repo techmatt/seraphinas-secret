@@ -200,10 +200,14 @@ export function playSunrise(scene: Phaser.Scene, target: NightTarget): void {
 
   // The sun, as far as this game is concerned: the light arrives *from* her,
   // because she is the thing waking up.
-  const here = onScreen(scene, target.x, target.y);
-  const sun = makeGlow(scene, here.x, here.y, 260, 0xfff3cf, 0)
-    .setScrollFactor(0)
-    .setDepth(CURTAIN_DEPTH + 1);
+  //
+  // The one thing here left in world space, and it has to be: this runs inside
+  // the scene's `create`, where the camera has been pointed at her but has not
+  // yet clamped itself to the edges of the map — so asking it where she is on
+  // screen gets the answer "the middle", and in a room she is standing at the
+  // edge of that is half the floor away from her. The depth is what keeps it
+  // over the curtain; the scroll factor was never what was doing that.
+  const sun = makeGlow(scene, target.x, target.y, 260, 0xfff3cf, 0).setDepth(CURTAIN_DEPTH + 1);
 
   playWakeChime();
 
