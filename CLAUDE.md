@@ -99,8 +99,8 @@ These apply to every prompt in this repo unless a prompt explicitly overrides th
 
 Every non-trivial prompt ends with a report at
 `C:\Code\seraphinas-drive-sync\reports\<prompt-name>_report.md`, and nowhere else.
-Reports and their appendices do not live in this repo — not at the root, not in
-`scratch/`. One copy, on the drive, so there is nothing to drift out of date.
+The report does not live in this repo — not at the root, not in `scratch/`. One
+copy, on the drive, so there is nothing to drift out of date.
 
 Length: ~60 lines is a **soft** target. Write it once, take at most one trim pass,
 then stop. Going over is fine. Never iterate to squeeze under the number.
@@ -119,17 +119,25 @@ Include:
 
 Leave out: process narration, and any restating of the prompt.
 
-Overflow goes to appendix files next to the report (JSON preferred), with one
-pointer line each in the report.
+**No appendix files, by default.** A report is one file and that is the whole
+deliverable. An appendix exists only where the prompt asks for one *by name*, and
+then it goes on the drive beside the report with one pointer line in it.
+
+Data you will consume again — measurements, maps, inventories, catalogs — is not
+an appendix. It belongs **in the repo**, where the next session will find it
+without being told: `docs/` for a durable fact, a catalog or a layout for a
+measurement the code reads, `scratch/` for a working file. A number that only
+matters once goes in the report and nowhere.
 
 Trivial tasks — a single commit, a file move — get one console line and no report
 file.
 
 ### Report delivery
 
-Write the report and its appendices straight into
-`C:\Code\seraphinas-drive-sync\reports\`, creating the folder if it isn't there.
-That copy is the only copy — no second one in the repo to drift out of date.
+Write the report straight into `C:\Code\seraphinas-drive-sync\reports\`, creating
+the folder if it isn't there. That copy is the only copy — no second one in the
+repo to drift out of date. Any appendix the prompt asked for by name goes beside
+it; everything else the prompt produced is either in the repo or in the report.
 
 If the folder cannot be created or written, fall back to `scratch/` in this repo
 and say so in the report itself, so the next reader knows the drive copy is
