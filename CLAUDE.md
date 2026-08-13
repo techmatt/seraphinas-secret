@@ -31,6 +31,7 @@ headless boot/screenshot smoke tests.
 | `public/` | Static assets served as-is. `voice/` and `world/` are generated — do not hand-edit. |
 | `tests/` | Playwright specs, plus `harness.ts` (boot, route, steer, read hooks). |
 | `tests/screenshots/` | Where the screenshot tour lands. Regenerated, ignored — see **Screenshots**. |
+| `docs/` | `systems.md` — every subsystem's entry point. `engineering.md` — durable facts about the pack, edge-tts, the browser and the gates. Read before rediscovering something. |
 | `dist/` | `npm run build` output. Ignored. |
 
 **Art** is the side-loaded Cute Fantasy pack at `C:\Code\seraphinas-assets`
