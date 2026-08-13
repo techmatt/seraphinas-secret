@@ -267,6 +267,18 @@ export interface TestHooks {
   /** How many times the juicy interaction has fired. */
   sparkles: number;
   /**
+   * Nights slept.
+   *
+   * Counted rather than inferred from the store, because the store after a
+   * night's sleep is indistinguishable from the store before anything ever
+   * happened — that is the whole point of it — so "she slept" and "she never had
+   * a quest in the first place" would otherwise be the same reading. It is also
+   * the only edge a test can wait on: the sequence runs for three seconds and
+   * ends in a scene restart, and this goes up the instant the second press
+   * lands.
+   */
+  sleeps: number;
+  /**
    * Wrong buttons pressed inside the spell circle.
    *
    * Counted rather than inferred, because the claim a wrong press makes is a
@@ -415,6 +427,7 @@ export const hooks: TestHooks = {
   debugHitboxes: () => undefined,
   fps: 0,
   sparkles: 0,
+  sleeps: 0,
   ritualMisses: 0,
   faeries: [],
   aliveParticles: 0,

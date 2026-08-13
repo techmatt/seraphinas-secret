@@ -340,30 +340,45 @@
     }
   },
   "seraphina_bed": {
-    "hash": "b2d646dfbcc09d92",
+    "hash": "5426c63544dcd3ad",
     "entry": {
       "id": "seraphina_bed",
       "speaker": "seraphina",
-      "text": "My cozy bed!",
+      "text": "My cozy bed. Time to sleep!",
       "audio": "voice/seraphina_bed.mp3",
       "words": [
         {
           "word": "My",
           "start": 0.104,
-          "end": 0.376
+          "end": 0.362
         },
         {
           "word": "cozy",
-          "start": 0.39,
-          "end": 0.92
+          "start": 0.376,
+          "end": 0.892
         },
         {
-          "word": "bed!",
-          "start": 0.933,
-          "end": 1.354
+          "word": "bed.",
+          "start": 0.906,
+          "end": 1.314
+        },
+        {
+          "word": "Time",
+          "start": 2.255,
+          "end": 2.636
+        },
+        {
+          "word": "to",
+          "start": 2.649,
+          "end": 2.772
+        },
+        {
+          "word": "sleep!",
+          "start": 2.785,
+          "end": 3.329
         }
       ],
-      "duration": 1.354
+      "duration": 3.329
     }
   },
   "sneak_faeries": {

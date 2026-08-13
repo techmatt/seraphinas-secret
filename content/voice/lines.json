@@ -60,8 +60,8 @@
   {
     "id": "seraphina_bed",
     "speaker": "seraphina",
-    "text": "My cozy bed!",
-    "note": "The bed used to be Dad telling her it was bedtime. A prop with no owner speaks in her voice — dad_bedtime is kept below for the day Dad is a person standing in the room."
+    "text": "My cozy bed. Time to sleep!",
+    "note": "The bed is the sleep trigger now, so its line is the offer as well as the name: press green once and she says this, press it again while it is still in the air and the day ends. Two sentences on purpose — the first is still the word the prop is teaching, the second is the question. Hers, not Dad's: dad_bedtime is kept below for the day Dad is a person standing in the room."
   },
   {
     "id": "sneak_faeries",

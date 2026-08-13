@@ -269,6 +269,47 @@ export function playSummon(): void {
 }
 
 /**
+ * Going to sleep: a long falling run under a soft wash, ending low and held.
+ *
+ * The opposite shape to everything else in this file. A chime in this game goes
+ * up because nearly everything in this game is good news arriving; a day ending
+ * is the one thing that settles, so this walks down an octave and a half and
+ * stays there. The noise under it is the quietest in the file and slides
+ * downwards too — the sound of a room going dark rather than of a thing
+ * breaking.
+ */
+export function playSleepChime(): void {
+  playNoise(1.4, 1800, 200, 0.05);
+  const fall = [784, 659.3, 587.3, 493.9, 392, 329.6];
+  playNotes([
+    ...fall.map((freq, i) => ({ freq, at: i * 0.16, dur: 0.5, peak: 0.13 - i * 0.008 })),
+    // And the low pair it lands on, held long enough to be the night itself.
+    { freq: 261.6, at: 1, dur: 1.5, peak: 0.1 },
+    { freq: 196, at: 1.02, dur: 1.6, peak: 0.08 },
+  ]);
+}
+
+/**
+ * Waking up: the sleep chime run backwards, brighter, with the morning on the
+ * end of it.
+ *
+ * Deliberately the same notes the other way up, because the two are one gesture
+ * with a night in the middle — and a four-year-old who has heard the day go down
+ * knows what the same run coming back up means without being told. Bigger than
+ * a doorway and smaller than the summoning: this is a thing she can do every
+ * day, and nothing she does every day should be the loudest sound in the game.
+ */
+export function playWakeChime(): void {
+  const rise = [329.6, 392, 493.9, 587.3, 659.3, 784, 987.8];
+  playNotes([
+    ...rise.map((freq, i) => ({ freq, at: i * 0.07, dur: 0.26, peak: 0.15 })),
+    { freq: 1046.5, at: 0.52, dur: 0.8, peak: 0.18 },
+    { freq: 1318.5, at: 0.54, dur: 0.8, peak: 0.14 },
+    { freq: 1568, at: 0.56, dur: 0.85, peak: 0.11 },
+  ]);
+}
+
+/**
  * The doorway's run of notes, played quickly — the sound of going somewhere.
  * The order is the caller's, so a flourish can rise on the way in and fall on
  * the way out; see world/transition.ts.

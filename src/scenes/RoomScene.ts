@@ -18,6 +18,7 @@ import { unlockAudio } from '../audio/context';
 import { DEPTH, GAME_HEIGHT, TILE, TILE_SIZE, WORLD_SCALE } from '../config';
 import { itemOf, rocksOf, type RitualStep } from '../quest/Quest';
 import { quests } from '../quest/QuestEngine';
+import { nightPasses } from '../state/sleep';
 import { session } from '../state/session';
 import { makeButtonDot, padColor, type PadColorName } from '../ui/ButtonDot';
 import { makeQuestMarker, type QuestMarker } from '../ui/QuestMarker';
@@ -41,9 +42,17 @@ import { Doorway } from '../world/Doorway';
 import { Faeries } from '../world/Faeries';
 import { GemRock, makeChipEmitter } from '../world/GemRock';
 import { GroundItem } from '../world/GroundItem';
-import { loadMap, spawnOf, type FlourishId, type MapData, type MapNpc } from '../world/mapData';
+import {
+  loadMap,
+  spawnOf,
+  type Direction,
+  type FlourishId,
+  type MapData,
+  type MapNpc,
+} from '../world/mapData';
 import { Npc, sheetFor } from '../world/Npc';
 import { SpellCircle } from '../world/SpellCircle';
+import { playNightfall, playSunrise } from '../world/nightfall';
 import { makeProp, nudgeProp, type Prop } from '../world/scenery';
 import { TileWorld } from '../world/TileWorld';
 import { toolBelt, type ToolId } from '../world/ToolBelt';
@@ -129,6 +138,15 @@ interface Interactable {
   press: () => void;
 }
 
+/**
+ * The catalog picture that means "a place to sleep".
+ *
+ * Keyed off the image rather than the prop's id for the same reason the
+ * campfire's smoke is — see `addSmoke`. A bed is a bed wherever the layout puts
+ * one, and the day there is a second bedroom nothing here has to hear about it.
+ */
+const BED = 'bed';
+
 /** What clears a prop: half its picture and a bit. */
 const DOT_LIFT = 58;
 
@@ -165,6 +183,25 @@ export interface RoomSceneData {
    * she arrived off the title screen, which has a flash of its own.
    */
   flourish?: FlourishId;
+  /**
+   * She is waking up here, so the zone opens on last night rather than on a
+   * doorway's colour wash. The same arrangement `flourish` has: the beat that
+   * ends one scene and the beat that starts the next are two halves of one
+   * gesture, and the only way to hand the second half over is in the data that
+   * starts the scene. See `world/nightfall.ts`.
+   */
+  waking?: boolean;
+  /**
+   * Where to put her, in **world pixels**, instead of one of the map's named
+   * spawn points.
+   *
+   * Sleep is the only thing that uses it, and it is why it exists: she goes to
+   * bed standing next to her own bed and has to wake up standing next to it,
+   * and "next to the bed" is a place in the room rather than a doorway anybody
+   * ever came through. Passed through `nearestStanding` like every other
+   * arrival, so it cannot put her inside the furniture.
+   */
+  wakeAt?: { x: number; y: number; facing: Direction };
 }
 
 /**
@@ -181,11 +218,19 @@ export class RoomScene extends Phaser.Scene {
   private mapData?: MapData;
   private arrivedVia?: string;
   private arrivalFlourish?: FlourishId;
+  private waking = false;
+  private wakeAt?: { x: number; y: number; facing: Direction };
 
   private world!: TileWorld;
   private player!: Character;
 
   private props: Prop[] = [];
+  /**
+   * The bed in this zone, if it has one. Picked out of the props because it is
+   * the one thing in the world the green button asks a *question* with — see
+   * `poke` and `goToSleep`.
+   */
+  private bed: Prop | null = null;
   private doorways: Doorway[] = [];
   private trees: Tree[] = [];
   private npcs: Npc[] = [];
@@ -282,10 +327,13 @@ export class RoomScene extends Phaser.Scene {
     this.mapData = data.map;
     this.arrivedVia = data.spawn;
     this.arrivalFlourish = data.flourish;
+    this.waking = data.waking ?? false;
+    this.wakeAt = data.wakeAt;
 
     // Restarting the scene reuses the instance, so anything remembered across
     // create() has to be put back by hand.
     this.props = [];
+    this.bed = null;
     this.doorways = [];
     this.trees = [];
     this.npcs = [];
@@ -366,6 +414,10 @@ export class RoomScene extends Phaser.Scene {
       const prop = makeProp(this, this.world, def);
       this.props.push(prop);
       this.addSmoke(prop);
+      // Found by its picture rather than by its id, the same way the campfire's
+      // smoke is: any bed anywhere is a place she can sleep, and the day the
+      // house has two of them neither is a special case.
+      if (def.key === BED) this.bed = prop;
     }
     // Each tree is built with whatever she already did to it. The map file has
     // every one of them standing — it is the generator's output, and the
@@ -435,11 +487,21 @@ export class RoomScene extends Phaser.Scene {
     this.buildQuestObjects();
     this.refreshInteractables();
 
+    // Where she is standing when the zone opens. A named spawn point normally —
+    // the far side of the door she came through — but waking up is a place in
+    // the middle of a room rather than a doorway, so sleep hands over a world
+    // point instead. Both go through `nearestStanding`, so neither can put her
+    // inside the furniture.
     const spawn = spawnOf(map, this.arrivedVia);
-    const stand = this.world.nearestStanding(spawn.x * WORLD_SCALE, spawn.y * WORLD_SCALE);
+    const at = this.wakeAt ?? {
+      x: spawn.x * WORLD_SCALE,
+      y: spawn.y * WORLD_SCALE,
+      facing: spawn.facing,
+    };
+    const stand = this.world.nearestStanding(at.x, at.y);
     registerCharacterAnims(this, SERAPHINA);
     this.player = new Character(this, stand.x, stand.y, SERAPHINA);
-    this.player.face(spawn.facing);
+    this.player.face(at.facing);
     // She sorts against the world by where she is standing, same as everything
     // else. update() keeps it there; this is so the first frame is right too.
     this.player.setDepth(this.player.y);
@@ -584,6 +646,10 @@ export class RoomScene extends Phaser.Scene {
       else {
         this.handleTools(button.blue);
         this.handleInteract(button.green);
+        // Red is the only face button with nothing to do out here, which is
+        // exactly why the bed borrows it: backing out of a question is the one
+        // thing "cancel" has always meant, and it is free everywhere else.
+        if (button.red) this.cancelSleep();
       }
       this.handleHelp(button.yellow);
     }
@@ -1180,9 +1246,18 @@ export class RoomScene extends Phaser.Scene {
 
   /**
    * Coming in. Through a doorway it is the far half of that doorway's flourish;
-   * out of the title screen it is the title's own flash, unchanged.
+   * waking up it is the morning; out of the title screen it is the title's own
+   * flash, unchanged.
    */
   private arrive(): void {
+    // Morning first, because it is the only one of the three that has to paint
+    // the frame it opens on: the night has to still be up when the first frame
+    // of this zone is drawn, or the restart shows as a flash of daylight.
+    if (this.waking) {
+      playSunrise(this, { x: this.player.x, y: this.player.y, sparkles: this.sparkles });
+      return;
+    }
+
     if (!this.arrivalFlourish) {
       this.cameras.main.fadeIn(FADE_IN, ...TITLE_FLASH);
       return;
@@ -1817,6 +1892,19 @@ export class RoomScene extends Phaser.Scene {
   }
 
   private poke(prop: Prop): void {
+    // The bed is the one prop that asks something rather than only answering.
+    // The first press is an ordinary poke and says her sleepy line; a second
+    // press *while that line is still in the air* is the yes — the same
+    // second-press-is-acceptance grammar the quest offers use, because it is the
+    // only ceremony a four-year-old can be asked for. Nothing else can put that
+    // line on screen, so "is the offer up" needs no flag of its own; walking out
+    // of reach or letting it time out is the no, and so is the red button. See
+    // `cancelSleep`.
+    if (prop === this.bed && this.sleepOffered) {
+      this.goToSleep();
+      return;
+    }
+
     nudgeProp(this, prop);
     this.faeries?.cheer();
 
@@ -1837,6 +1925,81 @@ export class RoomScene extends Phaser.Scene {
     this.bubble.say(prop.def.line, this.speaking());
     this.cameras.main.shake(140, 0.004);
     hooks.sparkles += 1;
+  }
+
+  // --- going to bed ----------------------------------------------------------
+
+  /**
+   * Is the bed's question still on the table?
+   *
+   * Read off the balloon rather than kept in a flag, and that is what makes
+   * every way of saying no free. Walking away takes the green dot off the bed,
+   * so the button cannot reach it; poking anything else replaces the line;
+   * letting it run out clears it by itself. There is nothing to remember to
+   * unset, so there is nothing that can be left set — which for a mechanic that
+   * ends the day is worth more than the flag would have cost.
+   */
+  private get sleepOffered(): boolean {
+    const line = this.bed?.def.line;
+    return line !== undefined && this.bubble.lineId === line;
+  }
+
+  /**
+   * The red button, while the bed is asking. Never mind, then.
+   *
+   * The only thing red does anywhere outside the spell circle, and it is
+   * deliberately quiet: the balloon popping away is the whole of the answer, and
+   * a noise on top of it would make backing out sound like a thing that went
+   * wrong. Nothing happened, which here is the correct amount to have happened.
+   */
+  private cancelSleep(): void {
+    if (!this.sleepOffered) return;
+    this.bubble.stop();
+    this.syncVoiceHooks();
+  }
+
+  /**
+   * She said yes. The day ends.
+   *
+   * Three beats and a seam. `playNightfall` takes the light out of the room and
+   * puts a sky up; at the darkest moment — a flat sheet of one colour, with
+   * nothing on screen that could show a join — the day is swept and this zone is
+   * rebuilt from the empty store it leaves behind. The zone on the far side
+   * opens on the same sheet of the same colour and comes up into morning. See
+   * `world/nightfall.ts`, and `state/sleep.ts` for what a night actually clears.
+   *
+   * She is handed back to herself standing exactly where she went to bed, which
+   * is beside the bed, because that is the only place this can have been pressed
+   * from. `leaving` is the latch: from here she is not driving, doorways are
+   * deaf, and every delayed line already in flight checks it and gives up.
+   */
+  private goToSleep(): void {
+    if (this.leaving) return;
+    this.leaving = true;
+    hooks.transitioning = true;
+    hooks.sleeps += 1;
+
+    this.bubble.stop();
+    this.prompt.setVisible(false);
+    this.stickHint?.dismiss();
+    this.syncVoiceHooks();
+
+    const wakeAt = { x: this.player.x, y: this.player.y, facing: 'down' as const };
+
+    playNightfall(this, { x: this.player.x, y: this.player.y, sparkles: this.sparkles }, () => {
+      // Everything a day is kept in, gone — store, belt and offer counters. The
+      // picture catches up by being built again from scratch, which is the same
+      // thing a doorway does and is why the wood regrows and the thought bubble
+      // comes back over his head without a line of code apiece.
+      nightPasses();
+      this.scene.restart({
+        voice: this.voice,
+        room: this.zoneId,
+        map: this.mapData,
+        waking: true,
+        wakeAt,
+      } satisfies RoomSceneData);
+    });
   }
 
   /**
