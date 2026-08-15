@@ -120,6 +120,10 @@ Measured 2026-08-15 over all 75 lines, against edge-tts's own word boundaries.
 - **Pitch shifting and slowed prosody are not the risk they looked like.**
   Hazel at +40 Hz and Sneak at −35 Hz align *better* than Seraphina's own
   voice; the −22% storybook pages are a few ms worse and no more.
+- **What actually wanders is a vowel or a nasal after silence or a fricative.**
+  All ten words over 100 ms begin with one — "Axe!", "One", "all", "Mmm" —
+  three of them the word *axe*. There is no crisp acoustic edge to find there,
+  so the disagreement is with edge-tts's guess, not an error.
 - **The bigger model is not worth it.** `MMS_FA` (1.2 GB) lands within a few
   milliseconds of `WAV2VEC2_ASR_BASE_960H` (360 MB) and costs about three
   times the wall clock. Alignment runs at roughly 10× realtime on CPU either
