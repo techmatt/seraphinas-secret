@@ -178,6 +178,45 @@ do not exist.
 - **Alignment costs about 0.15 s per second of audio on CPU**, plus a ~1.5 s
   model load per batch: a 37 s batch of twelve lines aligned in 5.7 s.
 
+## Firefly itself (measured 2026-08-15, on the five real recordings)
+
+The first real contact. Five whole-profile batches, 76 lines, 155 s of audio.
+
+- **Firefly hands down 48 kHz mono WAV.** Every one of the five. Ingest
+  downsamples to the 24 kHz mono mp3 the clip store already used.
+- **It pauses between lines, generously.** 63 of 71 internal cuts landed in a
+  stretch of true digital silence longer than 0.15 s — most are 0.4-0.6 s. The
+  blank line between lines in the paste is doing its job and `--size` never
+  needed to come down.
+- **It reads none of the punctuation aloud**, and ran no two lines together.
+  Every gap the cutter needed existed as silence somewhere near where it looked.
+- **It can drop a line-leading interjection entirely.** `sneak_secrets` begins
+  "Shhh," and the Erin voice said nothing at all there — not a quiet hiss, pure
+  digital silence where the word should be. Only a re-record fixes that, so
+  check a leading interjection by eye in the ingest table: a word with a
+  zero-width span and a 0.00 score at the head of a line is the tell.
+- **Firefly is fast — and its profiles are not paced apart.** 3.7-4.8 words a
+  second: sneak 3.66, seraphina 3.79, morgana 4.05, dad 4.78. `storybook` came
+  out at **4.17 w/s, faster than the `seraphina` profile it is supposed to be
+  the slow version of**, because no speed setting was dictated and the batch was
+  recorded at Firefly's default like every other one. Compared with the shipped
+  edge-tts book lines it is roughly twice the speed. A storybook pace has to be
+  set in Firefly's UI at record time; nothing downstream slows a clip.
+- **The cutter can mistake a fricative for the gap.** Two of the 71 boundaries
+  landed *inside* an utterance, at the quiet /f/ or /pl/ of its last word rather
+  than in the silence a third of a second later — `seraphina_campfire` lost
+  "fire!" to `seraphina_toadstool` and `morgana_play` lost "play?" to
+  `morgana_pebble`. Both reported `usableGap: true`, because the fricative is
+  genuinely quiet in RMS. The signature in the data is a clip whose first word
+  scores 0.00 and is followed by a hole of 0.4 s or more; the previous clip's
+  last word has a near-zero-width span. Neither needs a re-record — the audio is
+  all there in the batch WAV — but it does need a cutter that looks at the
+  longest silence rather than the quietest instant.
+- **Alignment is much cheaper on real speech than the simulated estimate.**
+  0.075 s per second of audio: the 51 s seraphina batch aligned in 4.6 s.
+- **Word timings land on the audio.** 448 words, mean lag 0.011 s, median
+  0.000 s, 408 of them inside 50 ms.
+
 ## Runtime
 
 - **`npm install phaser` resolves Phaser 4.** Stay pinned `^3` in package.json.

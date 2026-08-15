@@ -25,7 +25,7 @@
     "storybook": {
       "voice": "Vinita",
       "settings": { "speed": "TBD — slower than the `seraphina` profile", "pitch": "TBD", "style": "TBD" },
-      "note": "The book pages, read to somebody rather than said to them. Same person as `seraphina`; the slow delivery lives in Firefly's UI settings, not in our data — which is exactly why this is a separate profile and not a `rate` on a line. edge-tts stands in with the -22% on the four book_pip_moon_* lines."
+      "note": "The book pages, read to somebody rather than said to them. Same person as `seraphina`; the slow delivery lives in Firefly's UI settings, not in our data — which is exactly why this is a separate profile and not a `rate` on a line. The 2026-08-15 recording did NOT get one: with `settings.speed` undictated the batch went down at Firefly's default and came out at 4.17 words a second, faster than the `seraphina` profile's own 3.79 — so these four clips are the book read at conversation pace and want a re-record once a speed is chosen. edge-tts stood in before that with -22% on the four book_pip_moon_* lines."
     }
   },
   "speakers": {
