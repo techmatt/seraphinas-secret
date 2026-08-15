@@ -72,7 +72,7 @@ export const CLEARING_DRESSING = [
 ];
 
 export const WOODS_PROPS = [
-  { id: 'woods_campfire', image: 'campfire', x: 12, y: 40, line: 'seraphina_sparky' },
+  { id: 'woods_campfire', image: 'campfire', x: 12, y: 40, line: 'seraphina_campfire' },
   { id: 'cave_chest', image: 'chest', x: 9, y: 43, line: 'seraphina_secret' },
-  { id: 'woods_toadstool', image: 'swayToadstool', x: 15, y: 21, line: 'seraphina_munchy' },
+  { id: 'woods_toadstool', image: 'swayToadstool', x: 15, y: 21, line: 'seraphina_toadstool' },
 ];

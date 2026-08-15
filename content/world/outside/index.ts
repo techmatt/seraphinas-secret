@@ -99,7 +99,7 @@ export const OUTSIDE: ZoneLayout = {
    * The tiny trees and their stumps: not planted anywhere, and the wood has to
    * be able to grow them anyway.
    *
-   * Hazel's quest pens three bunnies behind a ring of these, and the ring does
+   * Morgana's quest pens three bunnies behind a ring of these, and the ring does
    * not exist until she has taken the job — so the layout cannot place them and
    * the map still has to carry their rectangles. See `images` on a ZoneLayout.
    */

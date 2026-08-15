@@ -8,7 +8,7 @@
  *
  * Their spots were chosen the same way every cluster in the village was: a
  * person belongs somewhere that explains them. Sneak is on his own doorstep
- * because he lives there, Hazel is at the near shore of the pond because that
+ * because he lives there, Morgana is at the near shore of the pond because that
  * is where a small child picks things up off the ground, and Dad is outside his
  * shed because the shed is his.
  */
@@ -27,11 +27,11 @@ import { BUILDINGS } from './plan.js';
 const SNEAK_AT = { x: BUILDINGS.joey.door.x + 4.3, y: 12.3 } as const;
 
 /**
- * Hazel's: the west shore of the pond, on the grass between the path and the
+ * Morgana's: the west shore of the pond, on the grass between the path and the
  * water. Half a tile clear of the lamp that stands over the green's bench —
  * near enough that she is *at* something, far enough that she is not behind it.
  */
-const HAZEL_AT = { x: 37.9, y: 41.5 } as const;
+const MORGANA_AT = { x: 37.9, y: 41.5 } as const;
 
 /**
  * Dad's: the corner of his own shed's front, three tiles east of its door and a
@@ -59,12 +59,12 @@ export const PEOPLE: NpcLayout[] = [
     lines: ['sneak_faeries', 'sneak_secrets'],
   },
   {
-    id: 'hazel',
-    sheet: 'hazel',
-    x: HAZEL_AT.x,
-    y: HAZEL_AT.y,
+    id: 'morgana',
+    sheet: 'morgana',
+    x: MORGANA_AT.x,
+    y: MORGANA_AT.y,
     facing: 'down',
-    lines: ['hazel_play', 'hazel_pebble'],
+    lines: ['morgana_play', 'morgana_pebble'],
   },
   {
     id: 'dad',
@@ -94,5 +94,5 @@ export const PEOPLE_DRESSING: Placement[] = [
   // of the child they belong to, being lower down the screen than their feet.
   { image: 'book', x: SNEAK_AT.x + 0.35, y: SNEAK_AT.y - 0.15 },
   // Her shiny pebble, which is the whole of her second line.
-  { image: 'rockSmall', x: HAZEL_AT.x + 0.45, y: HAZEL_AT.y - 0.1 },
+  { image: 'rockSmall', x: MORGANA_AT.x + 0.45, y: MORGANA_AT.y - 0.1 },
 ];

@@ -425,9 +425,9 @@ test('the Mystic Woods can be reached on foot', { tag: '@slow' }, async ({ page 
   // And the wood has something in it worth having walked to.
   await walkToProp(page, 'woods_toadstool');
   await tap(page, 'KeyZ');
-  const munched = await readHooks(page);
-  expect(munched.sparkles, 'the toadstool takes a press').toBe(1);
-  expect(munched.voice.lineId, 'and says something').toBe('seraphina_munchy');
+  const toadstool = await readHooks(page);
+  expect(toadstool.sparkles, 'the toadstool takes a press').toBe(1);
+  expect(toadstool.voice.lineId, 'and says something').toBe('seraphina_toadstool');
 
   expect(errors, 'no uncaught page errors').toEqual([]);
 });

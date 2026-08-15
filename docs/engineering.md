@@ -122,7 +122,7 @@ Measured 2026-08-15 over all 75 lines, against edge-tts's own word boundaries.
   median start error falls to 27 ms, p95 80 ms, with 10 of 436 words over
   100 ms. **Ends need no correction** — they were within 33 ms untouched.
 - **Pitch shifting and slowed prosody are not the risk they looked like.**
-  Hazel at +40 Hz and Sneak at −35 Hz align *better* than Seraphina's own
+  Morgana at +40 Hz and Sneak at −35 Hz align *better* than Seraphina's own
   voice; the −22% storybook pages are a few ms worse and no more.
 - **What actually wanders is a vowel or a nasal after silence or a fricative.**
   All ten words over 100 ms begin with one — "Axe!", "One", "all", "Mmm" —

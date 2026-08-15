@@ -422,7 +422,7 @@ export interface TestHooks {
    * The bunnies, and what each one is doing: penned behind the ring, loose in
    * the wood, following her, or home at the den.
    *
-   * Empty in every zone and on every afternoon that has not taken Hazel's job.
+   * Empty in every zone and on every afternoon that has not taken Morgana's job.
    * Their positions are the only way to ask whether one actually came out of the
    * pen or actually walked to the den — everything else about this quest is
    * bookkeeping, and the bookkeeping agreeing with itself is not the claim.

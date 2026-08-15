@@ -3,25 +3,25 @@
   "fallback": "edge-tts",
   "reviewScore": 0.4,
   "totals": {
-    "lines": 75,
-    "recorded": 16,
-    "stale": 0
+    "lines": 76,
+    "recorded": 13,
+    "stale": 3
   },
   "groups": [
     {
       "key": "dad/dad",
-      "recorded": 12,
+      "recorded": 9,
       "total": 12
     },
     {
-      "key": "hazel/hazel",
+      "key": "morgana/morgana",
       "recorded": 0,
       "total": 13
     },
     {
       "key": "seraphina/seraphina",
       "recorded": 0,
-      "total": 29
+      "total": 30
     },
     {
       "key": "seraphina/storybook",
@@ -68,24 +68,24 @@
       "seconds": 3.732
     },
     {
-      "id": "seraphina_sparky",
+      "id": "seraphina_campfire",
       "speaker": "seraphina",
       "profile": "seraphina",
       "provider": "edge-tts",
       "batch": null,
       "flags": [],
       "low": [],
-      "seconds": 1.933
+      "seconds": 2.534
     },
     {
-      "id": "seraphina_munchy",
+      "id": "seraphina_toadstool",
       "speaker": "seraphina",
       "profile": "seraphina",
       "provider": "edge-tts",
       "batch": null,
       "flags": [],
       "low": [],
-      "seconds": 2.441
+      "seconds": 2.005
     },
     {
       "id": "seraphina_well",
@@ -101,11 +101,13 @@
       "id": "dad_bedtime",
       "speaker": "dad",
       "profile": "dad",
-      "provider": "firefly",
+      "provider": "edge-tts",
       "batch": "dad-01",
-      "flags": [],
+      "flags": [
+        "stale"
+      ],
       "low": [],
-      "seconds": 0.9551
+      "seconds": 1.994
     },
     {
       "id": "seraphina_apple",
@@ -145,7 +147,7 @@
       "batch": null,
       "flags": [],
       "low": [],
-      "seconds": 0.906
+      "seconds": 3.053
     },
     {
       "id": "seraphina_bed",
@@ -155,7 +157,7 @@
       "batch": null,
       "flags": [],
       "low": [],
-      "seconds": 3.329
+      "seconds": 2.591
     },
     {
       "id": "sneak_faeries",
@@ -165,7 +167,7 @@
       "batch": null,
       "flags": [],
       "low": [],
-      "seconds": 4.531
+      "seconds": 3.74
     },
     {
       "id": "sneak_secrets",
@@ -178,9 +180,9 @@
       "seconds": 2.514
     },
     {
-      "id": "hazel_play",
-      "speaker": "hazel",
-      "profile": "hazel",
+      "id": "morgana_play",
+      "speaker": "morgana",
+      "profile": "morgana",
       "provider": "edge-tts",
       "batch": null,
       "flags": [],
@@ -188,9 +190,9 @@
       "seconds": 1.949
     },
     {
-      "id": "hazel_pebble",
-      "speaker": "hazel",
-      "profile": "hazel",
+      "id": "morgana_pebble",
+      "speaker": "morgana",
+      "profile": "morgana",
       "provider": "edge-tts",
       "batch": null,
       "flags": [],
@@ -225,7 +227,7 @@
       "batch": null,
       "flags": [],
       "low": [],
-      "seconds": 5.108
+      "seconds": 4.377
     },
     {
       "id": "sneak_quest_stones",
@@ -235,7 +237,7 @@
       "batch": null,
       "flags": [],
       "low": [],
-      "seconds": 5.637
+      "seconds": 5.039
     },
     {
       "id": "sneak_quest_hammer",
@@ -265,7 +267,7 @@
       "batch": null,
       "flags": [],
       "low": [],
-      "seconds": 3.69
+      "seconds": 3.007
     },
     {
       "id": "seraphina_axe",
@@ -345,7 +347,7 @@
       "batch": null,
       "flags": [],
       "low": [],
-      "seconds": 3.005
+      "seconds": 2.358
     },
     {
       "id": "sneak_press_red",
@@ -415,12 +417,12 @@
       "batch": null,
       "flags": [],
       "low": [],
-      "seconds": 2.776
+      "seconds": 2.07
     },
     {
-      "id": "hazel_pretty",
-      "speaker": "hazel",
-      "profile": "hazel",
+      "id": "morgana_pretty",
+      "speaker": "morgana",
+      "profile": "morgana",
       "provider": "edge-tts",
       "batch": null,
       "flags": [],
@@ -445,7 +447,7 @@
       "batch": null,
       "flags": [],
       "low": [],
-      "seconds": 2.466
+      "seconds": 2.31
     },
     {
       "id": "dad_quest_offer",
@@ -461,21 +463,25 @@
       "id": "dad_quest_pen",
       "speaker": "dad",
       "profile": "dad",
-      "provider": "firefly",
+      "provider": "edge-tts",
       "batch": "dad-01",
-      "flags": [],
+      "flags": [
+        "stale"
+      ],
       "low": [],
-      "seconds": 3.1431
+      "seconds": 3.578
     },
     {
       "id": "dad_quest_chop",
       "speaker": "dad",
       "profile": "dad",
-      "provider": "firefly",
+      "provider": "edge-tts",
       "batch": "dad-01",
-      "flags": [],
+      "flags": [
+        "stale"
+      ],
       "low": [],
-      "seconds": 1.9688
+      "seconds": 2.189
     },
     {
       "id": "dad_quest_carrots",
@@ -586,9 +592,9 @@
       "seconds": 1.735
     },
     {
-      "id": "hazel_story_offer",
-      "speaker": "hazel",
-      "profile": "hazel",
+      "id": "morgana_story_offer",
+      "speaker": "morgana",
+      "profile": "morgana",
       "provider": "edge-tts",
       "batch": null,
       "flags": [],
@@ -596,9 +602,9 @@
       "seconds": 1.453
     },
     {
-      "id": "hazel_story_book",
-      "speaker": "hazel",
-      "profile": "hazel",
+      "id": "morgana_story_book",
+      "speaker": "morgana",
+      "profile": "morgana",
       "provider": "edge-tts",
       "batch": null,
       "flags": [],
@@ -606,9 +612,9 @@
       "seconds": 2.22
     },
     {
-      "id": "hazel_story_come",
-      "speaker": "hazel",
-      "profile": "hazel",
+      "id": "morgana_story_come",
+      "speaker": "morgana",
+      "profile": "morgana",
       "provider": "edge-tts",
       "batch": null,
       "flags": [],
@@ -616,9 +622,9 @@
       "seconds": 1.913
     },
     {
-      "id": "hazel_story_read",
-      "speaker": "hazel",
-      "profile": "hazel",
+      "id": "morgana_story_read",
+      "speaker": "morgana",
+      "profile": "morgana",
       "provider": "edge-tts",
       "batch": null,
       "flags": [],
@@ -626,9 +632,9 @@
       "seconds": 2.291
     },
     {
-      "id": "hazel_book_moon",
-      "speaker": "hazel",
-      "profile": "hazel",
+      "id": "morgana_book_moon",
+      "speaker": "morgana",
+      "profile": "morgana",
       "provider": "edge-tts",
       "batch": null,
       "flags": [],
@@ -636,9 +642,9 @@
       "seconds": 1.418
     },
     {
-      "id": "hazel_book_dragon",
-      "speaker": "hazel",
-      "profile": "hazel",
+      "id": "morgana_book_dragon",
+      "speaker": "morgana",
+      "profile": "morgana",
       "provider": "edge-tts",
       "batch": null,
       "flags": [],
@@ -646,9 +652,9 @@
       "seconds": 1.217
     },
     {
-      "id": "hazel_book_sparkles",
-      "speaker": "hazel",
-      "profile": "hazel",
+      "id": "morgana_book_sparkles",
+      "speaker": "morgana",
+      "profile": "morgana",
       "provider": "edge-tts",
       "batch": null,
       "flags": [],
@@ -656,9 +662,9 @@
       "seconds": 1.524
     },
     {
-      "id": "hazel_book_best",
-      "speaker": "hazel",
-      "profile": "hazel",
+      "id": "morgana_book_best",
+      "speaker": "morgana",
+      "profile": "morgana",
       "provider": "edge-tts",
       "batch": null,
       "flags": [],
@@ -666,9 +672,9 @@
       "seconds": 3.328
     },
     {
-      "id": "hazel_story_hug",
-      "speaker": "hazel",
-      "profile": "hazel",
+      "id": "morgana_story_hug",
+      "speaker": "morgana",
+      "profile": "morgana",
       "provider": "edge-tts",
       "batch": null,
       "flags": [],
@@ -676,9 +682,9 @@
       "seconds": 2.373
     },
     {
-      "id": "hazel_story_coin",
-      "speaker": "hazel",
-      "profile": "hazel",
+      "id": "morgana_story_coin",
+      "speaker": "morgana",
+      "profile": "morgana",
       "provider": "edge-tts",
       "batch": null,
       "flags": [],
@@ -751,7 +757,7 @@
       "batch": null,
       "flags": [],
       "low": [],
-      "seconds": 2.278
+      "seconds": 2.781
     },
     {
       "id": "seraphina_recap_bunnies",
@@ -802,6 +808,16 @@
       "flags": [],
       "low": [],
       "seconds": 2.835
+    },
+    {
+      "id": "seraphina_morning",
+      "speaker": "seraphina",
+      "profile": "seraphina",
+      "provider": "edge-tts",
+      "batch": null,
+      "flags": [],
+      "low": [],
+      "seconds": 2.455
     },
     {
       "id": "seraphina_goodnight",

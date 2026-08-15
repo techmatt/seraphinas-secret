@@ -167,7 +167,7 @@ export const CAVE: ZoneLayout = {
     },
   ],
   props: [
-    // The one thing in here worth pressing, and she calls every fire Sparky.
+    // The one thing in here worth pressing.
     // The logs block their own tile — see `campfire` in the catalog — so she
     // walks round the fire rather than standing in it, which is also what keeps
     // the middle of the ritual's circle clear.
@@ -179,7 +179,7 @@ export const CAVE: ZoneLayout = {
       // Over the flame rather than the middle of a two-tile picture, so the
       // green dot is on the fire and not on the smoke above it.
       at: { x: FIRE.x, y: FIRE.y - 0.6 },
-      line: 'seraphina_sparky',
+      line: 'seraphina_campfire',
     },
     { id: 'cave_hoard', image: 'chest', x: 3, y: 13.6, line: 'seraphina_secret' },
   ],

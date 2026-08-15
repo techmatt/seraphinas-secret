@@ -314,7 +314,7 @@ export const SNEAK: CharacterSheet = kid('sneak', {
 });
 
 /**
- * Hazel: the little sister, and little is the whole of it. There is no smaller
+ * Morgana: the little sister, and little is the whole of it. There is no smaller
  * body in the pack, so she is the same one at three quarters — which is 3x
  * against everybody else's 4x, and so still a whole number of screen pixels per
  * pack pixel. Anything else would draw her out of a different, blurrier game.
@@ -323,8 +323,8 @@ export const SNEAK: CharacterSheet = kid('sneak', {
  * enough that a four-year-old never has to look twice to tell which one she is
  * driving.
  */
-export const HAZEL: CharacterSheet = kid(
-  'hazel',
+export const MORGANA: CharacterSheet = kid(
+  'morgana',
   {
     hair: 'Hair_6/Hair_6_Brown',
     shirt: 'Shirt_1_Orange',
@@ -380,6 +380,6 @@ export const DAD: CharacterSheet = {
 export const CHARACTER_SHEETS: Record<string, CharacterSheet> = {
   seraphina: SERAPHINA,
   sneak: SNEAK,
-  hazel: HAZEL,
+  morgana: MORGANA,
   dad: DAD,
 };

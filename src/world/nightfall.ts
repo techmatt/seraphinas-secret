@@ -216,8 +216,14 @@ function drawMotes(scene: Phaser.Scene, target: NightTarget): void {
  * warm comes up through it, the chime runs back up the notes the night ran
  * down, and the whole lot gets out of the way of a room she has not seen since
  * yesterday.
+ *
+ * `onMorning` fires once the last of it is off the screen. It exists so the
+ * morning can be *said* as well as drawn — see `seraphina_morning` — and it is
+ * a callback rather than a delay counted out in the scene because these two
+ * durations live here and nowhere else. The room is already hers by then:
+ * nothing about this sequence ever took the stick off her.
  */
-export function playSunrise(scene: Phaser.Scene, target: NightTarget): void {
+export function playSunrise(scene: Phaser.Scene, target: NightTarget, onMorning?: () => void): void {
   const night = curtain(scene, NIGHT, 1);
   const morning = curtain(scene, MORNING, 0);
 
@@ -271,6 +277,7 @@ export function playSunrise(scene: Phaser.Scene, target: NightTarget): void {
           night.destroy();
           morning.destroy();
           sun.destroy();
+          onMorning?.();
         },
       });
     },

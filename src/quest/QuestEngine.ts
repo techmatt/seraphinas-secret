@@ -145,7 +145,7 @@ export class QuestEngine {
    * two things at once, so their second job is their *next* one, on offer the
    * instant the first parks.
    *
-   * Nobody does, today. Hazel carried the bunnies and the story until
+   * Nobody does, today. Morgana carried the bunnies and the story until
    * 2026-08-15, when the rescue moved to Dad — one quest per person (Matt),
    * because a job that can only be asked for after another job is not a shape
    * this game wants a day to have. So the search below always finds at most one

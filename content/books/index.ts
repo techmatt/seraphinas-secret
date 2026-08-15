@@ -2,7 +2,7 @@
  * The books she can be read, as authored data.
  *
  * A book is four things and none of them is code: the sentences, the voice line
- * that reads each one, the picture that goes beside it, and what Hazel says as
+ * that reads each one, the picture that goes beside it, and what Morgana says as
  * the page turns. Adding book #2 is another entry in `BOOKS` — no new file under
  * `src/`, no new branch in the reader.
  *
@@ -47,7 +47,7 @@ export interface BookPage {
   /** The left-hand page's picture, relative to the site root. May not exist yet. */
   image: string;
   /**
-   * What Hazel says as this page is turned — her own voice, out of her own
+   * What Morgana says as this page is turned — her own voice, out of her own
    * mouth, before the next page starts reading itself.
    *
    * The last page's is the big one: nothing follows it but the book closing, so
@@ -89,25 +89,25 @@ const PIP_MOON: Book = {
       text: 'Pip the dog zoomed up to the moon!',
       line: 'book_pip_moon_1',
       image: 'assets/stories/pip_moon/page1.png',
-      cheer: 'hazel_book_moon',
+      cheer: 'morgana_book_moon',
     },
     {
       text: 'On the moon Pip met a baby dragon!',
       line: 'book_pip_moon_2',
       image: 'assets/stories/pip_moon/page2.png',
-      cheer: 'hazel_book_dragon',
+      cheer: 'morgana_book_dragon',
     },
     {
       text: 'The dragon sneezed sparkles all over Pip!',
       line: 'book_pip_moon_3',
       image: 'assets/stories/pip_moon/page3.png',
-      cheer: 'hazel_book_sparkles',
+      cheer: 'morgana_book_sparkles',
     },
     {
       text: 'Now Pip and the dragon are best friends!',
       line: 'book_pip_moon_4',
       image: 'assets/stories/pip_moon/page4.png',
-      cheer: 'hazel_book_best',
+      cheer: 'morgana_book_best',
     },
   ],
 };

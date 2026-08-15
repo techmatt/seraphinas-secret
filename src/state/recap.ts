@@ -36,7 +36,7 @@ export interface DayFacts {
   faeries: boolean;
   /** Three bunnies are out of the ring and home at the den. */
   bunnies: boolean;
-  /** She read Hazel a whole story, cover to cover. */
+  /** She read Morgana a whole story, cover to cover. */
   story: boolean;
   /** She took a job and the day ended before the job did. */
   onAnErrand: boolean;

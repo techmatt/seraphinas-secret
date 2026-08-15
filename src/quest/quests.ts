@@ -11,13 +11,13 @@
  * down, finds three carrots in the wood, and leads the bunnies home to the den
  * one at a time.
  *
- * **Storytime.** Hazel asks to be read to. She fetches the storybook off the
- * living-room bookshelf, carries it to the rug, and reads Hazel four pages of
+ * **Storytime.** Morgana asks to be read to. She fetches the storybook off the
+ * living-room bookshelf, carries it to the rug, and reads Morgana four pages of
  * *Pip Goes to the Moon* — the game's reading flagship, and the one quest whose
  * whole middle is a takeover UI rather than the world. See `ui/BookReader.ts`.
  *
  * **One quest per person** (Matt, 2026-08-15), which is what makes it three
- * quests and three thought bubbles. Hazel used to carry the bunnies as well as
+ * quests and three thought bubbles. Morgana used to carry the bunnies as well as
  * the story, and a bubble sits over a head — so her second job could only be
  * offered on an afternoon her first was already done, and that is not the shape
  * of a day this game wants. The rescue moved to Dad, whose own landmark is the
@@ -167,7 +167,7 @@ export const FAERIE_QUEST: Quest = {
        * Reaching it also writes the quest down as finished today, which is what
        * stops him offering it again — a four-year-old who finishes a quest and
        * is immediately asked to do it again has not finished anything. It says
-       * nothing about the *other* job: Hazel's bubble comes back at this
+       * nothing about the *other* job: Morgana's bubble comes back at this
        * instant, wherever she is standing. A night clears the list.
        */
       id: 'done',
@@ -197,13 +197,13 @@ export const FAERIE_QUEST: Quest = {
         lines: ['sneak_faeries', 'sneak_secrets'],
       },
       {
-        id: 'hazel',
-        sheet: 'hazel',
+        id: 'morgana',
+        sheet: 'morgana',
         zone: 'cave',
         x: FIRE.x + 3.6,
         y: FIRE.y - 0.4,
         facing: 'left',
-        lines: ['hazel_play', 'hazel_pebble'],
+        lines: ['morgana_play', 'morgana_pebble'],
       },
     ],
   },
@@ -328,7 +328,7 @@ export const BUNNY_QUEST: Quest = {
     {
       /**
        * Over. No instruction, which is what takes the yellow dot off the screen
-       * and gives Hazel back her own two lines — the same arrangement the faerie
+       * and gives Morgana back her own two lines — the same arrangement the faerie
        * quest's last phase has, and for the same reason: a four-year-old who
        * finishes something and is immediately asked to do it again has not
        * finished anything.
@@ -375,12 +375,12 @@ export const BUNNY_QUEST: Quest = {
  * table, and that is where the two of them sit.
  *
  * They are two tiles apart, which is not a rounding: `INTERACT_RADIUS` is a
- * tile and a half, so standing on the book puts Hazel *just* out of reach and
+ * tile and a half, so standing on the book puts Morgana *just* out of reach and
  * the green dot cannot hop off the book onto her. Close enough to be reading
  * together, far enough that the button means the book.
  */
 const NOOK = { x: 28.5, y: 7.5 } as const;
-const HAZEL_ON_THE_RUG = { x: 26.5, y: 7.5 } as const;
+const MORGANA_ON_THE_RUG = { x: 26.5, y: 7.5 } as const;
 
 /**
  * ...and where the book itself lies: half a tile in front of where she stands.
@@ -403,7 +403,7 @@ const BOOK_ON_THE_RUG = { x: NOOK.x, y: NOOK.y + 0.6 } as const;
 const PIP_PAGES = ['page_1', 'page_2', 'page_3', 'page_4'];
 
 /**
- * Storytime: Hazel asks to be read to.
+ * Storytime: Morgana asks to be read to.
  *
  * **Her only job**, since 2026-08-15. It was her second for two days — she
  * carried the bunnies as well, and one head cannot wear two clouds, so the
@@ -417,8 +417,8 @@ const PIP_PAGES = ['page_1', 'page_2', 'page_3', 'page_4'];
  */
 export const STORY_QUEST: Quest = {
   id: 'story',
-  giver: 'hazel',
-  offer: ['hazel_story_offer', 'hazel_story_book'],
+  giver: 'morgana',
+  offer: ['morgana_story_offer', 'morgana_story_book'],
   phases: [
     {
       /**
@@ -433,7 +433,7 @@ export const STORY_QUEST: Quest = {
        * nearest wherever she has to stand to take it.
        */
       id: 'getBook',
-      instruction: 'hazel_story_book',
+      instruction: 'morgana_story_book',
       goal: {
         kind: 'gather',
         of: 'storybook',
@@ -443,12 +443,12 @@ export const STORY_QUEST: Quest = {
     {
       /**
        * Across the living room to the rug. The walk to the pen exactly, at the
-       * scale of one room: arriving is the whole of the job, Hazel is already
+       * scale of one room: arriving is the whole of the job, Morgana is already
        * sitting there, and the light on the rug is the only direction anybody
        * gives.
        */
-      id: 'toHazel',
-      instruction: 'hazel_story_come',
+      id: 'toMorgana',
+      instruction: 'morgana_story_come',
       goal: { kind: 'travel', zone: 'house', at: { ...NOOK, r: 1.4 } },
     },
     {
@@ -459,7 +459,7 @@ export const STORY_QUEST: Quest = {
        * `ui/BookReader.ts`.
        */
       id: 'read',
-      instruction: 'hazel_story_read',
+      instruction: 'morgana_story_read',
       goal: {
         kind: 'book',
         zone: 'house',
@@ -471,7 +471,7 @@ export const STORY_QUEST: Quest = {
     {
       /**
        * Over. No instruction, the same as the other two quests' last phases, and
-       * for the same reason: the yellow dot goes and Hazel gets her own two idle
+       * for the same reason: the yellow dot goes and Morgana gets her own two idle
        * lines back.
        */
       id: 'done',
@@ -485,16 +485,16 @@ export const STORY_QUEST: Quest = {
    * grass as well as put her on the rug. `RoomScene.moveGuestsIn` does both.
    */
   gather: {
-    during: ['getBook', 'toHazel', 'read'],
+    during: ['getBook', 'toMorgana', 'read'],
     guests: [
       {
-        id: 'hazel',
-        sheet: 'hazel',
+        id: 'morgana',
+        sheet: 'morgana',
         zone: 'house',
-        x: HAZEL_ON_THE_RUG.x,
-        y: HAZEL_ON_THE_RUG.y,
+        x: MORGANA_ON_THE_RUG.x,
+        y: MORGANA_ON_THE_RUG.y,
         facing: 'right',
-        lines: ['hazel_play', 'hazel_pebble'],
+        lines: ['morgana_play', 'morgana_pebble'],
       },
     ],
   },

@@ -204,8 +204,16 @@ const BUNNIES_HOME = 'dad_bunnies_home';
 const BUNNY_COIN = 'dad_bunny_coin';
 
 /** ...and the last two about the story. Hers too, on the rug. */
-const HAZEL_HUG = 'hazel_story_hug';
-const HAZEL_STORY_COIN = 'hazel_story_coin';
+const MORGANA_HUG = 'morgana_story_hug';
+const MORGANA_STORY_COIN = 'morgana_story_coin';
+
+/**
+ * The first thing said on a new day, and `seraphina_goodnight`'s bookend.
+ *
+ * Only ever said on the far side of a night — the title screen has its own
+ * greeting, and a doorway is not a morning.
+ */
+const MORNING = 'seraphina_morning';
 
 /**
  * What a `gather` phase's things are drawn as, keyed by the one word the quest
@@ -246,7 +254,7 @@ const SUMMONING_BEAT = 1200;
  * tiles.
  *
  * Generous. There is nothing standing at the den to walk up to — it is a spot in
- * a wood with a light on it and Hazel beside it — so "arrived" has to be a
+ * a wood with a light on it and Morgana beside it — so "arrived" has to be a
  * circle rather than a doorstep, and a circle a four-year-old can miss is a
  * circle she will walk through three times wondering why nothing happened.
  */
@@ -298,7 +306,7 @@ const DEN_TINT = 0x8fe0a0;
 const NOOK_TINT = 0xffd9a0;
 
 /**
- * The beat between the book closing and Hazel saying what she thought of it.
+ * The beat between the book closing and Morgana saying what she thought of it.
  *
  * Shorter than the summoning's, because there is nothing to watch: the book
  * folds away and the room is back, and a second of an empty living room before
@@ -1054,7 +1062,7 @@ export class RoomScene extends Phaser.Scene {
    * Whose words are on screen: the balloon's, or the open book's page.
    *
    * The balloon wins whenever it has anything, because a balloon over the book
-   * is somebody actually talking — Hazel, delighted, as a page turns — and the
+   * is somebody actually talking — Morgana, delighted, as a page turns — and the
    * page underneath is not being read at that moment. The book only answers
    * while it is reading itself, so "is anybody talking" stays one question with
    * one answer and `waitForQuiet` means the same thing inside a book as out.
@@ -1665,7 +1673,16 @@ export class RoomScene extends Phaser.Scene {
     // the frame it opens on: the night has to still be up when the first frame
     // of this zone is drawn, or the restart shows as a flash of daylight.
     if (this.waking) {
-      playSunrise(this, { x: this.player.x, y: this.player.y, sparkles: this.sparkles });
+      // And she says so, once the morning is off the screen. An ordinary
+      // balloon over her own head, not a takeover: she is already driving
+      // while it is up, the offers are already back over their heads, and
+      // walking away or poking something else replaces it the way it replaces
+      // any other line. The one thing it must not do is talk over the sunrise
+      // it is about, which is what the callback is for.
+      playSunrise(this, { x: this.player.x, y: this.player.y, sparkles: this.sparkles }, () => {
+        if (this.leaving || !this.scene.isActive()) return;
+        this.sayFrom(null, MORNING);
+      });
       return;
     }
 
@@ -1859,7 +1876,7 @@ export class RoomScene extends Phaser.Scene {
     }
 
     // And the den, which is a place rather than a thing — so the only mark on it
-    // is the light, and Hazel standing in it.
+    // is the light, and Morgana standing in it.
     const lure = lureOf(phase);
     if (lure && lure.den.zone === this.zoneId) {
       this.shimmers.push(
@@ -1893,12 +1910,12 @@ export class RoomScene extends Phaser.Scene {
    * Somebody the quest has just moved, moved — now, rather than the next time
    * this zone is built.
    *
-   * `gather` was written for the cave: Sneak and Hazel go on ahead while she is
+   * `gather` was written for the cave: Sneak and Morgana go on ahead while she is
    * walking there, and the walk itself is a doorway, so by the time she arrives
    * the zone has been rebuilt with them in it. The second quest is given and
    * done in the same field. Its giver is standing a stride in front of her when
    * she takes it, and waiting for a doorway would mean either a den with nobody
-   * at it or Hazel in two places, depending which way she went first.
+   * at it or Morgana in two places, depending which way she went first.
    *
    * So the person is picked up and put down, with a burst at each end — which is
    * the same "she went on ahead" the cave already tells, said in the one second
@@ -1910,7 +1927,7 @@ export class RoomScene extends Phaser.Scene {
     const guests = quests.guests(this.zoneId);
     // Anybody the quest has just sent somewhere *else* goes first. Storytime is
     // given by the pond and read on the rug, so the press that takes it has to
-    // take Hazel off the grass as well as put her on the rug — and a person left
+    // take Morgana off the grass as well as put her on the rug — and a person left
     // standing where she no longer is would be the same bug as a person in two
     // places, which is the one thing `gather` exists to avoid. The next build of
     // this zone would have left her out anyway; this is that, one second early
@@ -2615,7 +2632,7 @@ export class RoomScene extends Phaser.Scene {
    * Over the page.
    *
    * Three things in a row and none of them on top of another, which is the same
-   * rule every celebration in this game keeps: the leaf goes over, Hazel says
+   * rule every celebration in this game keeps: the leaf goes over, Morgana says
    * what she thought of the page that just went by, and only when she has
    * finished does the new page start reading itself. Two voices at once is no
    * voice at all for somebody being taught to follow one.
@@ -2646,7 +2663,7 @@ export class RoomScene extends Phaser.Scene {
       if (!this.reader.isOpen) return;
 
       this.reader.showPage(next);
-      this.sayFrom('hazel', cheer);
+      this.sayFrom('morgana', cheer);
       this.syncBookHooks();
 
       // ...and the new page, once she has stopped talking. Measured off her own
@@ -2688,7 +2705,7 @@ export class RoomScene extends Phaser.Scene {
     const earned = session.addCoin();
     this.syncCoinHooks();
 
-    const hug = this.npcs.find((npc) => npc.id === 'hazel');
+    const hug = this.npcs.find((npc) => npc.id === 'morgana');
     if (hug) this.hug(hug);
 
     // Her line about the story, then the hug, then the coin — each one after the
@@ -2696,13 +2713,13 @@ export class RoomScene extends Phaser.Scene {
     this.time.delayedCall(STORY_BEAT, () => {
       if (!this.scene.isActive() || this.leaving) return;
       if (!cheer) {
-        this.sayFrom('hazel', HAZEL_STORY_COIN);
-        this.payUp(earned, 'hazel');
+        this.sayFrom('morgana', MORGANA_STORY_COIN);
+        this.payUp(earned, 'morgana');
         return;
       }
-      this.sayFrom('hazel', cheer);
-      this.sayNext(cheer, 'hazel', HAZEL_HUG, () => {
-        this.sayNext(HAZEL_HUG, 'hazel', HAZEL_STORY_COIN, () => this.payUp(earned, 'hazel'));
+      this.sayFrom('morgana', cheer);
+      this.sayNext(cheer, 'morgana', MORGANA_HUG, () => {
+        this.sayNext(MORGANA_HUG, 'morgana', MORGANA_STORY_COIN, () => this.payUp(earned, 'morgana'));
       });
     });
   }
@@ -2926,14 +2943,14 @@ export class RoomScene extends Phaser.Scene {
     const earned = session.addCoin();
     this.syncCoinHooks();
 
-    // "Faeries. Real faeries!", then Hazel, then the thank-you, then the coin —
+    // "Faeries. Real faeries!", then Morgana, then the thank-you, then the coin —
     // each one after the last has finished, on its own measured length. Four
     // sentences at once is no sentences at all.
     this.time.delayedCall(SUMMONING_BEAT, () => {
       if (!this.scene.isActive() || this.leaving) return;
       this.sayFrom('sneak', 'sneak_faeries_real');
-      this.sayNext('sneak_faeries_real', 'hazel', 'hazel_pretty', () => {
-        this.sayNext('hazel_pretty', 'sneak', 'sneak_thanks', () => {
+      this.sayNext('sneak_faeries_real', 'morgana', 'morgana_pretty', () => {
+        this.sayNext('morgana_pretty', 'sneak', 'sneak_thanks', () => {
           this.sayNext('sneak_thanks', 'sneak', 'sneak_coin', () => this.payUp(earned, 'sneak'));
         });
       });

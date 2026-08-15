@@ -60,7 +60,7 @@ const CONTEXT: Record<string, string> = {
   sneak_try_green: 'quest faerie: ritual retry',
   sneak_try_blue: 'quest faerie: ritual retry',
   sneak_faeries_real: 'quest faerie: finale',
-  hazel_pretty: 'quest faerie: finale',
+  morgana_pretty: 'quest faerie: finale',
   sneak_thanks: 'quest faerie: finale',
   sneak_coin: 'quest faerie: reward',
 
@@ -78,12 +78,12 @@ const CONTEXT: Record<string, string> = {
   seraphina_need_carrot: 'quest bunny: correction',
 
   // The story.
-  hazel_story_offer: 'quest story: offer',
-  hazel_story_book: 'quest story: offer and phase getBook',
-  hazel_story_come: 'quest story: phase toHazel',
-  hazel_story_read: 'quest story: phase read',
-  hazel_story_hug: 'quest story: finale',
-  hazel_story_coin: 'quest story: reward',
+  morgana_story_offer: 'quest story: offer',
+  morgana_story_book: 'quest story: offer and phase getBook',
+  morgana_story_come: 'quest story: phase toMorgana',
+  morgana_story_read: 'quest story: phase read',
+  morgana_story_hug: 'quest story: finale',
+  morgana_story_coin: 'quest story: reward',
 
   // The little things she says to herself. See `src/voice/barks.ts`.
   seraphina_axe: 'bark: naming a tool',
@@ -105,6 +105,7 @@ const CONTEXT: Record<string, string> = {
   seraphina_recap_stones: 'bedtime recap',
   seraphina_recap_trees: 'bedtime recap',
   seraphina_goodnight: 'bedtime recap: goodnight',
+  seraphina_morning: 'wake-up: the new day',
 };
 
 async function main(): Promise<void> {
@@ -162,8 +163,9 @@ async function main(): Promise<void> {
     .join('\r\n');
 
   await mkdir(path.dirname(out), { recursive: true });
-  // A BOM, because Excel reads a CSV without one as the local codepage and the
-  // em dash in "Sss — Sparky!" comes out as mojibake.
+  // A BOM, because Excel reads a CSV without one as the local codepage, and
+  // anything above ASCII in a line — an em dash, a curly quote — comes out as
+  // mojibake without it.
   await writeFile(out, `﻿${csv}\r\n`, 'utf8');
 
   const missed = lines.length - rows.length;
@@ -224,7 +226,7 @@ function ownerAbove(rows: string[], from: number): string {
   return '?';
 }
 
-/** The book pages, and Hazel's delight as each one is turned. */
+/** The book pages, and Morgana's delight as each one is turned. */
 function scanBooks(): Record<string, string> {
   const found: Record<string, string> = {};
   for (const book of BOOKS) {

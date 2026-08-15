@@ -35,9 +35,9 @@ const SAMPLE = [
   'seraphina_axe', // one word, 0.69 s — the hardest case there is
   'seraphina_malachite', // one long word
   'seraphina_hello', // say differs
-  'seraphina_sparky', // say differs, -25%, and an em dash token
+  'seraphina_wardrobe', // a clause after a comma
   'seraphina_secret', // ten words
-  'seraphina_bed', // two sentences
+  'seraphina_bed', // two sentences, say differs
   'seraphina_one_bunny',
   'seraphina_recap_bunnies',
   'seraphina_goodnight', // say differs
@@ -52,11 +52,11 @@ const SAMPLE = [
   'dad_quest_pen', // say differs, eleven words
   'dad_quest_lure',
   'dad_bunny_coin',
-  // hazel, +40Hz — pitched up hard
-  'hazel_pretty',
-  'hazel_play', // say differs
-  'hazel_story_read',
-  'hazel_book_best', // say differs
+  // morgana, +40Hz — pitched up hard
+  'morgana_pretty',
+  'morgana_play', // say differs
+  'morgana_story_read',
+  'morgana_book_best', // say differs
   // sneak, -35Hz — pitched down hard
   'sneak_faeries', // say differs, twelve words
   'sneak_quest_stones', // say differs, fourteen words

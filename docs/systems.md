@@ -28,7 +28,7 @@ returns. The seam between "cleared by a night" and "kept" is
 `src/quest/quests.ts` (the table — `faerie`, `bunny` and `story`).
 
 One quest at a time; there is no quest log. **Three quests, three givers, three
-thought bubbles** — Sneak the faeries, Dad the bunnies, Hazel the story, one job
+thought bubbles** — Sneak the faeries, Dad the bunnies, Morgana the story, one job
 each (Matt, 2026-08-15). `offerFrom` still *searches* for the first of a
 person's quests she has not done today, so a second job for somebody is a row in
 the table and no code; nobody has one, so it never serialises. Accepting
@@ -45,7 +45,7 @@ the progress. The engine also owns the *offer* counter (`nextOfferLine`,
 `forgetOffers`) and `gather`, which moves NPCs into a zone for named phases —
 applied at the next zone build, or immediately by `RoomScene.moveGuestsIn` when
 the job is taken in the same field it happens in. That method also sends a guest
-*away* from the zone she is standing in, which is how the story takes Hazel off
+*away* from the zone she is standing in, which is how the story takes Morgana off
 the grass and puts her indoors on the press that takes it.
 
 Quest furniture (where a stone stands, where the bunny pen goes) is in
@@ -87,7 +87,10 @@ Only zones in `OUTDOOR_ZONES` (`src/world/zones.ts`) have an evening.
 
 `src/world/nightfall.ts` — `playNightfall()` and `playSunrise()`, drawn in screen
 space above the HUD (a camera fade would paint over the stars). No letters
-anywhere in it; sleep is drawn as motes, not a Z.
+anywhere in it; sleep is drawn as motes, not a Z. `playSunrise` takes an
+`onMorning` callback, fired once the last of the light is off the screen:
+`RoomScene.arrive` hangs `seraphina_morning` on it, which is `seraphina_goodnight`'s
+bookend and the only line tied to waking.
 
 ## Recap
 

@@ -12,17 +12,16 @@
     "text": "I need your help making sure Dad never finds this!"
   },
   {
-    "id": "seraphina_sparky",
+    "id": "seraphina_campfire",
     "speaker": "seraphina",
-    "text": "Sss — Sparky!",
-    "say": "Suh — Sparky!",
-    "rate": "-25%",
-    "note": "edge-tts reads any run of s's as the letter NAME, repeated: 'Sss' comes out 'ess ess ess'. 'Suh' at least leads with a real /s/. Placeholder until ElevenLabs — see the voice_pipeline_spike report."
+    "text": "Ooh, a warm crackly fire!",
+    "note": "Both campfires, in the cave and at the edge of the wood. It replaces seraphina_sparky, which taught the /s/ sound off a dragon nobody has met — phonics lines are out until the voice provider is settled, and a dragon is a thing this game has not introduced (Matt, 2026-08-15). What is left is what she can actually see: warm, and crackling. No spoken override and no rate: one sentence, one comma, nothing mid-line that buys a second of silence."
   },
   {
-    "id": "seraphina_munchy",
+    "id": "seraphina_toadstool",
     "speaker": "seraphina",
-    "text": "Mmm — Munchy wants the mango."
+    "text": "A funny little toadstool!",
+    "note": "The swaying toadstool at the edge of the wood, and seraphina_munchy's replacement for seraphina_campfire's reason. 'Toadstool' is the word it exists to teach and the prop is the picture of it."
   },
   {
     "id": "seraphina_well",
@@ -33,7 +32,7 @@
   {
     "id": "dad_bedtime",
     "speaker": "dad",
-    "text": "Time for bed!",
+    "text": "Seraphina, time for bed!",
     "note": "Called from inside the house when the light starts going, once a day and never again — see the day clock. There IS a Dad standing in the world since 2026-08-15, out by his shed, and this line is still not his: he is calling her in from indoors, so the balloon stays anchored at the front door and the words come out of the house. The one line in the game not spoken by somebody on screen, and the one exception to the narrative-voice rule in CLAUDE.md — this is Dad talking, not the world."
   },
   {
@@ -56,20 +55,22 @@
   {
     "id": "seraphina_wardrobe",
     "speaker": "seraphina",
-    "text": "Wardrobe"
+    "text": "My wardrobe, full of pretty clothes!",
+    "note": "A sentence rather than the bare noun it used to be: 'Wardrobe' alone was a label read off a prop, and this says what the thing is as well as what it is called. Hers and first person, like every other prop line — see the narrative-voice rule in CLAUDE.md. The comma is mid-line and free; it is a mid-line '!' or '.' that buys a second of a lit sentence with no word lit."
   },
   {
     "id": "seraphina_bed",
     "speaker": "seraphina",
     "text": "My cozy bed. Time to sleep!",
-    "note": "The bed is the sleep trigger now, so its line is the offer as well as the name: press green once and she says this, press it again while it is still in the air and the day ends. Two sentences on purpose — the first is still the word the prop is teaching, the second is the question. Hers, not Dad's: dad_bedtime is the one he calls from the front door, and he is out by his shed rather than in this room."
+    "say": "My cozy bed, time to sleep!",
+    "note": "Spoken with a comma where the text has a full stop: edge-tts leaves nearly a second of silence after a mid-line '.', which on screen is a second of a lit sentence with no word lit — the same fix seraphina_goodnight uses, and the two of them are the last thing she hears before the day ends. The bed is the sleep trigger now, so its line is the offer as well as the name: press green once and she says this, press it again while it is still in the air and the day ends. Two sentences on purpose — the first is still the word the prop is teaching, the second is the question. Hers, not Dad's: dad_bedtime is the one he calls from the front door, and he is out by his shed rather than in this room."
   },
   {
     "id": "sneak_faeries",
     "speaker": "sneak",
     "text": "My spell book says faeries are REAL. I'm going to prove it!",
-    "say": "My spell book says faeries are real. I'm going to prove it!",
-    "note": "Shown in capitals and spoken as a word: edge-tts reads a short run of capitals as letters, and 'R E A L' is not what he means. The say/text split keeps the emphasis on screen without spelling it aloud."
+    "say": "My spell book says faeries are real, I'm going to prove it!",
+    "note": "Shown in capitals and spoken as a word: edge-tts reads a short run of capitals as letters, and 'R E A L' is not what he means. The say/text split keeps the emphasis on screen without spelling it aloud. The mid-line stop is a comma as well, like every other Sneak line — see sneak_quest_offer."
   },
   {
     "id": "sneak_secrets",
@@ -79,15 +80,15 @@
     "note": "Comma, not a bang: edge-tts puts a full second of silence after a mid-line '!', which on screen is a second with no word lit. Same fix as seraphina_hello."
   },
   {
-    "id": "hazel_play",
-    "speaker": "hazel",
+    "id": "morgana_play",
+    "speaker": "morgana",
     "text": "Hi Seraphina! Wanna play?",
     "say": "Hi Seraphina, wanna play?",
     "note": "The mid-line '!' silence again."
   },
   {
-    "id": "hazel_pebble",
-    "speaker": "hazel",
+    "id": "morgana_pebble",
+    "speaker": "morgana",
     "text": "I found a shiny pebble!"
   },
   {
@@ -106,14 +107,14 @@
     "id": "sneak_quest_offer",
     "speaker": "sneak",
     "text": "My spell book has a faerie spell! We need three magic stones.",
-    "say": "My spell book has a faerie spell. We need three magic stones.",
-    "note": "The faerie quest, offered. Full stop where the text has a bang: edge-tts puts a full second of silence after a mid-line '!', which on screen is a second with no word lit."
+    "say": "My spell book has a faerie spell, we need three magic stones.",
+    "note": "The faerie quest, offered. Comma where the text has a bang: edge-tts puts a full second of silence after a mid-line '!', which on screen is a second with no word lit. A full stop was the first fix and it is not one — it buys the same dead air, and worse, a mid-line sentence break is where the ingest step's silence cutter can split a recorded clip in two. Every Sneak line spoken as one breath for that reason (Matt, 2026-08-15)."
   },
   {
     "id": "sneak_quest_stones",
     "speaker": "sneak",
     "text": "A ruby, a sapphire, and a malachite! You'll need a hammer to crack them.",
-    "say": "A ruby, a sapphire, and a malachite. You'll need a hammer to crack them.",
+    "say": "A ruby, a sapphire, and a malachite, you'll need a hammer to crack them.",
     "note": "The second half of the offer. Same mid-line '!' fix."
   },
   {
@@ -133,7 +134,7 @@
     "id": "sneak_quest_cave",
     "speaker": "sneak",
     "text": "We have them all! Meet me at the Secret Cave.",
-    "say": "We have them all. Meet me at the Secret Cave.",
+    "say": "We have them all, meet me at the Secret Cave.",
     "note": "Where the quest parks until the cave, the ritual and the faeries are built. Same mid-line '!' fix."
   },
   {
@@ -178,7 +179,7 @@
     "id": "sneak_cave_greet",
     "speaker": "sneak",
     "text": "You made it! Stand by the fire.",
-    "say": "You made it. Stand by the fire.",
+    "say": "You made it, stand by the fire.",
     "note": "He is already in the cave when she gets there. Said on arrival, and what the yellow button replays until she is actually standing in the circle. Same mid-line '!' fix."
   },
   {
@@ -217,14 +218,14 @@
     "id": "sneak_faeries_real",
     "speaker": "sneak",
     "text": "Faeries! Real faeries!",
-    "say": "Faeries. Real faeries!",
+    "say": "Faeries, real faeries!",
     "note": "The big moment. Mid-line bang split, so the second half does not start a second late."
   },
   {
-    "id": "hazel_pretty",
-    "speaker": "hazel",
+    "id": "morgana_pretty",
+    "speaker": "morgana",
     "text": "So pretty!",
-    "note": "Hazel came to the cave too, and this is the whole of what she has to say about faeries."
+    "note": "Morgana came to the cave too, and this is the whole of what she has to say about faeries."
   },
   {
     "id": "sneak_thanks",
@@ -236,27 +237,27 @@
   {
     "id": "sneak_coin",
     "speaker": "sneak",
-    "text": "And this shiny gold coin is for you!",
+    "text": "This shiny gold coin is for you!",
     "note": "The last line of the quest, and the first coin in the game. His, out of his own mouth — he is handing her something. One sentence with no punctuation in the middle of it, so edge-tts has nowhere to put a second of silence, and the trailing '!' is free. 'Gold coin' is the pair of words the whole line exists to teach: it is said as the coin flies across the screen into the row, so the words and the picture are one event. See RoomScene.payUp."
   },
   {
     "id": "dad_quest_offer",
     "speaker": "dad",
     "text": "Three little bunnies are stuck in the woods!",
-    "note": "The bunny rescue, offered. Dad's since 2026-08-15 — one quest per person (Matt), so the rescue moved off Hazel and every line of it was re-cut in his voice; the words are unchanged. One sentence with nothing in the middle of it, so edge-tts has nowhere to put a second of silence and the trailing bang is free. 'Bunnies' is in every line of this quest — she cannot read the word yet and hearing it nine times in an afternoon is how that changes."
+    "note": "The bunny rescue, offered. Dad's since 2026-08-15 — one quest per person (Matt), so the rescue moved off Morgana and every line of it was re-cut in his voice; the words are unchanged. One sentence with nothing in the middle of it, so edge-tts has nowhere to put a second of silence and the trailing bang is free. 'Bunnies' is in every line of this quest — she cannot read the word yet and hearing it nine times in an afternoon is how that changes."
   },
   {
     "id": "dad_quest_pen",
     "speaker": "dad",
-    "text": "Little trees are all around the bunnies! Go and find them.",
-    "say": "Little trees are all around the bunnies, go and find them.",
+    "text": "Little trees are all around the bunnies! Find them in the woods.",
+    "say": "Little trees are all around the bunnies, find them in the woods.",
     "note": "The second half of the offer, and phase one's instruction — the same line doing both, the way sneak_quest_stones does. Comma where the text has a bang: a mid-line '!' buys ~0.9 s of a lit sentence with no word lit."
   },
   {
     "id": "dad_quest_chop",
     "speaker": "dad",
-    "text": "Chop the little trees to free the bunnies!",
-    "note": "Phase two. The verb and the reason in one breath, because what she has to hold in her head is why she is swinging."
+    "text": "Chop the little trees with your axe!",
+    "note": "Phase two. The verb and the tool in one breath: at this beat she is standing in a ring of little trees with a belt on, and which of the two things on it to swing is the whole of what she has to work out."
   },
   {
     "id": "dad_quest_carrots",
@@ -320,66 +321,66 @@
     "note": "Pressing green at a bunny with an empty pocket. It names the fix rather than the failure, exactly like seraphina_need_axe: what she needs is the thing to go and do."
   },
   {
-    "id": "hazel_story_offer",
-    "speaker": "hazel",
+    "id": "morgana_story_offer",
+    "speaker": "morgana",
     "text": "Will you read me a story?",
-    "note": "Storytime, offered — the third quest, and Hazel's second. One sentence with nothing in the middle of it, so edge-tts has nowhere to put a second of silence. 'Story' and 'read' are the two words this whole quest exists to teach and they are both in the first thing anybody says about it."
+    "note": "Storytime, offered — the third quest, and Morgana's second. One sentence with nothing in the middle of it, so edge-tts has nowhere to put a second of silence. 'Story' and 'read' are the two words this whole quest exists to teach and they are both in the first thing anybody says about it."
   },
   {
-    "id": "hazel_story_book",
-    "speaker": "hazel",
+    "id": "morgana_story_book",
+    "speaker": "morgana",
     "text": "There is a storybook on the bookshelf!",
-    "note": "The second half of the offer and phase one's instruction — one line doing both, the way sneak_quest_stones and hazel_quest_pen do. The trailing bang is free; a mid-line one would cost ~0.9 s of a lit sentence with no word lit."
+    "note": "The second half of the offer and phase one's instruction — one line doing both, the way sneak_quest_stones and morgana_quest_pen do. The trailing bang is free; a mid-line one would cost ~0.9 s of a lit sentence with no word lit."
   },
   {
-    "id": "hazel_story_come",
-    "speaker": "hazel",
+    "id": "morgana_story_come",
+    "speaker": "morgana",
     "text": "Come and sit on the rug with me!",
     "note": "Phase two: the walk across the living room. 'The rug' rather than a direction, because the rug is the thing that is glowing and she can see it from the bookshelf."
   },
   {
-    "id": "hazel_story_read",
-    "speaker": "hazel",
+    "id": "morgana_story_read",
+    "speaker": "morgana",
     "text": "Press the green button to open the book!",
     "note": "Phase three, and what the yellow button replays until the book is open. It names the colour and never the letter, the same way the ritual's lines do — the dot on the pad under her thumb is the same green."
   },
   {
-    "id": "hazel_book_moon",
-    "speaker": "hazel",
+    "id": "morgana_book_moon",
+    "speaker": "morgana",
     "text": "All the way to the moon!",
     "note": "What she says as the first page turns. The reaction belongs to the page just finished rather than the one arriving, so it is a thing said about a story and not a caption on one. It is spoken in the gap between the leaf going over and the new page starting to read itself — see RoomScene.turnPage."
   },
   {
-    "id": "hazel_book_dragon",
-    "speaker": "hazel",
+    "id": "morgana_book_dragon",
+    "speaker": "morgana",
     "text": "A baby dragon!",
     "note": "The second page. Short on purpose: three delighted noises and one big line at the end is the shape, and a paragraph between pages would be the grown-up talking over the story."
   },
   {
-    "id": "hazel_book_sparkles",
-    "speaker": "hazel",
+    "id": "morgana_book_sparkles",
+    "speaker": "morgana",
     "text": "Sparkles everywhere!",
     "note": "The third page."
   },
   {
-    "id": "hazel_book_best",
-    "speaker": "hazel",
+    "id": "morgana_book_best",
+    "speaker": "morgana",
     "text": "That was the best story ever! Thank you Seraphina.",
     "say": "That was the best story ever, thank you Seraphina.",
     "note": "The last page, and the bigger line the whole read has been building to — nothing follows it but the book closing. Comma where the text has a bang: the mid-line '!' silence again."
   },
   {
-    "id": "hazel_story_hug",
-    "speaker": "hazel",
+    "id": "morgana_story_hug",
+    "speaker": "morgana",
     "text": "Big hug! I love story time.",
     "say": "Big hug, I love story time.",
     "note": "The celebration beat, said while she leans over and bumps into her — there is no hug animation in the pack and there is not going to be one, so the hug is the movement and this is the word for it. Mid-line '!' split."
   },
   {
-    "id": "hazel_story_coin",
-    "speaker": "hazel",
+    "id": "morgana_story_coin",
+    "speaker": "morgana",
     "text": "Here is a shiny gold coin for the best reader!",
-    "note": "The gift line, hers rather than Seraphina's — she is handing something over, exactly like sneak_coin and hazel_bunny_coin. 'Gold coin' is the pair of words it exists to teach and it is said as the coin flies across the screen. One sentence with no punctuation in the middle of it."
+    "note": "The gift line, hers rather than Seraphina's — she is handing something over, exactly like sneak_coin and morgana_bunny_coin. 'Gold coin' is the pair of words it exists to teach and it is said as the coin flies across the screen. One sentence with no punctuation in the middle of it."
   },
   {
     "id": "seraphina_storybook",
@@ -392,7 +393,7 @@
     "speaker": "seraphina",
     "text": "Pip the dog zoomed up to the moon!",
     "rate": "-22%",
-    "note": "Book #1, page one. The four book pages are the only lines in the game with a prosody override on them: `rate` here replaces the seraphina speaker's -8% outright rather than compounding with it, so -22% is fourteen points slower than everything else she says — a deliberate storybook pace, read to somebody rather than said to them. It is also the slowest thing in the game bar seraphina_sparky, which is a phonics line and not a sentence."
+    "note": "Book #1, page one. The four book pages are the only lines in the game with a prosody override on them: `rate` here replaces the seraphina speaker's -8% outright rather than compounding with it, so -22% is fourteen points slower than everything else she says — a deliberate storybook pace, read to somebody rather than said to them. They are also the slowest thing in the game: since the phonics lines came out on 2026-08-15 nothing else she says is under her speaker's own -8%."
   },
   {
     "id": "book_pip_moon_2",
@@ -415,8 +416,8 @@
   {
     "id": "seraphina_recap_story",
     "speaker": "seraphina",
-    "text": "I read my friend a whole story.",
-    "note": "A day the story was read cover to cover. 'My friend' rather than her name, for seraphina_recap_errand's reason: nobody in the game has ever said it out loud, and bedtime is not where a name should be introduced. Third in the recap's order — under the two bigger finished jobs and over the errand. See src/state/recap.ts."
+    "text": "I read my little sister a whole story.",
+    "note": "A day the story was read cover to cover. 'My little sister' rather than her name: nobody in the game says 'Morgana' out loud, and bedtime is not where a name should be introduced — but the relation is a thing she already knows, and it says who was read to better than 'my friend' did (Matt, 2026-08-15). Sneak stays 'my friend' in seraphina_recap_errand, where there is no relation to name. Third in the recap's order — under the two bigger finished jobs and over the errand. See src/state/recap.ts."
   },
   {
     "id": "seraphina_recap_bunnies",
@@ -447,6 +448,13 @@
     "speaker": "seraphina",
     "text": "I chopped a whole tree down with my axe.",
     "note": "A day in the wood. Last in the order, because felling one is a thing she can do all afternoon."
+  },
+  {
+    "id": "seraphina_morning",
+    "speaker": "seraphina",
+    "text": "Good morning! A brand new day!",
+    "say": "Good morning, a brand new day!",
+    "note": "seraphina_goodnight's bookend, and the first thing said on the far side of a night. Spoken with a comma where the text has a bang: a mid-line '!' buys nearly a second of a lit sentence with no word lit — the same fix seraphina_hello and seraphina_goodnight use. Said once, as the sunrise clears, in her own balloon and over nothing: the morning's quest offers are already back over their heads by then and she can walk away from it mid-sentence. See RoomScene.arrive and world/nightfall.ts."
   },
   {
     "id": "seraphina_goodnight",

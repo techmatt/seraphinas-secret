@@ -12,7 +12,7 @@
       "settings": { "speed": "TBD", "pitch": "TBD", "style": "TBD" },
       "note": "Grown man, warm and slow. edge-tts stands in with en-US-GuyNeural at -10%, -15Hz."
     },
-    "hazel": {
+    "morgana": {
       "voice": "TBD",
       "settings": { "speed": "TBD", "pitch": "TBD", "style": "TBD" },
       "note": "The friend. Brighter and quicker than Seraphina. edge-tts stands in at +6%, +40Hz."
@@ -31,7 +31,7 @@
   "speakers": {
     "seraphina": "seraphina",
     "dad": "dad",
-    "hazel": "hazel",
+    "morgana": "morgana",
     "sneak": "sneak"
   },
   "overrides": [

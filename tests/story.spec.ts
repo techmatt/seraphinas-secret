@@ -75,7 +75,7 @@ async function turnPage(page: Page) {
  * starts at the bookshelf.
  *
  * **Taken from the pond on a fresh morning**, which it could not be until
- * 2026-08-15: Hazel carried the bunnies as well, one head wears one cloud, and
+ * 2026-08-15: Morgana carried the bunnies as well, one head wears one cloud, and
  * the story was only ever offered on an afternoon the bunnies were already home.
  * One quest per person (Matt) means her cloud is the story from the moment the
  * day starts. `finishQuest` is still here and now buys only what it says — a
@@ -96,7 +96,7 @@ test('storytime: a book off the shelf, and four pages read aloud on the rug', as
   const morning = await readHooks(page);
   expect(morning.quest.offers.sort(), 'three people with something to ask').toEqual([
     'dad',
-    'hazel',
+    'morgana',
     'sneak',
   ]);
 
@@ -113,7 +113,7 @@ test('storytime: a book off the shelf, and four pages read aloud on the rug', as
   ]);
 
   // Take it. Two presses, both of them her talking.
-  await standNear(page, 'hazel', { y: 72 });
+  await standNear(page, 'morgana', { y: 72 });
   for (let press = 0; press < 6; press++) {
     if ((await readHooks(page)).quest.id) break;
     await tap(page, 'KeyZ');
@@ -122,26 +122,26 @@ test('storytime: a book off the shelf, and four pages read aloud on the rug', as
   const taken = await readHooks(page);
   expect(taken.quest.id, 'the one job she has is hers').toBe('story');
   expect(taken.quest.phase, 'and it starts at the bookshelf').toBe('getBook');
-  expect(taken.quest.giver, 'hers to repeat, in her voice').toBe('hazel');
-  expect(taken.quest.instruction).toBe('hazel_story_book');
+  expect(taken.quest.giver, 'hers to repeat, in her voice').toBe('morgana');
+  expect(taken.quest.instruction).toBe('morgana_story_book');
   expect(taken.quest.offers, 'and nothing is on offer while it runs').toEqual([]);
   // She has gone on ahead — and ahead is through a door this time, which is the
   // first quest that moves somebody out of the zone the job was taken in.
   expect(
     taken.npcs.map((n) => n.id),
     'so she is not standing by the pond any more',
-  ).not.toContain('hazel');
+  ).not.toContain('morgana');
 
   // --- phase one: the book off the shelf ------------------------------------
   await standByProp(page, 'outside_to_house');
   expect(await walkThroughDoorway(page, 'outside_to_house'), 'indoors').toBe('house');
 
   const indoors = await readHooks(page);
-  const hazel = indoors.npcs.find((n) => n.id === 'hazel');
-  expect(hazel, 'and she is in here, on the rug').toBeDefined();
+  const morgana = indoors.npcs.find((n) => n.id === 'morgana');
+  expect(morgana, 'and she is in here, on the rug').toBeDefined();
   const tile = indoors.world.tile;
   expect(
-    Math.hypot(hazel!.x - NOOK.x * tile, hazel!.y - NOOK.y * tile),
+    Math.hypot(morgana!.x - NOOK.x * tile, morgana!.y - NOOK.y * tile),
     'a stride from the spot the story gets read on',
   ).toBeLessThan(tile * 2.5);
 
@@ -177,7 +177,7 @@ test('storytime: a book off the shelf, and four pages read aloud on the rug', as
   // --- phase two: across the room -------------------------------------------
   await until(
     page,
-    () => (window as unknown as { __seraphina: Hooks }).__seraphina.quest.phase === 'toHazel',
+    () => (window as unknown as { __seraphina: Hooks }).__seraphina.quest.phase === 'toMorgana',
   );
   await standOnTile(page, NOOK.x, NOOK.y);
   await until(
@@ -186,7 +186,7 @@ test('storytime: a book off the shelf, and four pages read aloud on the rug', as
   );
 
   const sat = await readHooks(page);
-  expect(sat.quest.instruction, 'and the job is the green button').toBe('hazel_story_read');
+  expect(sat.quest.instruction, 'and the job is the green button').toBe('morgana_story_read');
   expect(
     sat.quest.objects.find((o) => o.id === 'storybook'),
     'the book is lying open on the rug',
@@ -194,7 +194,7 @@ test('storytime: a book off the shelf, and four pages read aloud on the rug', as
 
   // --- phase three: the story -----------------------------------------------
   //
-  // The dot has to be over the *book* and not over Hazel sitting beside her:
+  // The dot has to be over the *book* and not over Morgana sitting beside her:
   // green is a promise, and the two of them are two tiles apart precisely so
   // that standing on one puts the other out of reach. `standByProp` does not
   // return until the book is the nearest thing to her.
@@ -260,7 +260,7 @@ test('storytime: a book off the shelf, and four pages read aloud on the rug', as
     'book_pip_moon_1',
   );
 
-  // Over the page. Hazel says what she thought of it before the next one starts.
+  // Over the page. Morgana says what she thought of it before the next one starts.
   await turnPage(page);
   await until(
     page,
@@ -270,11 +270,11 @@ test('storytime: a book off the shelf, and four pages read aloud on the rug', as
     page,
     () =>
       (window as unknown as { __seraphina: Hooks }).__seraphina.voice.lineId ===
-      'hazel_book_moon',
+      'morgana_book_moon',
   );
 
   const cheered = await readHooks(page);
-  expect(cheered.voice.bubble.speaker, 'out of her own mouth').toBe('hazel');
+  expect(cheered.voice.bubble.speaker, 'out of her own mouth').toBe('morgana');
   expect(cheered.book.reading, 'and the new page waits until she has finished').toBe(false);
   expect(cheered.book.words.join(' '), 'while showing what it is about to read').toBe(
     PAGES[1],
@@ -337,10 +337,10 @@ test('storytime: a book off the shelf, and four pages read aloud on the rug', as
     page,
     () =>
       (window as unknown as { __seraphina: Hooks }).__seraphina.voice.lineId ===
-      'hazel_story_coin',
+      'morgana_story_coin',
   );
   const paid = await readHooks(page);
-  expect(paid.voice.bubble.speaker, 'handed over out of her own mouth').toBe('hazel');
+  expect(paid.voice.bubble.speaker, 'handed over out of her own mouth').toBe('morgana');
   expect(paid.voice.words.length, 'with words on screen to light up').toBeGreaterThan(0);
   expect(paid.coins, 'and the count did not move again on the way past').toBe(1);
 

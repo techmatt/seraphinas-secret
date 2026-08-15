@@ -198,7 +198,7 @@ test('the faerie quest, from the offer to the cave', async ({ page }) => {
   // cloud off the sky.
   expect(idle.quest.offers.sort(), 'all three of them are asking').toEqual([
     'dad',
-    'hazel',
+    'morgana',
     'sneak',
   ]);
   expect(idle.quest.markers, 'with a thought bubble apiece, actually built').toBe(3);
@@ -311,7 +311,7 @@ test('the faerie quest, from the offer to the cave', async ({ page }) => {
   expect(
     arrived.npcs.map((n) => n.id).sort(),
     'and the two of them went on ahead — they are in here, not out there',
-  ).toEqual(['hazel', 'sneak']);
+  ).toEqual(['morgana', 'sneak']);
   expect(arrived.quest.circle, 'there is a circle on the floor').toBe(true);
   expect(arrived.quest.inCircle, 'and she has not reached it yet').toBe(false);
   expect(
@@ -424,8 +424,8 @@ test('the faerie quest, from the offer to the cave', async ({ page }) => {
   expect(after.faeries.length, 'and all three came through the door with her').toBe(3);
   expect(
     after.npcs.map((n) => n.id).sort(),
-    'while Sneak and Hazel are back at their own spots, and Dad never left his',
-  ).toEqual(['dad', 'hazel', 'sneak']);
+    'while Sneak and Morgana are back at their own spots, and Dad never left his',
+  ).toEqual(['dad', 'morgana', 'sneak']);
   expect(after.quest.circle, 'the cave keeps the circle; the village never had one').toBe(false);
 
   // And he has his own two lines back — the first thing he has been able to say
@@ -771,7 +771,7 @@ test('the yellow button remembers, the wrong tool cannot spoil it, a doorway doe
   const newDay = await readHooks(page);
   expect(newDay.quest.offers.sort(), 'and every job is going again').toEqual([
     'dad',
-    'hazel',
+    'morgana',
     'sneak',
   ]);
   expect(newDay.quest.markers, 'with the thought bubbles back over their heads').toBe(3);
@@ -1070,11 +1070,11 @@ test('the bunny rescue, the faerie quest after it, and a night that says both', 
   expect(done.session.run.completed, 'the day has it down as done').toEqual(['bunny']);
   // Everything she has not done today is on offer again, the instant this one
   // parks rather than tomorrow morning: finishing one quest must not cost her
-  // another. Sneak is across the village with the faeries and Hazel is at the
+  // another. Sneak is across the village with the faeries and Morgana is at the
   // pond with the story; the man standing right here has nothing left to ask,
   // which is the other half of the same rule. See `QuestEngine.offerFrom`.
   expect(done.quest.offers.sort(), 'and everything else is going again').toEqual([
-    'hazel',
+    'morgana',
     'sneak',
   ]);
   expect(done.quest.markers, 'with a thought bubble apiece, actually rebuilt').toBe(2);
@@ -1174,10 +1174,10 @@ test('the bunny rescue, the faerie quest after it, and a night that says both', 
   ]);
   expect(bothDone.faeries.length, 'three faeries out of the fire').toBe(3);
   expect(bothDone.coins, 'and a coin apiece, which is two of her three boxes').toBe(2);
-  // Two of the three jobs are behind her and the third is Hazel's, so there is
+  // Two of the three jobs are behind her and the third is Morgana's, so there is
   // exactly one cloud left in the sky and it is over the girl who wants a story.
   // Neither Sneak nor Dad has anything left to ask.
-  expect(bothDone.quest.offers, 'and Hazel still has a story to be read').toEqual(['hazel']);
+  expect(bothDone.quest.offers, 'and Morgana still has a story to be read').toEqual(['morgana']);
   expect(bothDone.quest.markers, 'one cloud left, and only one').toBe(1);
 
   // Out of the cave, and back to the wood she cleared this morning. This is the

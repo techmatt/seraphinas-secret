@@ -72,7 +72,7 @@ export const DEPTH = {
    * sparkle coming off either.
    *
    * Under the balloon and under the HUD rows, which is deliberate on both
-   * counts. Hazel's delight as a page turns is somebody talking and has to be
+   * counts. Morgana's delight as a page turns is somebody talking and has to be
    * readable over the page she is talking about; the rows are taken off screen
    * by hand while the book is up rather than drawn over — see
    * `RoomScene.openBook` — because a takeover that left the tool belt showing
