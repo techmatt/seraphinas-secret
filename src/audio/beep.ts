@@ -200,6 +200,23 @@ export function playPickup(): void {
 }
 
 /**
+ * A page turning: a short sweep of paper, and two soft notes over the top.
+ *
+ * Mostly noise rather than mostly notes, because paper is the one thing in this
+ * file that has no pitch — a chime on its own would be a spell, and what just
+ * happened is a page. The band slides *up* rather than down, which is the one
+ * place in this file that happens: everything else here falls because it is
+ * splitting, tumbling or landing, and a page goes the other way.
+ */
+export function playPageTurn(): void {
+  playNoise(0.24, 700, 3200, 0.075);
+  playNotes([
+    { freq: 587.3, at: 0.06, dur: 0.14, peak: 0.12 },
+    { freq: 880, at: 0.15, dur: 0.2, peak: 0.13 },
+  ]);
+}
+
+/**
  * A coin landing in the pocket: two bright notes a fifth apart, and a third one
  * on top of them that rings on.
  *

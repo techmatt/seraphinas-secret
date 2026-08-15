@@ -67,6 +67,18 @@ export const DEPTH = {
   faeries: 85_000,
   prompt: 90_000,
   sparkles: 95_000,
+  /**
+   * The open book: a takeover, so it covers the world, the green dot and every
+   * sparkle coming off either.
+   *
+   * Under the balloon and under the HUD rows, which is deliberate on both
+   * counts. Hazel's delight as a page turns is somebody talking and has to be
+   * readable over the page she is talking about; the rows are taken off screen
+   * by hand while the book is up rather than drawn over — see
+   * `RoomScene.openBook` — because a takeover that left the tool belt showing
+   * would be asking her to press a button that does nothing.
+   */
+  book: 99_000,
   speech: 100_000,
   hud: 100_100,
 } as const;
