@@ -17,7 +17,7 @@ export function tokenize(text: string): string[] {
 }
 
 /** A token the provider will have spoken — anything with a letter or digit in it. */
-function isSpeakable(token: string): boolean {
+export function isSpeakable(token: string): boolean {
   return /[\p{L}\p{N}]/u.test(token);
 }
 

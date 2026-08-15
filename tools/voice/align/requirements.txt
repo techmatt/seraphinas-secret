@@ -1,0 +1,13 @@
+# Pinned: torch 2.6 is the first release with cp313 wheels, and torchaudio's
+# CTC forced-alignment API (functional.forced_align, pipelines.MMS_FA) is stable
+# across 2.5-2.6. Install torch from the CPU index — the default index pulls
+# ~3 GB of CUDA nobody here has a card for.
+#
+#   pip install --index-url https://download.pytorch.org/whl/cpu torch==2.6.0 torchaudio==2.6.0
+#   pip install -r requirements.txt
+torch==2.6.0
+torchaudio==2.6.0
+# libsndfile 1.2 decodes mp3, which is how the existing edge-tts clips are read.
+# This machine has no ffmpeg, so soundfile is the only decoder available.
+soundfile>=0.13
+numpy>=2.0
