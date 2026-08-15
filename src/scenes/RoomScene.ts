@@ -2533,7 +2533,13 @@ export class RoomScene extends Phaser.Scene {
   private showHud(on: boolean): void {
     this.toolRow.container.setVisible(on);
     this.coinRow.container.setVisible(on);
-    if (!on) this.prompt.setVisible(false);
+    if (on) return;
+    this.prompt.setVisible(false);
+    // And the picture of the stick, if she has not walked yet. It is drawn over
+    // the book like everything else on the HUD shelf, and being shown how to
+    // walk while somebody is reading to you is an answer to a question nobody
+    // asked. It never comes back: dismissing it is what walking does.
+    this.stickHint?.dismiss();
   }
 
   /**

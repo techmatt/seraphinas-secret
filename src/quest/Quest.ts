@@ -175,7 +175,7 @@ export type PhaseGoal =
   | { kind: 'fell'; falls: string[] }
   | { kind: 'gather'; items: QuestSpot[]; of: Gathered }
   | { kind: 'lure'; bunnies: string[]; den: QuestSpot }
-  | { kind: 'book'; zone: string; at: { x: number; y: number; r: number }; book: string; pages: string[] }
+  | { kind: 'book'; zone: string; at: { x: number; y: number }; book: string; pages: string[] }
   | { kind: 'park' };
 
 export interface QuestPhase {
@@ -253,12 +253,16 @@ export function gatheredBy(phase: QuestPhase | null): Gathered | null {
 }
 
 /**
- * The reading a phase is, or null. Which book, where she has to be sitting, and
- * the progress key of each page.
+ * The reading a phase is, or null. Which book, where it is lying, and the
+ * progress key of each page.
+ *
+ * `at` is the book on the floor rather than a spot she has to stand on: it is an
+ * interactable like anything else, so how close is close enough is the green
+ * button's business and not a radius a quest gets to invent.
  */
 export function readingOf(
   phase: QuestPhase | null,
-): { zone: string; x: number; y: number; r: number; book: string; pages: string[] } | null {
+): { zone: string; x: number; y: number; book: string; pages: string[] } | null {
   const goal = phase?.goal;
   if (goal?.kind !== 'book') return null;
   return { zone: goal.zone, ...goal.at, book: goal.book, pages: goal.pages };

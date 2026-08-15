@@ -163,7 +163,7 @@ export class BookReader {
     // The promise this game always makes: a green dot, never a letter. It comes
     // up only once the page has finished reading itself, which is the only
     // moment green does anything at all in here.
-    this.dot = makeButtonDot(scene, right.x + right.w - 26, right.y + right.h - 6, {
+    this.dot = makeButtonDot(scene, right.x + right.w - 44, right.y + right.h - 34, {
       radius: 20,
       pulse: true,
     }).setVisible(false);

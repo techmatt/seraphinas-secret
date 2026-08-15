@@ -379,6 +379,16 @@ const NOOK = { x: 28.5, y: 7.5 } as const;
 const HAZEL_ON_THE_RUG = { x: 26.5, y: 7.5 } as const;
 
 /**
+ * ...and where the book itself lies: half a tile in front of where she stands.
+ *
+ * Not on the spot, which is where it was: a thing on the floor sorts by its own
+ * feet, so a book directly under her is a book behind her, and the only sign of
+ * it left is the light on the rug. Half a tile down puts it between her and the
+ * camera, which is where something being read on a rug actually is.
+ */
+const BOOK_ON_THE_RUG = { x: NOOK.x, y: NOOK.y + 0.6 } as const;
+
+/**
  * Book #1's four pages, as progress keys.
  *
  * They are keys and not sentences: what the sentences *are* lives in
@@ -438,17 +448,17 @@ export const STORY_QUEST: Quest = {
     },
     {
       /**
-       * The story. Green opens the book, and from there the reader has the
-       * screen — see `ui/BookReader.ts`. The radius is a shade wider than the
-       * walk's, so a step taken while the book was shut is never a step that
-       * takes the book away.
+       * The story. The book is an interactable lying on the rug and green opens
+       * it, so how close is close enough is the same distance every green dot in
+       * the game keeps. From there the reader has the screen — see
+       * `ui/BookReader.ts`.
        */
       id: 'read',
       instruction: 'hazel_story_read',
       goal: {
         kind: 'book',
         zone: 'house',
-        at: { ...NOOK, r: 1.8 },
+        at: BOOK_ON_THE_RUG,
         book: 'pip-moon',
         pages: PIP_PAGES,
       },
