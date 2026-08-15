@@ -206,12 +206,17 @@ test('storytime: a book off the shelf, and four pages read aloud on the rug', as
   await until(page, () => (window as unknown as { __seraphina: Hooks }).__seraphina.book.open);
 
   const opened = await readHooks(page);
-  expect(opened.book.id, 'book number one').toBe('pip-moon');
+  expect(opened.book.id, 'book number one').toBe('pip_moon');
   expect(opened.book.pages, 'four pages').toBe(4);
   expect(opened.book.page, 'open at the first').toBe(0);
   expect(opened.book.reading, 'and reading itself the moment it opens').toBe(true);
   expect(opened.book.line).toBe('book_pip_moon_1');
   expect(opened.book.words.join(' '), 'with the sentence on the page').toBe(PAGES[0]);
+  // ...and Matt's drawing beside it rather than the placeholder card. The book
+  // reads either way on purpose, so this is the only thing that fails when the
+  // side-load's `stories/` folder stops reaching the browser — see
+  // `content/books/README.md`.
+  expect(opened.book.picture, 'and the real picture on the left').toBe('art');
   expect(opened.voice.lineId, 'and that is what the game reports as being spoken').toBe(
     'book_pip_moon_1',
   );

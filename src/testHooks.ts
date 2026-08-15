@@ -115,6 +115,15 @@ export interface BookHooks {
   /** The words on the page, and which of them is lit. The reading, checkable. */
   words: string[];
   highlighted: number;
+  /**
+   * Whether the left-hand page drew the real picture or the placeholder card.
+   *
+   * The book is deliberately just as playable either way, which is exactly why
+   * this is worth a hook: the pictures come out of the gitignored asset mirror
+   * now (`content/books/README.md`), so a sync that stopped carrying `stories/`
+   * would cost four drawn pages and break no assertion at all.
+   */
+  picture: 'art' | 'card';
 }
 
 /**
@@ -544,6 +553,7 @@ export const hooks: TestHooks = {
     line: null,
     words: [],
     highlighted: -1,
+    picture: 'card',
   },
   quest: {
     id: null,

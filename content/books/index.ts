@@ -13,15 +13,21 @@
  * The voice ids below are cut by `npm run voice:build` from
  * `content/voice/lines.json`, which is where the words are actually spoken.
  *
- * **Pictures are site-root-relative and may be missing.** `books/pip-moon/page1.png`
- * is `public/books/pip-moon/page1.png` on disk and `/books/pip-moon/page1.png` in
- * the browser — the same arrangement the voice manifest's `audio` field has. The
- * files are not in the repo yet: until they are, the reader draws a soft
- * placeholder card in their place, and dropping the real PNGs in at these exact
- * paths is the whole of the swap. Nothing under `src/` changes. They are not
- * pack art — they are Matt's own, so they may be committed, and they
- * deliberately do **not** live under `public/assets/`, which is the gitignored
- * mirror `npm run assets:sync` rebuilds and would wipe them.
+ * **Pictures come out of the side-load, like every other picture.**
+ * `assets/stories/pip_moon/page1.png` is
+ * `C:\Code\seraphinas-assets\stories\pip_moon\page1.png` on Matt's disk, mirrored
+ * into `public/assets/stories/` by `npm run assets:sync` and fetched from
+ * `/assets/stories/pip_moon/page1.png` — the same arrangement the voice
+ * manifest's `audio` field has. That location and that format are Matt's own
+ * (Matt, 2026-08-15); the game adapts to them rather than the other way round,
+ * which is why the ids below use **underscores** and match the folder names
+ * exactly. See `README.md` beside this file.
+ *
+ * **A picture may simply not be there.** The reader draws a soft placeholder
+ * card in its place, and `npm run assets:sync` writes a placeholder PNG into the
+ * side-load for every page nobody has drawn — so book #2 is four sentences and a
+ * folder waiting for art, and neither the sync nor the game says a word about
+ * it. Nothing under `src/` names a file.
  */
 
 /** One page: a picture, a sentence, and the two voices either side of it. */
@@ -51,7 +57,12 @@ export interface BookPage {
 }
 
 export interface Book {
-  /** Stable key. The quest names it, and the picture folder is called this. */
+  /**
+   * Stable key. The quest names it, and the picture folder on Matt's disk is
+   * called this — so it is a directory name before it is anything else, and
+   * uses underscores rather than hyphens to match the voice line ids
+   * (`book_pip_moon_1`) and the folder side by side.
+   */
   id: string;
   /**
    * The book's name. Not drawn anywhere — the spread is a picture and one
@@ -71,31 +82,31 @@ export interface Book {
  * on a bang and none of them has one in the middle.
  */
 const PIP_MOON: Book = {
-  id: 'pip-moon',
+  id: 'pip_moon',
   title: 'Pip Goes to the Moon',
   pages: [
     {
       text: 'Pip the dog zoomed up to the moon!',
       line: 'book_pip_moon_1',
-      image: 'books/pip-moon/page1.png',
+      image: 'assets/stories/pip_moon/page1.png',
       cheer: 'hazel_book_moon',
     },
     {
       text: 'On the moon Pip met a baby dragon!',
       line: 'book_pip_moon_2',
-      image: 'books/pip-moon/page2.png',
+      image: 'assets/stories/pip_moon/page2.png',
       cheer: 'hazel_book_dragon',
     },
     {
       text: 'The dragon sneezed sparkles all over Pip!',
       line: 'book_pip_moon_3',
-      image: 'books/pip-moon/page3.png',
+      image: 'assets/stories/pip_moon/page3.png',
       cheer: 'hazel_book_sparkles',
     },
     {
       text: 'Now Pip and the dragon are best friends!',
       line: 'book_pip_moon_4',
-      image: 'books/pip-moon/page4.png',
+      image: 'assets/stories/pip_moon/page4.png',
       cheer: 'hazel_book_best',
     },
   ],

@@ -464,7 +464,7 @@ export const STORY_QUEST: Quest = {
         kind: 'book',
         zone: 'house',
         at: BOOK_ON_THE_RUG,
-        book: 'pip-moon',
+        book: 'pip_moon',
         pages: PIP_PAGES,
       },
     },

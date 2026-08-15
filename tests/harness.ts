@@ -119,6 +119,7 @@ export type Hooks = {
     line: string | null;
     words: string[];
     highlighted: number;
+    picture: 'art' | 'card';
   };
   quest: {
     id: string | null;

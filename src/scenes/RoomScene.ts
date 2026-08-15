@@ -1087,6 +1087,7 @@ export class RoomScene extends Phaser.Scene {
       line: reader?.current?.line ?? null,
       words: reader?.spokenWords ?? [],
       highlighted: reader?.highlightedIndex ?? -1,
+      picture: reader?.drew ?? 'card',
     };
   }
 

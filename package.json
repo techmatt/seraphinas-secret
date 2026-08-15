@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "assets:sync": "tsx tools/assets/sync.ts",
+    "books:placeholders": "tsx tools/books/placeholders.ts",
     "predev": "npm run assets:sync",
     "prebuild": "npm run assets:sync",
     "dev": "vite",

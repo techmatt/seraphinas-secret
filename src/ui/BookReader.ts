@@ -119,6 +119,8 @@ export class BookReader {
 
   /** The left page's picture, or the card standing in for one. Rebuilt per page. */
   private picture: Phaser.GameObjects.GameObject | null = null;
+  /** Which of the two the current page got. See `drew`. */
+  private drewArt = false;
 
   private spec: Book | null = null;
   private at = 0;
@@ -256,6 +258,18 @@ export class BookReader {
   /** The page she is on, or null when the book is shut. */
   get current(): BookPage | null {
     return this.spec?.pages[this.at] ?? null;
+  }
+
+  /**
+   * Whether the left-hand page is the real picture or the card standing in.
+   *
+   * Worth reporting because the two look nothing alike and are indistinguishable
+   * to everything else: the book works either way, on purpose, so a mirror that
+   * quietly stopped carrying `stories/` would cost four drawn pictures and
+   * nothing would fail. See `content/books/README.md`.
+   */
+  get drew(): 'art' | 'card' {
+    return this.drewArt ? 'art' : 'card';
   }
 
   // --- opening and closing --------------------------------------------------
@@ -457,9 +471,11 @@ export class BookReader {
       art.setScale(Math.min(box.w / art.width, box.h / art.height));
       this.body.addAt(art, 1);
       this.picture = art;
+      this.drewArt = true;
       return;
     }
 
+    this.drewArt = false;
     const tint = PLACEHOLDER_TINTS[index % PLACEHOLDER_TINTS.length]!;
     const card = this.scene.add.graphics();
     card.fillStyle(0xfff3e0, 1);

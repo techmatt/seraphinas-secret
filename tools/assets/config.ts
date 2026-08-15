@@ -61,6 +61,29 @@ export const CATEGORIES = [
   'Cute_Fantasy_UI/UI',
 ];
 
+/**
+ * The book pictures: one folder per book id, `page<N>.png` inside it.
+ *
+ * Not pack art — Matt draws these — but they live in the side-load beside it,
+ * because that is where he generates them and the format is his (Matt,
+ * 2026-08-15). Which means they reach the game the same way every other picture
+ * does, through this mirror, and `content/books/index.ts` names them
+ * `assets/stories/<id>/page<N>.png`.
+ */
+export const STORIES_DIR = 'stories';
+
+/**
+ * Folders mirrored when the side-load has them and passed over in silence when
+ * it does not.
+ *
+ * The difference from `CATEGORIES` is what a missing folder means. A missing
+ * pack category is a broken side-load and has to stop the build. A missing
+ * story picture is a book nobody has drawn yet — book #2 is legitimately four
+ * sentences with no art — and the reader already draws a placeholder card for
+ * one. So this may not fail, here or in the game.
+ */
+export const OPTIONAL_CATEGORIES = [STORIES_DIR];
+
 /** For the failure message and the README attribution. */
 export const PACK_NAME = 'Cute Fantasy RPG by Kenmi';
 export const PACK_URL = 'https://kenmi-art.itch.io/cute-fantasy-rpg';

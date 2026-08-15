@@ -11,12 +11,26 @@
  * rewritten — because this runs before every single `npm run dev`. Files that
  * have left the pack leave the mirror too, so a stale category cannot linger
  * and be loaded by accident.
+ *
+ * It also carries the book pictures, which are Matt's own rather than the
+ * pack's but sit beside it in the side-load: `stories/<book-id>/page<N>.png`.
+ * That half is *optional* on both ends — a missing folder is passed over, and a
+ * book with no art gets a placeholder written for Matt to paint over rather
+ * than a failure. See `tools/books/placeholders.ts` and `content/books/`.
  */
 
 import { mkdir, copyFile, readdir, rm, stat, utimes } from 'node:fs/promises';
 import path from 'node:path';
 
-import { CATEGORIES, PACK_DIR, PACK_NAME, PACK_URL, PUBLIC_DIR } from './config.js';
+import { writeMissingPlaceholders } from '../books/placeholders.js';
+import {
+  CATEGORIES,
+  OPTIONAL_CATEGORIES,
+  PACK_DIR,
+  PACK_NAME,
+  PACK_URL,
+  PUBLIC_DIR,
+} from './config.js';
 
 interface Counts {
   copied: number;
@@ -90,7 +104,14 @@ async function main(): Promise<void> {
     );
   }
 
+  // Before the mirror, so a book authored since the last run has somewhere for
+  // its art to go — and so the placeholders it just wrote are carried across in
+  // the same pass rather than one dev server later.
+  const stubs = await writeMissingPlaceholders();
+  for (const file of stubs) console.log(`  book placeholder written — paint over ${file}`);
+
   const counts: Counts = { copied: 0, unchanged: 0, removed: 0 };
+  let mirrored = 0;
 
   for (const category of CATEGORIES) {
     const src = path.join(PACK_DIR, category);
@@ -102,12 +123,23 @@ async function main(): Promise<void> {
       );
     }
     await mirror(src, path.join(PUBLIC_DIR, category), counts);
+    mirrored++;
+  }
+
+  // The optional half. A book nobody has drawn is not a broken side-load, so a
+  // folder that is not there is passed over without a word — the reader draws
+  // its placeholder card and the game is exactly as playable.
+  for (const category of OPTIONAL_CATEGORIES) {
+    const src = path.join(PACK_DIR, category);
+    if (!(await statOrNull(src))?.isDirectory()) continue;
+    await mirror(src, path.join(PUBLIC_DIR, category), counts);
+    mirrored++;
   }
 
   console.log(
     `assets: ${counts.copied} copied, ${counts.unchanged} unchanged, ` +
-      `${counts.removed} removed — ${CATEGORIES.length} categor` +
-      `${CATEGORIES.length === 1 ? 'y' : 'ies'} in ${PUBLIC_DIR}`,
+      `${counts.removed} removed — ${mirrored} categor` +
+      `${mirrored === 1 ? 'y' : 'ies'} in ${PUBLIC_DIR}`,
   );
 }
 
