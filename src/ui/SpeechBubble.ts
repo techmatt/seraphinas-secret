@@ -1,23 +1,20 @@
 /**
  * A line of dialog that speaks itself and lights up each word as it is said.
  *
- * This is the load-bearing mechanic of the whole game: Seraphina cannot read,
- * so every word she sees is spoken, and the word being spoken is the word that
- * glows. Everything about the presentation is tuned for that — one word per
- * Phaser Text object so a single word can grow and change colour, a chunky
- * highlight slab behind it so the eye cannot miss which one is live, and no
- * fades so slow that the connection between sound and word gets lost.
+ * The highlight itself is `WordRibbon` — one word per Phaser Text object, a
+ * chunky slab behind the live one — and lives apart from this file because the
+ * book reader draws the same mechanic on a page rather than in a balloon. What
+ * is left here is the balloon: who is talking, where the words sit relative to
+ * them, and what may talk over what.
  */
 
 import Phaser from 'phaser';
 import { DEPTH, GAME_HEIGHT, GAME_WIDTH } from '../config';
+import { WordRibbon, type RibbonStyle } from './WordRibbon';
 import type { VoiceBank, VoiceLine, VoicePlayback } from '../voice/VoiceBank';
 
-const MAX_WIDTH = 620;
 const PAD_X = 34;
 const PAD_Y = 26;
-const LINE_HEIGHT = 46;
-const WORD_GAP = 20;
 
 /** Keep the balloon this far inside the canvas, and this far above the speaker. */
 const SCREEN_MARGIN = 40;
@@ -26,20 +23,20 @@ const SPEAKER_GAP = 92;
 /** How long the bubble lingers after the last word before it drifts away. */
 const HOLD_SECONDS = 0.7;
 
-const TEXT_STYLE: Phaser.Types.GameObjects.Text.TextStyle = {
-  fontFamily: 'system-ui, sans-serif',
-  fontSize: '34px',
-  fontStyle: 'bold',
-  color: '#3a2450',
+const RIBBON: RibbonStyle = {
+  text: {
+    fontFamily: 'system-ui, sans-serif',
+    fontSize: '34px',
+    fontStyle: 'bold',
+    color: '#3a2450',
+  },
+  maxWidth: 620,
+  lineHeight: 46,
+  wordGap: 20,
+  slab: 0xff8fd8,
+  spoken: '#ffffff',
+  resting: '#3a2450',
 };
-
-const SPOKEN = '#ffffff';
-const RESTING = '#3a2450';
-
-interface Laid {
-  text: Phaser.GameObjects.Text;
-  word: string;
-}
 
 /**
  * Whoever is talking: where they are, and who they are.
@@ -71,16 +68,13 @@ type Priority = 'said' | 'bark';
 
 export class SpeechBubble extends Phaser.GameObjects.Container {
   private readonly balloon: Phaser.GameObjects.Graphics;
-  private readonly slab: Phaser.GameObjects.Rectangle;
-  private words: Laid[] = [];
+  private readonly ribbon: WordRibbon;
 
   private line: VoiceLine | null = null;
   private playback: VoicePlayback | null = null;
 
   /** Set by scrub(): a frozen clock, for tests and for stepping through a line. */
   private scrubbed: number | null = null;
-
-  private highlighted = -1;
 
   /** What kind of line is up. Only meaningful while `line` is not null. */
   private priority: Priority = 'said';
@@ -98,9 +92,9 @@ export class SpeechBubble extends Phaser.GameObjects.Container {
     this.speaker = { id: 'seraphina', x, y };
 
     this.balloon = scene.add.graphics();
-    this.slab = scene.add.rectangle(0, 0, 10, 10, 0xff8fd8).setVisible(false);
+    this.ribbon = new WordRibbon(scene, RIBBON);
 
-    this.add([this.balloon, this.slab]);
+    this.add([this.balloon, this.ribbon]);
     // Above every y-sorted thing in the world: a tree must never eat a word.
     this.setDepth(DEPTH.speech).setVisible(false);
     scene.add.existing(this);
@@ -113,12 +107,12 @@ export class SpeechBubble extends Phaser.GameObjects.Container {
   }
 
   get spokenWords(): string[] {
-    return this.words.map((w) => w.word);
+    return this.ribbon.words;
   }
 
   /** Index into `spokenWords`, or -1 between words. */
   get highlightedIndex(): number {
-    return this.highlighted;
+    return this.ribbon.highlighted;
   }
 
   get time(): number {
@@ -207,10 +201,9 @@ export class SpeechBubble extends Phaser.GameObjects.Container {
     this.playback = null;
     this.line = null;
     this.scrubbed = null;
-    this.highlighted = -1;
     this.setVisible(false);
     this.scene.tweens.killTweensOf(this);
-    for (const { text } of this.words) this.scene.tweens.killTweensOf(text);
+    this.ribbon.clear();
   }
 
   /** Call once a frame from the scene. */
@@ -240,85 +233,19 @@ export class SpeechBubble extends Phaser.GameObjects.Container {
 
   private applyHighlight(seconds: number): void {
     if (!this.line) return;
-
-    const index = this.line.words.findIndex((w) => seconds >= w.start && seconds < w.end);
-    if (index === this.highlighted) return;
-
-    const previous = this.words[this.highlighted];
-    if (previous) {
-      this.scene.tweens.killTweensOf(previous.text);
-      previous.text.setColor(RESTING).setScale(1);
-    }
-
-    this.highlighted = index;
-
-    const current = this.words[index];
-    if (!current) {
-      this.slab.setVisible(false);
-      return;
-    }
-
-    // A slab behind the word rather than a colour change alone: a pre-reader
-    // finds the block far faster than the tint.
-    this.slab
-      .setVisible(true)
-      .setPosition(current.text.x, current.text.y)
-      .setSize(current.text.width + 16, current.text.height + 6);
-
-    current.text.setColor(SPOKEN);
-    this.scene.tweens.add({
-      targets: current.text,
-      scale: { from: 1.22, to: 1.08 },
-      duration: 180,
-      ease: 'Back.easeOut',
-    });
+    this.ribbon.highlight(seconds);
   }
 
   // --- layout --------------------------------------------------------------
 
-  /** One Text per word, wrapped by hand, so each word can be styled alone. */
+  /** Lay the words out, then draw a balloon round whatever shape they came out. */
   private layout(line: VoiceLine): void {
-    for (const { text } of this.words) text.destroy();
-    this.words = [];
+    this.ribbon.layout(line.words);
 
-    // First pass: lay the words out from a (0, 0) top-left. Each word is
-    // centre-origin so the highlight pop grows both ways instead of shoving
-    // itself into the next word.
-    let x = 0;
-    let y = 0;
-    let blockWidth = 0;
-    let blockHeight = 0;
-
-    for (const { word } of line.words) {
-      const text = this.scene.add.text(0, 0, word, TEXT_STYLE).setOrigin(0.5, 0.5);
-
-      if (x > 0 && x + text.width > MAX_WIDTH) {
-        x = 0;
-        y += LINE_HEIGHT;
-      }
-      text.setPosition(x + text.width / 2, y + text.height / 2);
-      x += text.width + WORD_GAP;
-
-      blockWidth = Math.max(blockWidth, x - WORD_GAP);
-      blockHeight = Math.max(blockHeight, y + text.height);
-
-      this.add(text);
-      this.words.push({ text, word });
-    }
-
-    // Second pass: shift everything so the container's origin is the centre,
-    // which is what the scene positions against.
-    const offsetX = -blockWidth / 2;
-    const offsetY = -blockHeight / 2;
-    for (const { text } of this.words) {
-      text.x += offsetX;
-      text.y += offsetY;
-    }
-
-    const w = blockWidth + PAD_X * 2;
-    const h = blockHeight + PAD_Y * 2;
-    const left = offsetX - PAD_X;
-    const top = offsetY - PAD_Y;
+    const w = this.ribbon.blockWidth + PAD_X * 2;
+    const h = this.ribbon.blockHeight + PAD_Y * 2;
+    const left = -this.ribbon.blockWidth / 2 - PAD_X;
+    const top = -this.ribbon.blockHeight / 2 - PAD_Y;
 
     // Sit above the speaker, but never off the edge of what is on screen. The
     // world scrolls now, so "the edge" is the camera's view of it and not the
