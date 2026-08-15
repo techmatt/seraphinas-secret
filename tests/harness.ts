@@ -107,6 +107,19 @@ export type Hooks = {
   takeTool: (tool: string) => boolean;
   coins: number;
   grantCoin: () => boolean;
+  finishQuest: (id: string) => void;
+  book: {
+    open: boolean;
+    id: string | null;
+    page: number;
+    pages: number;
+    reading: boolean;
+    turnable: boolean;
+    turns: number;
+    line: string | null;
+    words: string[];
+    highlighted: number;
+  };
   quest: {
     id: string | null;
     phase: string | null;
@@ -114,7 +127,11 @@ export type Hooks = {
     giver: string | null;
     offers: string[];
     markers: number;
-    slots: { id: string; filled: boolean; kind: 'gem' | 'button' | 'tree' | 'carrot' | 'bunny' }[];
+    slots: {
+      id: string;
+      filled: boolean;
+      kind: 'gem' | 'button' | 'tree' | 'carrot' | 'bunny' | 'storybook';
+    }[];
     held: string[];
     following: string | null;
     objects: { id: string; x: number; y: number; broken: boolean }[];
@@ -191,6 +208,7 @@ export const readHooks = (page: Page) =>
       giveTool,
       takeTool,
       grantCoin,
+      finishQuest,
       session,
       warpDay,
       voice,

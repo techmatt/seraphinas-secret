@@ -1055,12 +1055,17 @@ test('the bunny rescue, the faerie quest after it, and a night that says both', 
   expect(done.quest.phase, 'the quest parks').toBe('done');
   expect(done.quest.instruction, 'so the yellow button has nothing left to say').toBeNull();
   expect(done.session.run.completed, 'the day has it down as done').toEqual(['bunny']);
-  // Hazel is standing right here and is not asking again — that is what a
-  // finished job looks like. Sneak is across the village and *is*: finishing one
-  // quest must not cost her the other, so his cloud comes back the instant this
-  // one parks, rather than tomorrow morning.
-  expect(done.quest.offers, 'and the other one is going again').toEqual(['sneak']);
-  expect(done.quest.markers, 'with his thought bubble actually rebuilt').toBe(1);
+  // Everything she has not done today is on offer again, the instant this one
+  // parks rather than tomorrow morning: finishing one quest must not cost her
+  // another. Sneak is across the village with the faeries, and Hazel — standing
+  // right here, bunnies home — has her *second* job to ask for, which is the
+  // story. One head, one cloud, and the next of her jobs under it. See
+  // `QuestEngine.offerFrom`; `story.spec` is where that one gets played.
+  expect(done.quest.offers.sort(), 'and everything else is going again').toEqual([
+    'hazel',
+    'sneak',
+  ]);
+  expect(done.quest.markers, 'with a thought bubble apiece, actually rebuilt').toBe(2);
   expect(done.bunnies.every((b) => b.state === 'home'), 'all three live at the den').toBe(true);
   // The coin is hers the instant the third one is home, whatever she does next —
   // the split the first quest established. See `RoomScene.bunniesAllHome`.
@@ -1157,8 +1162,11 @@ test('the bunny rescue, the faerie quest after it, and a night that says both', 
   ]);
   expect(bothDone.faeries.length, 'three faeries out of the fire').toBe(3);
   expect(bothDone.coins, 'and a coin apiece, which is two of her three boxes').toBe(2);
-  expect(bothDone.quest.offers, 'nobody has anything left to ask today').toEqual([]);
-  expect(bothDone.quest.markers, 'so there is not a cloud in the sky').toBe(0);
+  // Two of the three jobs are behind her and the third is Hazel's other one, so
+  // there is exactly one cloud left in the sky and it is over the girl who wants
+  // a story. Sneak has nothing left to ask.
+  expect(bothDone.quest.offers, 'and Hazel still has a story to be read').toEqual(['hazel']);
+  expect(bothDone.quest.markers, 'one cloud left, and only one').toBe(1);
 
   // Out of the cave, and back to the wood she cleared this morning. This is the
   // rebuild that would have swallowed it: the ring and the bunnies belong to a

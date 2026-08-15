@@ -25,23 +25,27 @@ returns. The seam between "cleared by a night" and "kept" is
 ## Quest engine
 
 `src/quest/QuestEngine.ts` (rules, no Phaser), `src/quest/Quest.ts` (types),
-`src/quest/quests.ts` (the table — `faerie` and `bunny`).
+`src/quest/quests.ts` (the table — `faerie`, `bunny` and `story`).
 
-One quest at a time; there is no quest log. **Two quests do mean two thought
-bubbles before either is taken** — Sneak's and Hazel's — and accepting either
-takes both off the sky. **Finishing one puts the other back**, that instant and
+One quest at a time; there is no quest log. **Three quests, two givers, two
+thought bubbles.** Sneak has one job and Hazel has two, and one head wears one
+cloud — so `offerFrom` gives her the first of hers she has not done today, which
+makes the story her *second* job on any afternoon. Accepting anything takes every
+bubble off the sky. **Finishing one puts the others back**, that instant and
 wherever she is standing: the day refuses only what she has already done, which
 is `run.completed` on the store and is written by `advance` when a quest parks
 (Matt, 2026-08-13). Anything a finished quest left in the world — the ring, the
-bunnies at the den — outlives her taking the second job; see `inPlay`.
+bunnies at the den — outlives her taking the next job; see `inPlay`.
 A quest is phases with a `goal` of kind `fetch` /
-`collect` / `travel` / `ritual` / `fell` / `gather` / `lure` / `park`. `park` is
-the goal that cannot finish, which is what `finished` reads. Progress lives in
-the store, so walking through a doorway rebuilds the picture and never the
-progress. The engine also owns the *offer* counter (`nextOfferLine`,
+`collect` / `travel` / `ritual` / `fell` / `gather` / `lure` / `book` / `park`.
+`park` is the goal that cannot finish, which is what `finished` reads. Progress
+lives in the store, so walking through a doorway rebuilds the picture and never
+the progress. The engine also owns the *offer* counter (`nextOfferLine`,
 `forgetOffers`) and `gather`, which moves NPCs into a zone for named phases —
 applied at the next zone build, or immediately by `RoomScene.moveGuestsIn` when
-the job is taken in the same field it happens in.
+the job is taken in the same field it happens in. That method also sends a guest
+*away* from the zone she is standing in, which is how the story takes Hazel off
+the grass and puts her indoors on the press that takes it.
 
 Quest furniture (where a stone stands, where the bunny pen goes) is in
 `quests.ts`, deliberately not in `content/world/` — so `world:build`'s
@@ -88,7 +92,9 @@ anywhere in it; sleep is drawn as motes, not a Z.
 
 `src/state/recap.ts` — `snapshotDay()` then `recapFor(snapshot)`. A list of
 predicate/line pairs over the store: no numbers, because every word is pre-cut
-audio. Reported to tests as `hooks.recap`.
+audio. Reported to tests as `hooks.recap`. At most two events plus goodnight;
+the order is faeries, bunnies, **story**, errand, stones, trees — the three
+finished-job lines first, biggest first.
 
 ## Voice
 
@@ -100,14 +106,39 @@ Content-time, never at runtime:
   Incremental by fingerprint; `--force` redoes everything.
 - Output: `public/voice/manifest.json` plus mp3s. **The game may only read the
   manifest** — no file under `src/` may know the provider exists.
-- Runtime: `src/voice/VoiceBank.ts` loads it, `src/ui/SpeechBubble.ts` draws the
-  balloon and lights the word being spoken.
+- Runtime: `src/voice/VoiceBank.ts` loads it; `src/ui/WordRibbon.ts` is the
+  highlight itself — one Text per word, a slab behind the live one — and
+  `src/ui/SpeechBubble.ts` is the balloon drawn round it. The book reader uses
+  the same ribbon at storybook size, which is the only reason there is one.
+- Per-line prosody: a `rate` on a line in `lines.json` **replaces** the speaker's
+  rather than compounding with it. The four `book_pip_moon_*` pages are the only
+  lines that use it, at `-22%` against her usual `-8%`.
 - Checking: `npm run voice:inspect` compares word boundaries against the real
   waveform and reports phonics shape, without anybody listening.
 
 `src/voice/barks.ts` — the low kind of speech: one word, her own voice, dropped
 rather than queued. Naming barks are derived from ids (`ruby` → `seraphina_ruby`),
 so a new stone is a line in `lines.json` and nothing else.
+
+## The book reader
+
+`src/ui/BookReader.ts` — the takeover: a two-page spread, a picture on the left,
+one sentence on the right reading itself with the word being spoken lit up. The
+spread is one measured rectangle of the UI pack's `Book_UI.png`
+(`BOOK_SPREAD` in `src/ui/toolIcons.ts`); the highlight is `WordRibbon`, shared
+with the balloon.
+
+The books are authored data: `content/books/index.ts`, read by the game directly
+because there is nothing to generate. Adding book #2 is an entry in `BOOKS`.
+Page pictures are site-root-relative paths under `public/books/<id>/pageN.png`
+and **may be missing** — the reader draws a placeholder card instead, so
+dropping the real PNGs in needs no code change. See `public/books/README.md`.
+
+While it is open `RoomScene.update` asks the world nothing: no walking, no
+doorways, no dot. The day clock keeps running. Green is ignored mid-sentence and
+turns the page after; yellow re-reads; red closes, and reopening resumes at the
+same page because the pages are the phase's progress keys in the store. The HUD
+rows are hidden by `showHud` rather than drawn over.
 
 ## Trees
 
