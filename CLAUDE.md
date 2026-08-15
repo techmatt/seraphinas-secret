@@ -23,12 +23,14 @@ headless boot/screenshot smoke tests.
 | Path | What |
 | --- | --- |
 | `src/` | Game source. `main.ts` boots Phaser; `scenes/` holds scenes. |
-| `content/voice/` | Authored dialog: `lines.json` and `voices.json`. Source of truth. |
+| `content/voice/` | Authored dialog: `lines.json`, `voices.json`, `profiles.json`. Source of truth. |
+| `content/voice/clips/` | Ingested Firefly recordings, one per line, plus their provenance. Committed: a recording cannot be regenerated. |
 | `content/world/` | Authored map layout: regions, roads, where buildings go. Source of truth. |
-| `tools/voice/` | The voice generator. Providers live under `providers/`; nothing else may. |
+| `tools/voice/` | The voice generator, plus the Firefly batch/ingest loop. Providers live under `providers/`; nothing else may. |
 | `tools/world/` | The map generator, plus the catalog of which pack rectangle is which. |
 | `tools/assets/` | Mirrors the side-loaded art pack into `public/assets/`. |
 | `public/` | Static assets served as-is. `voice/` and `world/` are generated — do not hand-edit. |
+| `voice-batches/` | Matt's Firefly drop folder: generated batch text in, downloaded WAVs back. Gitignored bar its README. |
 | `tests/` | Playwright specs, plus `harness.ts` (boot, route, steer, read hooks). |
 | `tests/screenshots/` | Where the screenshot tour lands. Regenerated, ignored — see **Screenshots**. |
 | `docs/` | `systems.md` — every subsystem's entry point. `engineering.md` — durable facts about the pack, edge-tts, the browser and the gates. Read before rediscovering something. |
@@ -47,7 +49,10 @@ tours and the long walk), `npm run test:all` (both),
 `npm run typecheck` (`src/`, `tools/` and `content/`), `npm run voice:build`
 (regenerate audio; incremental, `--force` to redo everything),
 `npm run voice:inspect` (check word timings and phonics against the actual
-waveform, without listening), `npm run world:build` (regenerate the maps in
+waveform, without listening),
+`npm run voice:batch` / `voice:ingest` / `voice:status` (the manual Adobe
+Firefly loop — cut batch files, take a downloaded recording apart, ask what is
+still missing; see `voice-batches/README.md`), `npm run world:build` (regenerate the maps in
 `public/world/` from `content/world/layout.ts`; needs the art pack side-loaded,
 and refuses to write a world you cannot walk across),
 `npm run world:measure -- <pack-relative.png>` (print the bounding box of

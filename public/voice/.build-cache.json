@@ -190,7 +190,7 @@
     }
   },
   "dad_bedtime": {
-    "hash": "e4fd11fc4b01bdc1",
+    "hash": "7fd54497afba94f6",
     "entry": {
       "id": "dad_bedtime",
       "speaker": "dad",
@@ -570,7 +570,7 @@
     }
   },
   "dad_helper": {
-    "hash": "a09b0e6b5f900551",
+    "hash": "f4db26c0b0b21f05",
     "entry": {
       "id": "dad_helper",
       "speaker": "dad",
@@ -602,7 +602,7 @@
     }
   },
   "dad_shed": {
-    "hash": "b08fd2d65efe8007",
+    "hash": "ed2de61c56ebc4b2",
     "entry": {
       "id": "dad_shed",
       "speaker": "dad",
@@ -1490,7 +1490,7 @@
     }
   },
   "dad_quest_offer": {
-    "hash": "7be3bc27a8bc0841",
+    "hash": "3e0061e7e59dc1bb",
     "entry": {
       "id": "dad_quest_offer",
       "speaker": "dad",
@@ -1542,7 +1542,7 @@
     }
   },
   "dad_quest_pen": {
-    "hash": "a8b402122bb848c3",
+    "hash": "cadeefa6690c34bf",
     "entry": {
       "id": "dad_quest_pen",
       "speaker": "dad",
@@ -1609,7 +1609,7 @@
     }
   },
   "dad_quest_chop": {
-    "hash": "af68dbd650a65c42",
+    "hash": "3ca9fcf1360f0d36",
     "entry": {
       "id": "dad_quest_chop",
       "speaker": "dad",
@@ -1661,7 +1661,7 @@
     }
   },
   "dad_quest_carrots": {
-    "hash": "0fb8a0b7d1cd7aa9",
+    "hash": "ab9e59e66c703e37",
     "entry": {
       "id": "dad_quest_carrots",
       "speaker": "dad",
@@ -1713,7 +1713,7 @@
     }
   },
   "dad_quest_lure": {
-    "hash": "0811926bd3327ede",
+    "hash": "686bba9fe16baf24",
     "entry": {
       "id": "dad_quest_lure",
       "speaker": "dad",
@@ -1780,7 +1780,7 @@
     }
   },
   "dad_two_more": {
-    "hash": "9e8e9ead3441d816",
+    "hash": "2a64299c974ab07e",
     "entry": {
       "id": "dad_two_more",
       "speaker": "dad",
@@ -1817,7 +1817,7 @@
     }
   },
   "dad_one_more": {
-    "hash": "fbadc229684f4531",
+    "hash": "e645234859aee531",
     "entry": {
       "id": "dad_one_more",
       "speaker": "dad",
@@ -1854,7 +1854,7 @@
     }
   },
   "dad_bunnies_home": {
-    "hash": "cef4054efb5899a5",
+    "hash": "5ef53a36afec164d",
     "entry": {
       "id": "dad_bunnies_home",
       "speaker": "dad",
@@ -1891,7 +1891,7 @@
     }
   },
   "dad_bunny_coin": {
-    "hash": "d2b3929c6e3cde28",
+    "hash": "72ac59dc52da2e42",
     "entry": {
       "id": "dad_bunny_coin",
       "speaker": "dad",
@@ -2528,7 +2528,7 @@
     }
   },
   "book_pip_moon_1": {
-    "hash": "51447cfa50f2f616",
+    "hash": "fbb6c7f9d569c21b",
     "entry": {
       "id": "book_pip_moon_1",
       "speaker": "seraphina",
@@ -2580,7 +2580,7 @@
     }
   },
   "book_pip_moon_2": {
-    "hash": "ee8033d7957b160c",
+    "hash": "441fd33ccfc9c957",
     "entry": {
       "id": "book_pip_moon_2",
       "speaker": "seraphina",
@@ -2632,7 +2632,7 @@
     }
   },
   "book_pip_moon_3": {
-    "hash": "0e160b78448f96ac",
+    "hash": "62ae4628b047c46b",
     "entry": {
       "id": "book_pip_moon_3",
       "speaker": "seraphina",
@@ -2679,7 +2679,7 @@
     }
   },
   "book_pip_moon_4": {
-    "hash": "4b2aa058170e4e7f",
+    "hash": "2f8b1a7865cb2b7b",
     "entry": {
       "id": "book_pip_moon_4",
       "speaker": "seraphina",

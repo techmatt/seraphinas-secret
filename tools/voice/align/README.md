@@ -13,9 +13,15 @@ still only ever reads `public/voice/manifest.json`.
 | File | What |
 | --- | --- |
 | `aligner.py` | The aligner. Audio + spoken text → spans over the spoken words. Knows nothing about the game. |
-| `runAligner.ts` | Node's side of it: spawn the script, hand it a whole batch, get JSON back. |
+| `cutter.py` | Where to cut a batch recording between two lines, and the fade at each edge. |
+| `ingest.py` | **The production path.** One batch recording → one finished clip per line: resample, align, cut, trim, level, encode. Driven by `../ingest.ts`. |
+| `towav.py` | Anything libsndfile decodes → a 16-bit wav at a chosen rate. |
+| `runAligner.ts` | Node's side of the aligner: spawn the script, hand it a whole batch, get JSON back. |
 | `spikePerLine.ts` | Measures alignment against edge-tts's own timestamps. |
 | `spikeBatch.ts` | Synthesises one long utterance, aligns it, cuts it into per-line clips. |
+
+`ingest.py` is what runs when Matt records; the two spike scripts are how the
+numbers in `docs/engineering.md` were measured and are not part of the loop.
 
 `../align.ts` — one directory up — is a different job with a similar name: it
 maps *spoken* words onto the *displayed* tokens the game highlights. That stays
@@ -56,3 +62,19 @@ raw spans start about 100 ms late — every word, in the same direction. That is
 `LATENCY_SECONDS` in `aligner.py`, subtracted by default. `--latency 0` shows
 the raw spans, which is how the constant was measured; re-measure it with
 `spikePerLine.ts --raw` if the model or torchaudio version changes.
+
+## The second thing that will bite
+
+**A word with no crisp onset swallows the pause in front of it.** The first
+word of a sentence after a full stop is usually a vowel or a nasal, there is no
+acoustic edge for the model to find, and its span gets stretched back over the
+whole silence — so "where the last word ended" and "where the next word starts"
+can be the same instant with a second of silence between them.
+
+That breaks any cut placed *between* those two numbers, which is what
+`cutter.find_cut`'s caller in the spike does. `ingest.py` searches the whole
+neighbourhood of the join instead — from the start of the last word before it
+to the end of the first word after — for the longest run of silence, because
+silence is never inside speech. It then uses that run to correct the two spans
+it contradicts: a word cannot still be sounding during silence, and cannot have
+started before the silence ended.

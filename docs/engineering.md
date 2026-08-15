@@ -134,6 +134,45 @@ Measured 2026-08-15 over all 75 lines, against edge-tts's own word boundaries.
   of the next. Both pause sizes were tested; every join landed inside the real
   gap. A CTC span's own confidence score reliably flags the words that follow
   a pause, which are the only ones that wander.
+- **A word with no crisp onset swallows the pause in front of it, and that
+  collapses the cut window.** Measured 2026-08-15 on the first simulated
+  batches: 2 of 14 joins came back with the next line's first word starting at
+  the exact instant the previous line's last word ended, with a full second of
+  silence in between — "The" (score 0.40) and "go!" (0.20), both flagged by
+  the confidence score that already exists. Searching *between* the two spans
+  therefore finds nothing and the cut lands hard against a consonant. The fix
+  in `align/ingest.py` is to search the whole neighbourhood of the join —
+  start of the last word before, end of the first word after — for the longest
+  run of silence, since silence is never inside speech, and then to clamp the
+  two spans the run contradicts. That correction is also what keeps the
+  highlight off a word that is not being said yet.
+
+## Firefly ingest (measured 2026-08-15, on simulated batches)
+
+Matt has recorded no real Firefly batch yet. Everything here was measured with
+edge-tts standing in — one continuous utterance per batch, saved as a 44.1 kHz
+WAV — so the numbers about *our* pipeline hold and the numbers about *Firefly*
+do not exist.
+
+- **libsndfile 1.2.2 writes MP3, and Chromium decodes what it writes.** This
+  machine has no ffmpeg and that was the open question; `soundfile` with
+  `format="MP3", subtype="MPEG_LAYER_III"` is the whole encoder. Verified by
+  `voice:inspect`, which decodes every clip in Chromium.
+- **edge-tts writes 24 kHz mono mp3, ~18 KB a line.** Ingested clips are
+  written to match, at 21 KB a line over 16 clips; all 75 lines recorded would
+  be about 1.6 MB in the repo.
+- **The loudness target is -19 dBFS**, measured as RMS over the frames that are
+  not silence — not whole-clip RMS, which makes a line with a pause in it
+  measure quiet and then get boosted until one word shouts. The 75 edge-tts
+  clips run -21.2 to -16.5 with a median of -19.2, so the target leaves the
+  existing voice where it is. Peak is held under -1 dBFS.
+- **Forced alignment plus a trim beats edge-tts's own first-word boundary.**
+  `voice:inspect` reports the lag between a word's reported start and the audio
+  actually getting loud: the ingested clips run 0.000-0.002 s on the first word,
+  the edge-tts ones about 0.10 s, because edge-tts reports the first boundary at
+  the top of a clip that opens with silence.
+- **Alignment costs about 0.15 s per second of audio on CPU**, plus a ~1.5 s
+  model load per batch: a 37 s batch of twelve lines aligned in 5.7 s.
 
 ## Runtime
 

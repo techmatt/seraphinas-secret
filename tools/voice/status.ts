@@ -113,6 +113,20 @@ async function main(): Promise<void> {
     }
   }
 
+  // Prosody lives in the Firefly profile rather than in our data, so a profile
+  // edited after a batch was cut is a silent change of voice mid-scene. It does
+  // not make a clip stale — only the text does that — but it is worth saying.
+  const drifted = fresh.filter(
+    ({ clip }) => clip.voice !== profiles.profiles[clip.profile]?.voice,
+  );
+  if (drifted.length) {
+    console.log(
+      `\nprofile moved — ${drifted.length} clip${drifted.length === 1 ? '' : 's'} recorded under a voice ` +
+        `profiles.json no longer names: ${[...new Set(drifted.map((d) => d.clip.profile))].join(', ')}`,
+    );
+    console.log('Still played, because the words are right. Re-record if the voice matters.');
+  }
+
   const cuts = fresh.filter(({ clip }) => !clip.cut.usableGap);
   if (cuts.length) {
     console.log(

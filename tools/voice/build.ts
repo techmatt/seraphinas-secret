@@ -220,7 +220,7 @@ async function main(): Promise<void> {
     console.log(`  removed orphan ${orphan}`);
   }
 
-  await announce(opts, lines, stale, missing);
+  await announce(opts, lines, recorded, stale, missing);
 
   console.log(
     `voice: ${built} built, ${skipped} unchanged, ${recorded} from recordings, ` +
@@ -296,6 +296,7 @@ async function fromProvider(
 async function announce(
   opts: Options,
   lines: LineSpec[],
+  recorded: number,
   stale: { line: LineSpec; clip: ClipRecord }[],
   missing: LineSpec[],
 ): Promise<void> {
@@ -323,7 +324,7 @@ async function announce(
     }
     const summary = [...byProfile].map(([key, n]) => `${key} ${n}`).join(', ');
     console.log(
-      `\ncoverage: ${lines.length - missing.length}/${lines.length} lines recorded; ` +
+      `\ncoverage: ${recorded}/${lines.length} lines recorded; ` +
         `${missing.length} on edge-tts (${summary}) — npm run voice:status for the list`,
     );
   }

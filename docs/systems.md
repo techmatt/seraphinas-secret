@@ -102,11 +102,16 @@ finished-job lines first, biggest first.
 Content-time, never at runtime:
 
 - Authored: `content/voice/lines.json` (id, speaker, `text`, optional `say`,
-  `rate`, `note`) and `content/voice/voices.json` (speaker → provider voice).
-- Built: `npm run voice:build` → `tools/voice/build.ts` → `providers/edgeTts.ts`.
-  Incremental by fingerprint; `--force` redoes everything.
+  `rate`, `note`), `content/voice/voices.json` (speaker → edge-tts voice) and
+  `content/voice/profiles.json` (speaker → *Firefly* voice and UI settings,
+  plus the `storybook` profile the book pages are recorded under).
+- Built: `npm run voice:build` → `tools/voice/build.ts`. Every line resolves
+  one of two ways — an ingested Firefly clip whose stored spoken text still
+  matches, or edge-tts synthesised on the spot. Incremental by fingerprint;
+  `--force` redoes everything, `--no-clips` ignores the recordings.
 - Output: `public/voice/manifest.json` plus mp3s. **The game may only read the
-  manifest** — no file under `src/` may know the provider exists.
+  manifest** — no file under `src/` may know the provider exists, and the
+  manifest does not say which of the two filled a line in.
 - Runtime: `src/voice/VoiceBank.ts` loads it; `src/ui/WordRibbon.ts` is the
   highlight itself — one Text per word, a slab behind the live one — and
   `src/ui/SpeechBubble.ts` is the balloon drawn round it. The book reader uses
@@ -118,9 +123,32 @@ Content-time, never at runtime:
   waveform and reports phonics shape, without anybody listening.
 - Timings without a provider that gives them: `tools/voice/align/` — a Python
   forced aligner (torchaudio CTC) that recovers word spans from the audio and
-  the text alone, plus a cutter that splits a multi-line batch recording into
-  one clip per line. Built for the Firefly plan, which returns WAVs and no
-  timestamps. Not wired into `voice:build` yet; see its README.
+  the text alone, plus the cutter and `ingest.py`. See its README.
+
+### Firefly: the manual recording loop
+
+Adobe Firefly has no API, so a batch of lines is recorded by hand and the
+machinery lives either side of the paste. `tools/voice/firefly.ts` is the
+vocabulary all of it shares — profiles, the spoken-text hash, the clip store.
+
+| Command | What |
+| --- | --- |
+| `npm run voice:batch` | Cuts paste-ready batch files into `voice-batches/`: a `.txt` of nothing but spoken text, and a `.json` sidecar of line ids in order. Coverage-first by default; `--stale`, `--ids`, `--speaker`, `--profile`. Never mixes two speakers or two profiles. |
+| `npm run voice:ingest` | Takes `voice-batches/<batch>.wav` apart into one committed clip per line under `content/voice/clips/`, with provenance in `index.json`. |
+| `npm run voice:status` | Coverage, stale lines, and the words the aligner was unsure of. Reads only `content/`. |
+| `npm run voice:simulate` | Stands in for Matt: speaks a batch as one continuous edge-tts utterance and drops the WAV in as if it were a download. |
+
+`voice-batches/README.md` is Matt's copy of the loop and is the only file in
+that folder that is committed — the batch text, the sidecar and the download
+are inputs, and the clips are what gets kept.
+
+**The hash is the only guard.** `spokenFor(line)` is what the batch file says
+and what is stored beside the clip; `voice:build` compares the two and falls
+back to edge-tts, loudly, on any mismatch. Alignment is never asked whether a
+clip matches its line, because it answers wrongly and confidently.
+
+**Latest ingest wins.** The clip store is keyed by line id, so re-recording one
+line as a batch of one overwrites it. That is the patch mechanism.
 
 `src/voice/barks.ts` — the low kind of speech: one word, her own voice, dropped
 rather than queued. Naming barks are derived from ids (`ruby` → `seraphina_ruby`),
