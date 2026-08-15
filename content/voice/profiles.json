@@ -1,29 +1,29 @@
 {
   "provider": "firefly",
-  "note": "PLACEHOLDER VALUES. Every `voice` below is a stub until Matt auditions Adobe Firefly's voices and dictates the real names; the game never reads this file, so a wrong value here costs a re-record and nothing else. `settings` is Firefly's own UI — whatever the web page calls the knobs — copied here so a batch is reproducible months later. A batch's sidecar records the profile it was cut under, so changing a value here does not silently reinterpret clips already recorded.",
+  "note": "Every `voice` is the real Adobe Firefly voice Matt recorded that profile with (dictated 2026-08-15); `settings` is still TBD because no speed or pitch knob was dictated — the recordings were made at Firefly's defaults. `settings` is Firefly's own UI — whatever the web page calls the knobs — copied here so a batch is reproducible months later. The game never reads this file, so a wrong value here costs a re-record and nothing else. A batch's sidecar records the profile it was cut under, so changing a value here does not silently reinterpret clips already recorded.",
   "profiles": {
     "seraphina": {
-      "voice": "TBD",
+      "voice": "Vinita",
       "settings": { "speed": "TBD", "pitch": "TBD", "style": "TBD" },
       "note": "The four-year-old. Most of the book. edge-tts stands in with en-US-AnaNeural at -8%."
     },
     "dad": {
-      "voice": "TBD",
+      "voice": "John",
       "settings": { "speed": "TBD", "pitch": "TBD", "style": "TBD" },
       "note": "Grown man, warm and slow. edge-tts stands in with en-US-GuyNeural at -10%, -15Hz."
     },
     "morgana": {
-      "voice": "TBD",
+      "voice": "Anish",
       "settings": { "speed": "TBD", "pitch": "TBD", "style": "TBD" },
       "note": "The little sister. Brighter and quicker than Seraphina. edge-tts stands in at +6%, +40Hz."
     },
     "sneak": {
-      "voice": "TBD",
+      "voice": "Erin",
       "settings": { "speed": "TBD", "pitch": "TBD", "style": "TBD" },
       "note": "The faerie boy. Lower than the girls. edge-tts stands in at +4%, -35Hz."
     },
     "storybook": {
-      "voice": "TBD",
+      "voice": "Vinita",
       "settings": { "speed": "TBD — slower than the `seraphina` profile", "pitch": "TBD", "style": "TBD" },
       "note": "The book pages, read to somebody rather than said to them. Same person as `seraphina`; the slow delivery lives in Firefly's UI settings, not in our data — which is exactly why this is a separate profile and not a `rate` on a line. edge-tts stands in with the -22% on the four book_pip_moon_* lines."
     }
