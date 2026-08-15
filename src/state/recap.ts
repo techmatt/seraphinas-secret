@@ -36,6 +36,8 @@ export interface DayFacts {
   faeries: boolean;
   /** Three bunnies are out of the ring and home at the den. */
   bunnies: boolean;
+  /** She read Hazel a whole story, cover to cover. */
+  story: boolean;
   /** She took a job and the day ended before the job did. */
   onAnErrand: boolean;
   /**
@@ -82,6 +84,7 @@ export function snapshotDay(): DayFacts {
     // on to summon the faeries did both, and says both. Still not a counter —
     // the store remains the complete record of the day.
     bunnies: data.run.completed.includes('bunny'),
+    story: data.run.completed.includes('story'),
     onAnErrand: data.run.quest !== null && !quests.finished,
     stones: data.run.faeries || data.run.items.length > 0,
     trees,
@@ -120,15 +123,24 @@ export const MAX_EVENTS = 2;
  * why it sits beside the faerie line rather than under a heading of its own:
  * they are the two ways an afternoon can have finished something.
  *
- * Both of them can be true on one day, and that day is what the two slots are
- * for: an afternoon that summoned the faeries *and* got the bunnies home says
- * exactly those two things and nothing else. Everything below them is cut, and
- * the errand line is not even a candidate — an errand is a job she is still in
- * the middle of, and a day with two finished quests in it has none.
+ * More than one of them can be true on one day, and that day is what the two
+ * slots are for: an afternoon that summoned the faeries *and* got the bunnies
+ * home says exactly those two things and nothing else. Everything below them is
+ * cut, and the errand line is not even a candidate — an errand is a job she is
+ * still in the middle of, and a day with two finished quests in it has none.
+ *
+ * **The story goes third, under the other two finished jobs and over the
+ * errand.** Three of the five lines are now "a job she saw all the way through",
+ * and they belong together at the top — but the order inside that group is by
+ * how big the thing was, and being read a story is the smallest of the three: it
+ * is one room, one afternoon's ten minutes, and the only one of the three that
+ * does not end with something new following her about. It still beats the errand
+ * and everything below it, because finishing beats being halfway through.
  */
 const EVENTS: { line: string; when: (day: DayFacts) => boolean }[] = [
   { line: 'seraphina_recap_faeries', when: (day) => day.faeries },
   { line: 'seraphina_recap_bunnies', when: (day) => day.bunnies },
+  { line: 'seraphina_recap_story', when: (day) => day.story },
   { line: 'seraphina_recap_errand', when: (day) => day.onAnErrand },
   { line: 'seraphina_recap_stones', when: (day) => day.stones },
   { line: 'seraphina_recap_trees', when: (day) => day.trees > 0 },

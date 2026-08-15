@@ -120,6 +120,19 @@ export interface QuestGuest {
 }
 
 /**
+ * What a `gather` phase is picking up, as one word.
+ *
+ * It picks the picture lying in the grass, the picture in the box on the quest
+ * row, and the word she says as she straightens up — three things that must
+ * always be the same thing, so they are one field rather than three. It is a
+ * *name*, not a sprite: which pixels a carrot is drawn from is the scene's
+ * business and a rules layer that knew would be a rules layer with an art pack
+ * in it. See `GATHER_ART` in RoomScene, `KIND_ICONS` in QuestRow, and
+ * `nameOf` in `voice/barks.ts` — all three keyed off this one string.
+ */
+export type Gathered = 'carrot' | 'storybook';
+
+/**
  * How a phase ends.
  *
  *  - **fetch** — one thing on the ground; the green button picks it up.
@@ -136,6 +149,13 @@ export interface QuestGuest {
  *  - **gather** — several things lying in the grass, picked up with the green
  *    button in any order. `collect`'s twin for a thing that is not hit with
  *    anything: the row and the freedom are the same, and only the verb differs.
+ *    `of` says what they are; three carrots and one storybook are the same
+ *    phase with a different noun in it.
+ *  - **book** — sit somewhere with a book and be read to. It ends when the last
+ *    page has been turned, and the pages are the progress keys: one per page, so
+ *    closing the book and coming back is the same shape of thing as walking out
+ *    of the spell circle mid-ritual. The reader itself is `ui/BookReader.ts`;
+ *    all a quest says is which book, and where she has to be sitting.
  *  - **lure** — bring somebody home, one at a time, and one at a time is
  *    *enforced*: tagging a second while the first is following is a funny
  *    nothing. The quest names who and where; how a bunny follows is the scene's.
@@ -153,8 +173,9 @@ export type PhaseGoal =
   | { kind: 'travel'; zone: string; at?: { x: number; y: number; r: number } }
   | { kind: 'ritual'; zone: string; steps: RitualStep[] }
   | { kind: 'fell'; falls: string[] }
-  | { kind: 'gather'; items: QuestSpot[] }
+  | { kind: 'gather'; items: QuestSpot[]; of: Gathered }
   | { kind: 'lure'; bunnies: string[]; den: QuestSpot }
+  | { kind: 'book'; zone: string; at: { x: number; y: number; r: number }; book: string; pages: string[] }
   | { kind: 'park' };
 
 export interface QuestPhase {
@@ -224,6 +245,23 @@ export function ritualOf(
 /** The things a phase wants picked up off the ground, or none. */
 export function pickupsOf(phase: QuestPhase | null): QuestSpot[] {
   return phase?.goal.kind === 'gather' ? phase.goal.items : [];
+}
+
+/** What those things are, or null for a phase that is not picking anything up. */
+export function gatheredBy(phase: QuestPhase | null): Gathered | null {
+  return phase?.goal.kind === 'gather' ? phase.goal.of : null;
+}
+
+/**
+ * The reading a phase is, or null. Which book, where she has to be sitting, and
+ * the progress key of each page.
+ */
+export function readingOf(
+  phase: QuestPhase | null,
+): { zone: string; x: number; y: number; r: number; book: string; pages: string[] } | null {
+  const goal = phase?.goal;
+  if (goal?.kind !== 'book') return null;
+  return { zone: goal.zone, ...goal.at, book: goal.book, pages: goal.pages };
 }
 
 /** The lure a phase is, or null. Who has to be brought home, and where home is. */

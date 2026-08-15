@@ -27,9 +27,12 @@ import type { ToolId } from '../world/ToolBelt';
  * `carrot` and `bunny` are written out rather than derived from an id because
  * there are three of each and they are all the same word — `carrot_1` is not a
  * thing anybody says out loud. What she is being taught is the noun, so the noun
- * is what is in here.
+ * is what is in here. `storybook` is here for the other half of that reason:
+ * there is one of it, and `seraphina_book` is already the bookshelf saying "I
+ * want to read a book" — the noun she is taught as she picks it up is the whole
+ * compound word.
  */
-export type Named = ToolId | GemId | 'carrot' | 'bunny';
+export type Named = ToolId | GemId | 'carrot' | 'bunny' | 'storybook';
 
 /** Her naming it — "Hammer!", "Malachite!". */
 export function nameOf(thing: Named): string {

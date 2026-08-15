@@ -23,6 +23,7 @@ import { session, type SessionState } from '../state/session';
 import {
   itemOf,
   lureOf,
+  readingOf,
   ritualOf,
   rocksOf,
   type Quest,
@@ -58,7 +59,7 @@ export interface QuestSlot {
  * other kind is one picture however many boxes of it there are, which is what
  * makes four identical boxes read as "four of these" rather than as a list.
  */
-export type SlotKind = 'gem' | 'button' | 'tree' | 'carrot' | 'bunny';
+export type SlotKind = 'gem' | 'button' | 'tree' | 'carrot' | 'bunny' | 'storybook';
 
 /**
  * The progress key logged when she first stands in the ritual's circle.
@@ -138,12 +139,22 @@ export class QuestEngine {
    * on offer again, from wherever she happens to be standing when it happens
    * (Matt, 2026-08-13: finishing one quest must not prevent the other). Both
    * jobs in one afternoon, in either order.
+   *
+   * **One person may carry more than one job**, and then the bubble is about the
+   * first of theirs she has not done today — Hazel has the bunnies and the
+   * story, and one cloud over one head cannot offer two things at once. So her
+   * second job is her *next* one: it comes on offer the instant the first parks,
+   * and a night puts both back in order. Written as a search over the table
+   * rather than a lookup, because "the quest this person gives" stopped being a
+   * question with one answer the day a person had two.
    */
   offerFrom(npcId: string): Quest | null {
     if (this.store.quest && !this.finished) return null;
-    const quest = this.table.find((q) => q.giver === npcId);
-    if (!quest || this.store.completed.includes(quest.id)) return null;
-    return quest;
+    return (
+      this.table.find(
+        (q) => q.giver === npcId && !this.store.completed.includes(q.id),
+      ) ?? null
+    );
   }
 
   /**
@@ -206,7 +217,7 @@ export class QuestEngine {
     const goal = this.phase?.goal;
     if (goal?.kind === 'ritual') return boxes(goal.steps.map((s) => s.id), 'button');
     if (goal?.kind === 'fell') return boxes(goal.falls, 'tree');
-    if (goal?.kind === 'gather') return boxes(goal.items.map((i) => i.id), 'carrot');
+    if (goal?.kind === 'gather') return boxes(goal.items.map((i) => i.id), goal.of);
     if (goal?.kind === 'lure') return boxes(goal.bunnies, 'bunny');
     return boxes(rocksOf(this.phase).map((r) => r.id), 'gem');
   }
@@ -267,6 +278,40 @@ export class QuestEngine {
     // The stone is spent. It goes out of her pocket as it goes into the fire.
     this.store.drop(step.gem);
     return { hit: true, step, complete: this.step === null };
+  }
+
+  // --- the story ------------------------------------------------------------
+
+  /**
+   * Which page the book opens on.
+   *
+   * The first one she has not turned, which is the same rule the ritual's `step`
+   * uses and works for the same reason: pages are turned in order, so the done
+   * list is always a prefix and reading it off the store is what lets her close
+   * the book, wander off, and come back to the page she was on. Never past the
+   * end — the last page stays open until the press that closes the book, and by
+   * then the phase is over anyway.
+   */
+  get pageReached(): number {
+    const reading = readingOf(this.phase);
+    if (!reading) return 0;
+    const at = reading.pages.findIndex((id) => !this.store.did(id));
+    return at < 0 ? Math.max(0, reading.pages.length - 1) : at;
+  }
+
+  /**
+   * She turned the page she was on. Says which, and whether that was the last.
+   *
+   * `fell`'s shape exactly: the quest is not told *which* page — it takes the
+   * first one still open, because pages only ever move one way and progress
+   * never regresses. Null for a press during any other phase.
+   */
+  turnPage(): { id: string; count: number; complete: boolean } | null {
+    const reading = readingOf(this.phase);
+    if (!reading) return null;
+    const next = reading.pages.find((id) => !this.store.did(id));
+    if (!next) return null;
+    return { id: next, ...this.finish(next, false) };
   }
 
   // --- who is standing where ------------------------------------------------
@@ -346,6 +391,7 @@ export class QuestEngine {
     if (goal.kind === 'fell') return goal.falls;
     if (goal.kind === 'gather') return goal.items.map((i) => i.id);
     if (goal.kind === 'lure') return goal.bunnies;
+    if (goal.kind === 'book') return goal.pages;
     return null;
   }
 

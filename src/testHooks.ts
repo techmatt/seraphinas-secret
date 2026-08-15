@@ -85,6 +85,38 @@ export interface QuestHooks {
 }
 
 /**
+ * The open book, from the outside.
+ *
+ * Its own object rather than more fields on `quest`, because the two answer
+ * different questions and only one of them is bookkeeping. Which page she is on
+ * is the quest's progress read back; whether the page is still *reading itself*
+ * is a fact about a sentence, and it is the one rule of this screen — green does
+ * nothing until the read has finished. A test that could only see the quest
+ * could not tell a press that was correctly ignored from a press that was lost.
+ */
+export interface BookHooks {
+  /** Whether the takeover is up. Nothing about the world is live while it is. */
+  open: boolean;
+  /** Which book, or null when it is shut. */
+  id: string | null;
+  /** Which page, counting from zero. */
+  page: number;
+  /** How many the book has. */
+  pages: number;
+  /** The sentence is still being spoken; green is ignored. */
+  reading: boolean;
+  /** It has finished; the green dot is up and green turns the page. */
+  turnable: boolean;
+  /** Pages turned since the page loaded. A number to wait on rather than a delay. */
+  turns: number;
+  /** The voice line this page reads, whether or not it is reading right now. */
+  line: string | null;
+  /** The words on the page, and which of them is lit. The reading, checkable. */
+  words: string[];
+  highlighted: number;
+}
+
+/**
  * What time of day it is, and what the evening has done about it.
  *
  * The clock itself is a single number — milliseconds since she woke — and every
@@ -260,8 +292,19 @@ export interface TestHooks {
    * off and returns false. The same standing-in as `giveTool`.
    */
   grantCoin: () => boolean;
+  /**
+   * Write a quest down as done today without playing it.
+   *
+   * The same standing-in as `giveTool` and `grantCoin`, for the same kind of
+   * otherwise-unreachable state: Hazel gives two of the three quests and one
+   * head wears one thought bubble, so her second is only on offer on an
+   * afternoon her first is already finished. See `QuestEngine.offerFrom`.
+   */
+  finishQuest: (id: string) => void;
   /** Where she is in the one quest that can be running. See QuestHooks. */
   quest: QuestHooks;
+  /** The open book, or a shut one. See BookHooks. */
+  book: BookHooks;
   /**
    * The session store, copied out.
    *
@@ -488,6 +531,19 @@ export const hooks: TestHooks = {
   takeTool: () => false,
   coins: 0,
   grantCoin: () => false,
+  finishQuest: () => undefined,
+  book: {
+    open: false,
+    id: null,
+    page: 0,
+    pages: 0,
+    reading: false,
+    turnable: false,
+    turns: 0,
+    line: null,
+    words: [],
+    highlighted: -1,
+  },
   quest: {
     id: null,
     phase: null,

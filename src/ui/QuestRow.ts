@@ -34,6 +34,7 @@ import {
   type PadColorName,
 } from './ButtonDot';
 import {
+  BOOK_ICON,
   CARROT_ICON,
   GEM_ICONS,
   ICON_SIZE,
@@ -83,15 +84,17 @@ const ICON_SCALE = ICON_FILL / ICON_SIZE;
  * `size` is the art's own, so a picture cut off a 32-pixel animal sheet and one
  * cut off a 16-pixel icon sheet end up the same size in the box.
  */
-const KIND_ICONS: Partial<Record<SlotKind, { icon: IconDef | typeof BUNNY_ICON; size: number; tint: number }>> = {
+type BoxArt = IconDef | typeof BUNNY_ICON;
+
+const KIND_ICONS: Partial<Record<SlotKind, { icon: BoxArt; size: number; tint: number }>> = {
   tree: { icon: LOG_ICON, size: ICON_SIZE, tint: 0xd9b25f },
   carrot: { icon: CARROT_ICON, size: ICON_SIZE, tint: 0xff9d3c },
   bunny: { icon: BUNNY_ICON, size: BUNNY_ICON.size, tint: 0xfff0dc },
+  storybook: { icon: BOOK_ICON, size: ICON_SIZE, tint: 0xffcf8f },
 };
 
 /** A frame name or a frame number — the two ways this game addresses a sheet. */
-const frameOf = (icon: IconDef | typeof BUNNY_ICON): string | number =>
-  'frame' in icon ? icon.frame : icon.slot;
+const frameOf = (icon: BoxArt): string | number => ('frame' in icon ? icon.frame : icon.slot);
 
 interface Box {
   container: Phaser.GameObjects.Container;

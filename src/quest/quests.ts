@@ -1,5 +1,5 @@
 /**
- * Every quest in the game. There are two.
+ * Every quest in the game. There are three, and two givers.
  *
  * **The faerie quest.** Sneak's spell book has a spell that summons faeries and
  * it needs three magic stones. She finds a hammer by the well, cracks a stone
@@ -11,9 +11,19 @@
  * down, finds three carrots in the wood, and leads the bunnies home to the den
  * one at a time.
  *
- * **Two quests means two thought bubbles, and that is on purpose** (claude.ai,
- * 2026-08-13). Before either is taken there is a boy on his doorstep and a girl
- * by the pond, each with a cloud over their head, and she can do one of them.
+ * **Storytime.** Hazel asks to be read to. She fetches the storybook off the
+ * living-room bookshelf, carries it to the rug, and reads Hazel four pages of
+ * *Pip Goes to the Moon* — the game's reading flagship, and the one quest whose
+ * whole middle is a takeover UI rather than the world. See `ui/BookReader.ts`.
+ *
+ * **Three quests, two thought bubbles**, because a bubble sits over a head and
+ * Hazel has two jobs. She asks for the bunnies first and for the story once they
+ * are home; the order is this table's, and `QuestEngine.offerFrom` is the two
+ * lines that make it so. A night puts both back, in order.
+ *
+ * **Two thought bubbles at once is on purpose** (claude.ai, 2026-08-13). Before
+ * anything is taken there is a boy on his doorstep and a girl by the pond, each
+ * with a cloud over their head, and she can do one of them.
  * The engine's older comment worried that a second bubble is a choice she has to
  * make; two friends who each want help, on opposite sides of a village she can
  * only be in one half of, is not that kind of choice — and the alternative was
@@ -289,6 +299,7 @@ export const BUNNY_QUEST: Quest = {
       instruction: 'hazel_quest_carrots',
       goal: {
         kind: 'gather',
+        of: 'carrot',
         items: [
           { id: 'carrot_1', zone: 'outside', x: 11.5, y: 21.5 },
           { id: 'carrot_2', zone: 'outside', x: 18.5, y: 23.5 },
@@ -348,4 +359,130 @@ export const BUNNY_QUEST: Quest = {
   },
 };
 
-export const QUESTS: Quest[] = [FAERIE_QUEST, BUNNY_QUEST];
+// --- storytime ---------------------------------------------------------------
+
+/**
+ * The reading nook: the red rug in the living room, in front of the sofa.
+ *
+ * Written in tiles against the generated house — the rug is three tiles square
+ * with its top-left at (26, 6), the sofa stands on the top row of it and blocks
+ * (27, 6) and (28, 6), and the stool blocks (27, 8). What is left is row 7 all
+ * the way across, which is the strip of rug between the sofa and the little
+ * table, and that is where the two of them sit.
+ *
+ * They are two tiles apart, which is not a rounding: `INTERACT_RADIUS` is a
+ * tile and a half, so standing on the book puts Hazel *just* out of reach and
+ * the green dot cannot hop off the book onto her. Close enough to be reading
+ * together, far enough that the button means the book.
+ */
+const NOOK = { x: 28.5, y: 7.5 } as const;
+const HAZEL_ON_THE_RUG = { x: 26.5, y: 7.5 } as const;
+
+/**
+ * Book #1's four pages, as progress keys.
+ *
+ * They are keys and not sentences: what the sentences *are* lives in
+ * `content/books/`, which is authored content, and the quest only has to know
+ * how many there are and what to call the fact that one has been turned. See
+ * `PhaseGoal`'s `book`.
+ */
+const PIP_PAGES = ['page_1', 'page_2', 'page_3', 'page_4'];
+
+/**
+ * Storytime: Hazel asks to be read to.
+ *
+ * **Hazel's second job of the day**, and that is a consequence rather than a
+ * design: a thought bubble sits over a head, and one head cannot offer two
+ * things at once. So she asks for the bunnies first and for the story once the
+ * bunnies are home — see `QuestEngine.offerFrom` — and a night puts both back.
+ *
+ * Three phases and none of them is a hunt. The book is on the shelf it has
+ * always been on, the walk is across one room, and the reading is the whole
+ * point rather than the reward for it.
+ */
+export const STORY_QUEST: Quest = {
+  id: 'story',
+  giver: 'hazel',
+  offer: ['hazel_story_offer', 'hazel_story_book'],
+  phases: [
+    {
+      /**
+       * Fetch the book off the bookshelf. A `gather` of one rather than a
+       * `fetch`, because a `fetch` is how a *tool* arrives — it lands in the
+       * belt and the blue button can reach it — and a storybook is a thing she
+       * is carrying, which is what `gather` has always been.
+       *
+       * A tile in front of the shelf rather than on it: the shelf is solid and
+       * already wears a green dot of its own, and two dots a stride apart is a
+       * press that opens the wrong one. A tile down puts the book comfortably
+       * nearest wherever she has to stand to take it.
+       */
+      id: 'getBook',
+      instruction: 'hazel_story_book',
+      goal: {
+        kind: 'gather',
+        of: 'storybook',
+        items: [{ id: 'storybook', zone: 'house', x: 36.5, y: 5.5 }],
+      },
+    },
+    {
+      /**
+       * Across the living room to the rug. The walk to the pen exactly, at the
+       * scale of one room: arriving is the whole of the job, Hazel is already
+       * sitting there, and the light on the rug is the only direction anybody
+       * gives.
+       */
+      id: 'toHazel',
+      instruction: 'hazel_story_come',
+      goal: { kind: 'travel', zone: 'house', at: { ...NOOK, r: 1.4 } },
+    },
+    {
+      /**
+       * The story. Green opens the book, and from there the reader has the
+       * screen — see `ui/BookReader.ts`. The radius is a shade wider than the
+       * walk's, so a step taken while the book was shut is never a step that
+       * takes the book away.
+       */
+      id: 'read',
+      instruction: 'hazel_story_read',
+      goal: {
+        kind: 'book',
+        zone: 'house',
+        at: { ...NOOK, r: 1.8 },
+        book: 'pip-moon',
+        pages: PIP_PAGES,
+      },
+    },
+    {
+      /**
+       * Over. No instruction, the same as the other two quests' last phases, and
+       * for the same reason: the yellow dot goes and Hazel gets her own two idle
+       * lines back.
+       */
+      id: 'done',
+      goal: { kind: 'park' },
+    },
+  ],
+  /**
+   * She goes and waits on the rug — the bunny quest's arrangement, and the first
+   * time it crosses a doorway *away* from her: the job is taken by the pond and
+   * done in the living room, so the press that takes it has to take her off the
+   * grass as well as put her on the rug. `RoomScene.moveGuestsIn` does both.
+   */
+  gather: {
+    during: ['getBook', 'toHazel', 'read'],
+    guests: [
+      {
+        id: 'hazel',
+        sheet: 'hazel',
+        zone: 'house',
+        x: HAZEL_ON_THE_RUG.x,
+        y: HAZEL_ON_THE_RUG.y,
+        facing: 'right',
+        lines: ['hazel_play', 'hazel_pebble'],
+      },
+    ],
+  },
+};
+
+export const QUESTS: Quest[] = [FAERIE_QUEST, BUNNY_QUEST, STORY_QUEST];

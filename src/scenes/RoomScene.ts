@@ -7,6 +7,7 @@ import {
   playFizzle,
   playGemBreak,
   playGiggle,
+  playPageTurn,
   playPickup,
   playRockCrack,
   playSparkleChime,
@@ -19,16 +20,20 @@ import {
 import { unlockAudio } from '../audio/context';
 import { DEPTH, GAME_HEIGHT, TILE, TILE_SIZE, WORLD_SCALE } from '../config';
 import {
+  gatheredBy,
   itemOf,
   lureOf,
   pickupsOf,
+  readingOf,
   rocksOf,
   walkToOf,
+  type Gathered,
   type QuestPen,
   type QuestSpot,
   type RitualStep,
 } from '../quest/Quest';
 import { quests } from '../quest/QuestEngine';
+import { bookById } from '../../content/books';
 import { dayClock } from '../state/dayClock';
 import { recapFor, snapshotDay } from '../state/recap';
 import { nightPasses } from '../state/sleep';
@@ -40,7 +45,16 @@ import { makeQuestRow, type QuestRow } from '../ui/QuestRow';
 import { makeShimmer, type Shimmer } from '../ui/shimmer';
 import { makeStickHint, type StickHint } from '../ui/StickHint';
 import { makeToolRow, preloadToolIcons, type ToolRow } from '../ui/ToolRow';
-import { CARROT_WORLD, COIN_ICON, GEM_ICONS, TOOL_ICONS } from '../ui/toolIcons';
+import {
+  BOOK_ICON,
+  CARROT_WORLD,
+  COIN_ICON,
+  GEM_ICONS,
+  registerBookArt,
+  TOOL_ICONS,
+  type IconDef,
+} from '../ui/toolIcons';
+import { BookReader } from '../ui/BookReader';
 import { SpeechBubble, type Speaker } from '../ui/SpeechBubble';
 import { NEEDS, nameOf } from '../voice/barks';
 import { VoiceBank } from '../voice/VoiceBank';
@@ -184,6 +198,25 @@ const BUNNIES_LEFT = ['hazel_two_more', 'hazel_one_more'];
 const HAZEL_HOME = 'hazel_bunnies_home';
 const HAZEL_COIN = 'hazel_bunny_coin';
 
+/** ...and the last two about the story. Hers too, on the rug. */
+const HAZEL_HUG = 'hazel_story_hug';
+const HAZEL_STORY_COIN = 'hazel_story_coin';
+
+/**
+ * What a `gather` phase's things are drawn as, keyed by the one word the quest
+ * uses for them.
+ *
+ * The game's side of the fence: a quest says it is gathering carrots and this is
+ * where a carrot becomes a picture. The same string picks the box on the quest
+ * row (`KIND_ICONS`) and the word she says as she straightens up (`nameOf`), so
+ * a new thing to pick up is an entry here, an entry there, and a line in
+ * `lines.json`.
+ */
+const GATHER_ART: Record<Gathered, IconDef> = {
+  carrot: CARROT_WORLD,
+  storybook: BOOK_ICON,
+};
+
 /** What clears a prop: half its picture and a bit. */
 const DOT_LIFT = 58;
 
@@ -251,6 +284,22 @@ const PEN_TWINKLE = 2;
 const CARROT_TINT = 0xff9d3c;
 const PEN_TINT = 0xa8e86b;
 const DEN_TINT = 0x8fe0a0;
+
+/**
+ * ...and the light on the rug where the story happens: lamplight rather than a
+ * colour, because the reading nook is the one objective in the game that is a
+ * place indoors and a green pool on a red rug would be a puddle.
+ */
+const NOOK_TINT = 0xffd9a0;
+
+/**
+ * The beat between the book closing and Hazel saying what she thought of it.
+ *
+ * Shorter than the summoning's, because there is nothing to watch: the book
+ * folds away and the room is back, and a second of an empty living room before
+ * anybody speaks would read as the game having stopped.
+ */
+const STORY_BEAT = 600;
 
 /**
  * How the bedtime recap is paced over the starfield.
@@ -377,6 +426,15 @@ export class RoomScene extends Phaser.Scene {
   private inCircle = false;
 
   /**
+   * The book on the rug: the thing the green button opens during a reading
+   * phase. A GroundItem like a carrot, and deliberately not picked up — the
+   * press opens it where it lies.
+   */
+  private storybook: GroundItem | null = null;
+  /** The takeover it opens into. One per scene, hidden until it is. */
+  private reader!: BookReader;
+
+  /**
    * Three lights that came out of a fire and are not going home. Built from one
    * flag in the session store, so they cross every doorway with her. See Faeries.
    */
@@ -487,6 +545,7 @@ export class RoomScene extends Phaser.Scene {
     this.bunnies = [];
     this.circle = null;
     this.inCircle = false;
+    this.storybook = null;
     this.faeries = null;
     this.dusk = null;
     this.leaving = false;
@@ -509,7 +568,35 @@ export class RoomScene extends Phaser.Scene {
     // scene has no way of knowing which before the map is up, so the cheapest
     // honest answer is to always have the picture.
     preloadBunnies(this);
+    this.preloadBookPages();
     if (this.mapData) TileWorld.preload(this, this.mapData);
+  }
+
+  /**
+   * The pictures of whatever book the quest she is on is about.
+   *
+   * Queued for the *whole* quest rather than only for the phase that reads it,
+   * because the reading phase begins without a zone rebuild — she walks across
+   * one room to get to it — and a preload that waited for the phase would never
+   * run. Queued only while that quest is on, because the files may not be there:
+   * `content/books/` says the pictures are Matt's to drop in later, so until he
+   * does, this is four requests that miss, and four is worth paying inside the
+   * one quest that wants them rather than on every doorway in the game.
+   *
+   * A miss costs nothing else. Phaser logs the failure and carries on, and the
+   * reader draws its placeholder card for any page whose texture never arrived.
+   */
+  private preloadBookPages(): void {
+    const spec = quests.active?.phases
+      .map((phase) => readingOf(phase))
+      .find((reading) => reading !== null);
+    if (!spec) return;
+
+    const book = bookById(spec.book);
+    for (const page of book?.pages ?? []) {
+      if (this.textures.exists(page.image)) continue;
+      this.load.image(page.image, page.image);
+    }
   }
 
   create(): void {
@@ -635,6 +722,10 @@ export class RoomScene extends Phaser.Scene {
     // pen before both, because its trees are solid and she is about to be stood
     // somewhere that has to not be inside one.
     registerBunnyAnims(this);
+    // The book spread's named sub-frame, before anything that draws from it —
+    // the storybook lying on the rug and its box on the quest row are both put
+    // out below, and a frame nobody registered draws the whole sheet.
+    registerBookArt(this);
     this.buildPen();
     this.buildQuestObjects();
     this.refreshInteractables();
@@ -706,6 +797,10 @@ export class RoomScene extends Phaser.Scene {
     // The bubble belongs to whoever is talking, which for now is always
     // Seraphina, so it anchors to the player.
     this.bubble = new SpeechBubble(this, this.player.x, this.player.y, this.voice);
+    // The book is built with the zone and hidden until she opens one. It is a
+    // takeover, so it is welded to the camera and knows nothing about the world
+    // behind it — see `ui/BookReader.ts`.
+    this.reader = new BookReader(this, this.voice);
     this.setupVoiceHooks();
     // Fire and forget: the zone is playable while the voice is still loading,
     // and stays playable if it never arrives.
@@ -775,6 +870,19 @@ export class RoomScene extends Phaser.Scene {
     // night test have a coin worth keeping — and what lets a fourth coin be
     // offered to a full pocket at all, which is otherwise unreachable.
     hooks.grantCoin = () => this.grantCoin();
+    // And the same standing-in for a job already done today.
+    //
+    // Hazel carries two of the three quests and one head has one thought bubble,
+    // so her second job — the story — is only ever on offer on an afternoon the
+    // bunnies are already home. That afternoon costs a minute and a half to play
+    // through honestly, and `quest.spec` already plays it; a test about the book
+    // would be paying for the wood again to reach the shelf. This writes the
+    // morning down without living it, the way `grantCoin` hands over a coin
+    // nothing earned. See `QuestEngine.offerFrom`.
+    hooks.finishQuest = (id) => {
+      session.completeQuest(id);
+      this.refreshQuestHud();
+    };
     hooks.session = () => session.snapshot();
     hooks.warpDay = (ms) => {
       dayClock.warp(ms);
@@ -797,7 +905,15 @@ export class RoomScene extends Phaser.Scene {
     // through a doorway. See `padWasDown`.
     const button = this.readButtons(pad);
 
-    if (!this.leaving) {
+    if (this.reader.isOpen) {
+      // The book has the screen and every button on the pad. Nothing about the
+      // world is asked and nothing about the world answers — she is not standing
+      // anywhere she can walk out of, and a doorway that fired while she was
+      // being read to would take the story away. The day below carries on.
+      this.player.setMoving(false);
+      this.handleBook(button);
+      this.reader.tick(delta);
+    } else if (!this.leaving) {
       // She steers through the swing. There is no moment in this game where the
       // stick does nothing: the blow was aimed when the swing started and moving
       // does not retarget or cancel it, so letting her walk costs the chop
@@ -855,9 +971,8 @@ export class RoomScene extends Phaser.Scene {
       this.leaves.getAliveParticleCount() +
       this.chips.getAliveParticleCount();
     hooks.peakParticles = Math.max(hooks.peakParticles, hooks.aliveParticles);
-    hooks.voice.lineId = this.bubble.lineId;
-    hooks.voice.words = this.bubble.spokenWords;
-    hooks.voice.highlighted = this.bubble.highlightedIndex;
+    this.syncVoiceHooks();
+    this.syncBookHooks();
     // Where the three of them are, or an empty list when they have not been
     // summoned. The only honest way to ask "are they still with her" after a
     // doorway, which is the whole claim they exist to make.
@@ -926,12 +1041,56 @@ export class RoomScene extends Phaser.Scene {
     this.syncVoiceHooks();
   }
 
+  /**
+   * Whose words are on screen: the balloon's, or the open book's page.
+   *
+   * The balloon wins whenever it has anything, because a balloon over the book
+   * is somebody actually talking — Hazel, delighted, as a page turns — and the
+   * page underneath is not being read at that moment. The book only answers
+   * while it is reading itself, so "is anybody talking" stays one question with
+   * one answer and `waitForQuiet` means the same thing inside a book as out.
+   */
+  private get wordsOnScreen(): {
+    lineId: string | null;
+    spokenWords: string[];
+    highlightedIndex: number;
+  } {
+    if (this.bubble.lineId !== null) return this.bubble;
+    return this.reader?.isOpen ? this.reader : this.bubble;
+  }
+
   /** update() does this every frame, but a paused scene has no frames. */
   private syncVoiceHooks(): void {
-    hooks.voice.lineId = this.bubble.lineId;
-    hooks.voice.words = this.bubble.spokenWords;
-    hooks.voice.highlighted = this.bubble.highlightedIndex;
+    const said = this.wordsOnScreen;
+    hooks.voice.lineId = said.lineId;
+    hooks.voice.words = said.spokenWords;
+    hooks.voice.highlighted = said.highlightedIndex;
     this.syncBubbleHooks();
+  }
+
+  /**
+   * The book, from the outside.
+   *
+   * Its own object rather than more fields on `quest`, because the reader is not
+   * the quest: a page being turnable is a fact about a sentence having finished,
+   * and which page she is on is the *quest's* progress read back. A test that
+   * could only see the quest could not tell "the page is still reading" from
+   * "green did nothing", which is the one rule of this screen.
+   */
+  private syncBookHooks(): void {
+    const reader = this.reader;
+    hooks.book = {
+      open: reader?.isOpen ?? false,
+      id: reader?.bookId ?? null,
+      page: reader?.page ?? 0,
+      pages: reader?.pages ?? 0,
+      reading: reader?.reading ?? false,
+      turnable: reader?.turnable ?? false,
+      turns: reader?.turns ?? 0,
+      line: reader?.current?.line ?? null,
+      words: reader?.spokenWords ?? [],
+      highlighted: reader?.highlightedIndex ?? -1,
+    };
   }
 
   /** Where the balloon actually is, and whose it is. */
@@ -1061,6 +1220,16 @@ export class RoomScene extends Phaser.Scene {
       objects: [
         ...(this.lying
           ? [{ id: this.lying.id, x: this.lying.x, y: this.lying.y, broken: false }]
+          : []),
+        ...(this.storybook
+          ? [
+              {
+                id: this.storybook.id,
+                x: this.storybook.x,
+                y: this.storybook.y,
+                broken: false,
+              },
+            ]
           : []),
         ...this.pickups.map((carrot) => ({
           id: carrot.id,
@@ -1576,6 +1745,11 @@ export class RoomScene extends Phaser.Scene {
     this.time.delayedCall((spoken + 0.9) * 1000, () => {
       // She may have walked through a door in the six seconds he was talking.
       if (this.leaving || !this.scene.isActive()) return;
+      // Or opened the book, which is the one thing an instruction may never be
+      // spoken over: the page is reading itself, and two voices at once is no
+      // voice at all. The sentence is lost rather than queued — it was telling
+      // her to do the thing she is now doing.
+      if (this.reader.isOpen) return;
       // Or done the job in them, in which case this sentence is out of date and
       // its replacement has already been spoken.
       if (quests.instruction !== line) return;
@@ -1615,15 +1789,35 @@ export class RoomScene extends Phaser.Scene {
       else this.shimmers.push(makeShimmer(this, rock.x, rock.midY, GEM_ICONS[spot.id].tint));
     }
 
-    // The carrots. The stones' arrangement exactly, minus the hammer: one that
+    // The carrots — or the storybook, which is the same phase with a different
+    // noun in it. The stones' arrangement exactly, minus the hammer: one that
     // has been picked up is simply not built, because there is nothing left of
     // it to see — where a cracked stone still has its own broken picture.
+    const of = gatheredBy(phase);
     for (const spot of pickupsOf(phase)) {
-      if (spot.zone !== this.zoneId || !quests.waiting(spot.id)) continue;
-      const carrot = new GroundItem(this, spot.id, CARROT_WORLD, spot);
-      this.pickups.push(carrot);
+      if (spot.zone !== this.zoneId || !quests.waiting(spot.id) || !of) continue;
+      const lying = new GroundItem(this, spot.id, GATHER_ART[of], spot);
+      this.pickups.push(lying);
       this.shimmers.push(
-        makeShimmer(this, carrot.x, carrot.y - TILE_SIZE / 2, CARROT_TINT),
+        makeShimmer(
+          this,
+          lying.x,
+          lying.y - TILE_SIZE / 2,
+          of === 'storybook' ? NOOK_TINT : CARROT_TINT,
+        ),
+      );
+    }
+
+    // And the book, lying open on the rug where the two of them are sitting.
+    // She is carrying it — this is her putting it down to read it — so it is a
+    // place with a picture on it rather than a thing to collect, and the green
+    // button opens it rather than picking it up. See `openBook`.
+    const reading = readingOf(phase);
+    if (reading && reading.zone === this.zoneId) {
+      const spot = { id: 'storybook', zone: this.zoneId, x: reading.x, y: reading.y };
+      this.storybook = new GroundItem(this, spot.id, BOOK_ICON, spot);
+      this.shimmers.push(
+        makeShimmer(this, this.storybook.x, this.storybook.y - TILE_SIZE / 2, NOOK_TINT),
       );
     }
 
@@ -1652,6 +1846,8 @@ export class RoomScene extends Phaser.Scene {
     this.lying = null;
     for (const carrot of this.pickups) carrot.destroy();
     this.pickups = [];
+    this.storybook?.destroy();
+    this.storybook = null;
     // The rocks' own sprites go with the scene; only the list has to be dropped.
     this.rocks = [];
   }
@@ -1675,6 +1871,27 @@ export class RoomScene extends Phaser.Scene {
    */
   private moveGuestsIn(): void {
     const guests = quests.guests(this.zoneId);
+    // Anybody the quest has just sent somewhere *else* goes first. Storytime is
+    // given by the pond and read on the rug, so the press that takes it has to
+    // take Hazel off the grass as well as put her on the rug — and a person left
+    // standing where she no longer is would be the same bug as a person in two
+    // places, which is the one thing `gather` exists to avoid. The next build of
+    // this zone would have left her out anyway; this is that, one second early
+    // and where it can be watched.
+    const sent = this.npcs.filter(
+      (npc) => quests.away(npc.id) && !guests.some((guest) => guest.id === npc.id),
+    );
+    for (const gone of sent) {
+      this.sparkles.explode(30, gone.x, gone.y - HEAD_GAP);
+      gone.destroy();
+    }
+    if (sent.length) {
+      this.npcs = this.npcs.filter((npc) => !sent.includes(npc));
+      playWhoosh();
+      hooks.sparkles += 1;
+      this.syncNpcHooks();
+    }
+
     if (!guests.length) return;
 
     for (const guest of guests) {
@@ -1925,13 +2142,30 @@ export class RoomScene extends Phaser.Scene {
             },
           ]
         : []),
-      ...this.pickups.map((carrot) => ({
-        id: carrot.id,
-        x: carrot.x,
-        y: carrot.y,
+      ...this.pickups.map((thing) => ({
+        id: thing.id,
+        x: thing.x,
+        y: thing.y,
         lift: ITEM_LIFT,
-        press: () => this.pickUpCarrot(carrot),
+        press: () => this.pickUpGathered(thing),
       })),
+      // The book on the rug. The one interactable green *opens* rather than
+      // picks up or talks to — and it is in this list rather than being a
+      // special case in `handleInteract` because the dot is a promise: whatever
+      // is under it is what the button does, and a green button that quietly
+      // meant something else near a rug would be the first place in this game
+      // that was not true.
+      ...(this.storybook
+        ? [
+            {
+              id: this.storybook.id,
+              x: this.storybook.x,
+              y: this.storybook.y,
+              lift: ITEM_LIFT,
+              press: () => this.openBook(),
+            },
+          ]
+        : []),
       // And every loose bunny, from the moment the ring comes open — not from
       // the moment she is *told* to bring them home.
       //
@@ -2002,19 +2236,27 @@ export class RoomScene extends Phaser.Scene {
   // --- the bunny rescue ------------------------------------------------------
 
   /**
-   * A carrot, off the ground and into her pocket.
+   * A thing a `gather` phase left lying about, off the ground and into her
+   * pocket. A carrot in the wood, a storybook off the shelf.
    *
    * `pickUp`'s sibling and deliberately not the same method: that one puts a
-   * *tool* in her hand and lights a box on the tool row, and a carrot is neither
-   * — it is a thing she is carrying for a quest, which is what `keep` on
+   * *tool* in her hand and lights a box on the tool row, and neither of these is
+   * that — they are things she is carrying for a quest, which is what `keep` on
    * `finish` has always meant. What they do share is the grammar she can see:
    * walk up, green dot, press, it leaps and spins away, she says its name.
+   *
+   * The word she says comes off the phase rather than off the sprite. One noun
+   * per `gather`, so three carrots are all "carrot" and the book is "storybook";
+   * see `Gathered` and `nameOf`.
    */
-  private pickUpCarrot(carrot: GroundItem): void {
-    carrot.collect();
-    this.pickups = this.pickups.filter((c) => c !== carrot);
+  private pickUpGathered(thing: GroundItem): void {
+    const of = gatheredBy(quests.phase);
+    if (!of) return;
+
+    thing.collect();
+    this.pickups = this.pickups.filter((c) => c !== thing);
     // Its light goes with it. Everything else on the row keeps its own.
-    const lit = this.shimmers.find((s) => s.x === carrot.x);
+    const lit = this.shimmers.find((s) => s.x === thing.x);
     if (lit) {
       lit.destroy();
       this.shimmers = this.shimmers.filter((s) => s !== lit);
@@ -2022,13 +2264,13 @@ export class RoomScene extends Phaser.Scene {
     this.refreshInteractables();
 
     playPickup();
-    this.sparkles.explode(48, carrot.x, carrot.y - TILE_SIZE / 2);
+    this.sparkles.explode(48, thing.x, thing.y - TILE_SIZE / 2);
     hooks.sparkles += 1;
     this.faeries?.cheer();
-    this.bark(nameOf('carrot'));
+    this.bark(nameOf(of));
 
-    const { complete } = quests.finish(carrot.id);
-    this.questRow.land(carrot.id);
+    const { complete } = quests.finish(thing.id);
+    this.questRow.land(thing.id);
     this.refreshQuestHud();
     if (complete) this.nextPhase();
   }
@@ -2234,9 +2476,223 @@ export class RoomScene extends Phaser.Scene {
     // last syllable of one would clip a word she is being taught.
     this.time.delayedCall(1100, () => {
       if (this.leaving || !this.scene.isActive()) return;
+      // ...and never over an open book. See `sayInstructionAfter`.
+      if (this.reader.isOpen) return;
       this.bubble.say(line, this.speaking());
       this.syncVoiceHooks();
     });
+  }
+
+  // --- storytime -------------------------------------------------------------
+
+  /**
+   * Green, at the book on the rug. The room goes quiet and the story starts.
+   *
+   * Everything on screen that is about the world goes with it: the balloon
+   * stops mid-sentence, the dot goes, and the rows along the bottom are taken
+   * off rather than drawn over — a takeover that left the tool belt showing
+   * would be four boxes she can see and cannot press. `update` does the rest,
+   * which is to stop asking the world anything at all while this is up.
+   *
+   * Where it opens is the quest's answer and not the reader's: `pageReached` is
+   * read off the store, so closing the book and coming back is the same page,
+   * across a doorway and across the whole afternoon.
+   */
+  private openBook(): void {
+    const reading = readingOf(quests.phase);
+    const spec = reading ? bookById(reading.book) : null;
+    if (!spec) return;
+
+    unlockAudio();
+    this.bubble.stop();
+    this.showHud(false);
+    playPageTurn();
+    this.sparkles.explode(24, this.player.x, this.player.y - 60);
+    hooks.sparkles += 1;
+
+    this.reader.open(spec, quests.pageReached);
+    this.syncVoiceHooks();
+    this.syncBookHooks();
+  }
+
+  /**
+   * The red button, or the last page. The book folds away and the room is back.
+   *
+   * Never a failure and never a loss: the quest is exactly where it was, the
+   * page she was on is written down, and the book is still lying on the rug with
+   * a green dot over it. See CLAUDE.md, "No fail states".
+   */
+  private closeBook(): void {
+    this.reader.close();
+    this.showHud(true);
+    this.syncVoiceHooks();
+    this.syncBookHooks();
+  }
+
+  /** The rows along the bottom, on or off. What a takeover does to the HUD. */
+  private showHud(on: boolean): void {
+    this.toolRow.container.setVisible(on);
+    this.coinRow.container.setVisible(on);
+    if (!on) this.prompt.setVisible(false);
+  }
+
+  /**
+   * The face buttons, while the book has them.
+   *
+   * Green is the whole design of this screen and most of it is what green does
+   * *not* do: while the page is still reading itself the press is thrown away,
+   * with no noise, no shake and nothing said about it. A four-year-old mashing
+   * green cannot skip a sentence and is never told she pressed too early —
+   * the sentence simply finishes, the dot comes up, and then it works.
+   *
+   * Yellow reads the page again, which is the same thing yellow does everywhere
+   * else in the game: say it again. Red closes the book. Blue is the one button
+   * with nothing to do in here, and it stays that way rather than borrowing a
+   * meaning it does not have anywhere else.
+   */
+  private handleBook(button: Record<PadColorName, boolean>): void {
+    if (button.red) {
+      playPageTurn();
+      this.closeBook();
+      return;
+    }
+
+    if (button.yellow) {
+      unlockAudio();
+      this.reader.read();
+      this.syncVoiceHooks();
+      this.syncBookHooks();
+      return;
+    }
+
+    if (button.green && this.reader.turnable) this.turnPage();
+  }
+
+  /**
+   * Over the page.
+   *
+   * Three things in a row and none of them on top of another, which is the same
+   * rule every celebration in this game keeps: the leaf goes over, Hazel says
+   * what she thought of the page that just went by, and only when she has
+   * finished does the new page start reading itself. Two voices at once is no
+   * voice at all for somebody being taught to follow one.
+   *
+   * The page is written down in the store *first*, before any of the flourish
+   * runs — so walking away, closing the book or reloading the zone in the middle
+   * of the turn cannot cost her the page she just finished.
+   */
+  private turnPage(): void {
+    const turned = quests.turnPage();
+    if (!turned) return;
+
+    const cheer = this.reader.current?.cheer ?? null;
+    const next = this.reader.page + 1;
+    const half = this.reader.flipHalf;
+
+    playPageTurn();
+    this.reader.flip();
+    hooks.sparkles += 1;
+    this.syncBookHooks();
+
+    this.time.delayedCall(half, () => {
+      if (!this.scene.isActive() || this.leaving) return;
+      if (turned.complete) {
+        this.finishStory(cheer);
+        return;
+      }
+      if (!this.reader.isOpen) return;
+
+      this.reader.showPage(next);
+      this.sayFrom('hazel', cheer);
+      this.syncBookHooks();
+
+      // ...and the new page, once she has stopped talking. Measured off her own
+      // clip, the way every other chained line in this scene is.
+      const spoken = cheer ? (this.voice.get(cheer)?.duration ?? 0) : 0;
+      this.time.delayedCall((spoken + 0.45) * 1000, () => {
+        if (!this.scene.isActive() || this.leaving) return;
+        // She may have shut the book, turned on past it, or pressed yellow in
+        // the gap — all three are hers to do, and none of them wants this.
+        if (!this.reader.isOpen || this.reader.page !== next || this.reader.reading) return;
+        this.reader.read();
+        this.syncVoiceHooks();
+        this.syncBookHooks();
+      });
+    });
+  }
+
+  /**
+   * The last page is turned. The end of the third quest.
+   *
+   * The state settles here and only the flourish waits, which is the split both
+   * the other quests established: walking away in the middle of the celebration
+   * cannot cost her anything, because by this line the quest has parked and the
+   * coin is already in the store. See `summon` and `bunniesAllHome`.
+   */
+  private finishStory(cheer: string | null): void {
+    this.closeBook();
+    playFanfare();
+    this.sparkles.explode(120, this.player.x, this.player.y - 50);
+    this.cameras.main.shake(300, 0.007);
+    hooks.sparkles += 1;
+
+    quests.advance();
+    this.buildQuestObjects();
+    this.refreshInteractables();
+    this.refreshQuestHud();
+    this.syncQuestHooks();
+
+    const earned = session.addCoin();
+    this.syncCoinHooks();
+
+    const hug = this.npcs.find((npc) => npc.id === 'hazel');
+    if (hug) this.hug(hug);
+
+    // Her line about the story, then the hug, then the coin — each one after the
+    // last has finished, on its own measured length.
+    this.time.delayedCall(STORY_BEAT, () => {
+      if (!this.scene.isActive() || this.leaving) return;
+      if (!cheer) {
+        this.sayFrom('hazel', HAZEL_STORY_COIN);
+        this.payUp(earned, 'hazel');
+        return;
+      }
+      this.sayFrom('hazel', cheer);
+      this.sayNext(cheer, 'hazel', HAZEL_HUG, () => {
+        this.sayNext(HAZEL_HUG, 'hazel', HAZEL_STORY_COIN, () => this.payUp(earned, 'hazel'));
+      });
+    });
+  }
+
+  /**
+   * A hug, as a picture: she leans in, bumps, and settles back.
+   *
+   * There is no hug animation in the pack and there is not going to be one — see
+   * `engineering.md`, every person in this game is the same paper doll — so the
+   * hug is the *movement*, which is a thing a four-year-old reads before she
+   * reads a sprite. Put back by hand at the end, because a tween interrupted by
+   * a doorway would otherwise leave somebody standing in the middle of the rug.
+   */
+  private hug(who: Npc): void {
+    who.lookAt(this.player.x, this.player.y);
+    const home = { x: who.x, y: who.y };
+    const lean = {
+      x: home.x + (this.player.x - home.x) * 0.45,
+      y: home.y + (this.player.y - home.y) * 0.45,
+    };
+
+    this.tweens.killTweensOf(who);
+    this.tweens.add({
+      targets: who,
+      x: lean.x,
+      y: lean.y,
+      duration: 380,
+      yoyo: true,
+      hold: 260,
+      ease: 'Sine.easeInOut',
+      onComplete: () => who.setPosition(home.x, home.y),
+    });
+    this.sparkles.explode(70, (home.x + this.player.x) / 2, home.y - HEAD_GAP);
   }
 
   // --- the ritual ------------------------------------------------------------
@@ -2792,6 +3248,10 @@ export class RoomScene extends Phaser.Scene {
     if (this.leaving || !dayClock.isDusk || dayClock.dadCalled) return;
     if (!isOutdoors(this.zoneId)) return;
     if (this.bubble.lineId !== null) return;
+    // Nor over a story. He is indoors and unhurried; the call keeps until the
+    // book is shut, which is what the latch below being burnt *after* this line
+    // buys — he has not called yet, so he still will.
+    if (this.reader.isOpen) return;
 
     const door = this.doorways.find((d) => d.def.to === 'house');
     if (!door) return;
