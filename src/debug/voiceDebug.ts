@@ -16,8 +16,20 @@
  * copy of it, and they are two files that have to agree.
  */
 
-/** What is wrong with a line, in the words `npm run voice:status` already uses. */
-export type VoiceDebugFlag = 'stale' | 'low-confidence' | 'tight-join' | 'profile-moved';
+/**
+ * What is wrong with a line, in the words `npm run voice:status` already uses.
+ *
+ * `simulated` is the odd one out: nothing is wrong with the clip, it is simply
+ * edge-tts standing in for a Firefly recording nobody has made. It is a flag
+ * because the only thing that matters about it is that it must never be read as
+ * finished work.
+ */
+export type VoiceDebugFlag =
+  | 'stale'
+  | 'simulated'
+  | 'low-confidence'
+  | 'tight-join'
+  | 'profile-moved';
 
 export interface VoiceDebugWord {
   word: string;
@@ -41,8 +53,9 @@ export interface VoiceDebugFile {
   version: number;
   fallback: string;
   reviewScore: number;
-  totals: { lines: number; recorded: number; stale: number };
-  groups: { key: string; recorded: number; total: number }[];
+  /** `recorded` is real recordings only; `simulated` is counted apart. */
+  totals: { lines: number; recorded: number; simulated: number; stale: number };
+  groups: { key: string; recorded: number; simulated: number; total: number }[];
   batches: { name: string; ingested: string; lines: number }[];
   lines: VoiceDebugLine[];
 }

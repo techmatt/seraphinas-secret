@@ -45,6 +45,40 @@ export const LINES_FILE = path.join('content', 'voice', 'lines.json');
 export const DEFAULT_BATCH_SIZE = 12;
 
 /**
+ * Where a clip's audio came from, and the reason this is written down.
+ *
+ * The proving session of 2026-08-15 ingested two `voice:simulate` batches —
+ * edge-tts standing in for the Firefly web page — and the ingest stamped them
+ * `firefly` because that string was a literal in the code rather than a fact
+ * about the recording. They then read as sixteen finished recordings for a day.
+ * So the provider is carried from whatever made the WAV to the clip record, and
+ * everything that counts coverage counts `firefly` and nothing else.
+ */
+export const FIREFLY_PROVIDER = 'firefly';
+
+/** What `voice:simulate` produces. Playable, never counted as recorded. */
+export const SIMULATED_PROVIDER = 'simulated';
+
+/**
+ * The marker `voice:simulate` drops beside its WAV.
+ *
+ * A plain file rather than a field in the sidecar, because the sidecar is
+ * written by `voice:batch` before anyone knows who will speak the words — and
+ * because the ingest must be able to tell a simulated download from a real one
+ * with no flags typed, which is the exact thing that failed the first time.
+ * Not a `.json`, so it is never mistaken for a batch by anything scanning here.
+ */
+export function providerMarkerPath(dir: string, name: string): string {
+  return path.join(dir, `${name}.provider`);
+}
+
+/** What made this batch's audio, if anything said so. */
+export async function readProviderMarker(dir: string, name: string): Promise<string | null> {
+  const text = await readFile(providerMarkerPath(dir, name), 'utf8').catch(() => null);
+  return text?.trim() || null;
+}
+
+/**
  * Where a clip's loudness is normalised to: RMS over the frames that are not
  * silence, in dBFS. Measured off all 75 edge-tts clips, whose speech RMS runs
  * -21.2 to -16.5 with a median of -19.2 — so this target leaves the existing
@@ -75,6 +109,15 @@ export const CLIP_RATE = 24_000;
 export const REVIEW_SCORE = 0.4;
 
 // -- profiles -----------------------------------------------------------------
+
+/**
+ * What `profiles.json` says while Matt has not yet picked a Firefly voice.
+ *
+ * A clip recorded under it has no voice name to have drifted *from*, so filling
+ * the real name in later is not the silent change of voice the profile-moved
+ * check exists to catch. See `status.ts`.
+ */
+export const PLACEHOLDER_VOICE = 'TBD';
 
 export interface VoiceProfile {
   /** Firefly's own name for the voice. Placeholder until Matt picks. */
@@ -150,6 +193,7 @@ export interface BatchSidecar {
   /** Bumped if this shape changes. */
   version: number;
   name: string;
+  /** The batch's speaker, where it has one. A whole-profile batch may not. */
   speaker: string;
   profile: string;
   /** Snapshot of the profile as it stood when the batch was cut. */
@@ -158,11 +202,21 @@ export interface BatchSidecar {
   created: string;
   /** The text file to paste, relative to the batch folder. */
   text: string;
-  /** In the order they are spoken, which is the order they are cut apart. */
-  lines: { id: string; spoken: string; spokenHash: string }[];
+  /**
+   * In the order they are spoken, which is the order they are cut apart.
+   *
+   * `speaker` is per line from version 2 on: a batch cut per *profile* can hold
+   * two speakers, because an override sends a line to a profile that is not its
+   * speaker's. Absent on a version 1 sidecar, where `speaker` above is the
+   * whole truth.
+   */
+  lines: { id: string; speaker?: string; spoken: string; spokenHash: string }[];
 }
 
-export const SIDECAR_VERSION = 1;
+export const SIDECAR_VERSION = 2;
+
+/** Sidecars the ingest still knows how to read. See `BatchSidecar.lines`. */
+export const READABLE_SIDECAR_VERSIONS = [1, 2];
 
 export function sidecarPath(dir: string, name: string): string {
   return path.join(dir, `${name}.json`);
@@ -192,6 +246,7 @@ export type ScoredWord = TimedWord & { score: number };
 
 /** One ingested recording. Everything needed to trust it, or to disown it. */
 export interface ClipRecord {
+  /** `firefly` for a real recording, `simulated` for a `voice:simulate` one. */
   provider: string;
   /** Which batch it was cut out of, and where in it. */
   batch: string;
@@ -272,6 +327,18 @@ export function clipStateFor(line: LineSpec, index: ClipIndex): ClipState {
   const clip = index.clips[line.id];
   if (!clip) return { state: 'missing' };
   return clip.spokenHash === spokenHash(spokenFor(line)) ? { state: 'fresh', clip } : { state: 'stale', clip };
+}
+
+/**
+ * A stand-in, not a recording.
+ *
+ * `voice:simulate` makes a perfectly playable clip out of edge-tts, and the
+ * build is right to use it — the words are the right words. What it must never
+ * do is count towards "how much of this game is in Matt's chosen voices", so
+ * every coverage number in the tools asks this first.
+ */
+export function isSimulated(clip: ClipRecord): boolean {
+  return clip.provider === SIMULATED_PROVIDER;
 }
 
 /**

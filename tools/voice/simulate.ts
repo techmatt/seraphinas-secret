@@ -12,6 +12,11 @@
  *   npm run voice:simulate -- dad-01       one batch
  *   npm run voice:simulate -- --rate 48000
  *
+ * Each WAV gets a `<batch>.provider` marker beside it saying `simulated`, which
+ * the ingest reads and stamps on every clip it cuts. Nothing downstream counts
+ * those as recorded. The marker is the whole reason a rehearsal can no longer
+ * be mistaken for the real thing.
+ *
  * The default rate is 44.1 kHz on purpose: it is not the aligner's 16 kHz and
  * not the clips' 24 kHz, so a simulated ingest exercises both resamplings. What
  * this cannot rehearse is Firefly's actual voice, its actual pause between two
@@ -25,7 +30,13 @@ import { spawn } from 'node:child_process';
 import { readdir, stat, unlink, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
-import { BATCH_DIR, readJson, type BatchSidecar } from './firefly.js';
+import {
+  BATCH_DIR,
+  SIMULATED_PROVIDER,
+  providerMarkerPath,
+  readJson,
+  type BatchSidecar,
+} from './firefly.js';
 import { EdgeTtsProvider } from './providers/edgeTts.js';
 import type { VoiceBook } from './types.js';
 
@@ -84,13 +95,20 @@ async function main(): Promise<void> {
     const converted = await toWav(scratch, wav, opts.rate);
     await unlink(scratch);
 
+    // The WAV is indistinguishable from a download once it is sitting here, so
+    // say what it is in a file the ingest reads. Without this the clips come
+    // out stamped `firefly` and count as sixteen finished recordings, which is
+    // exactly what happened on 2026-08-15.
+    await writeFile(providerMarkerPath(opts.dir, name), `${SIMULATED_PROVIDER}\n`, 'utf8');
+
     console.log(
       `${name}: ${sidecar.lines.length} lines, ${converted.seconds}s, ` +
         `${converted.rate} Hz ${converted.channels === 1 ? 'mono' : 'stereo'} → ${wav}`,
     );
   }
 
-  console.log('\nnext: npm run voice:ingest');
+  console.log(`\nmarked ${SIMULATED_PROVIDER} — these will never count as recorded`);
+  console.log('next: npm run voice:ingest');
 }
 
 interface Converted {

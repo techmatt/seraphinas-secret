@@ -600,7 +600,7 @@
     }
   },
   "dad_helper": {
-    "hash": "f4db26c0b0b21f05",
+    "hash": "9ff8a496f67edd19",
     "entry": {
       "id": "dad_helper",
       "speaker": "dad",
@@ -609,30 +609,30 @@
       "words": [
         {
           "word": "Hello,",
-          "start": 0.04,
-          "end": 0.4406
+          "start": 0.106,
+          "end": 0.592
         },
         {
           "word": "my",
-          "start": 0.5856,
-          "end": 0.8207
+          "start": 0.828,
+          "end": 0.967
         },
         {
           "word": "little",
-          "start": 0.8207,
-          "end": 1.1607
+          "start": 0.994,
+          "end": 1.314
         },
         {
           "word": "helper!",
-          "start": 1.1607,
-          "end": 1.5608
+          "start": 1.342,
+          "end": 1.856
         }
       ],
-      "duration": 1.5608
+      "duration": 1.856
     }
   },
   "dad_shed": {
-    "hash": "ed2de61c56ebc4b2",
+    "hash": "6df824514ec67b52",
     "entry": {
       "id": "dad_shed",
       "speaker": "dad",
@@ -641,46 +641,46 @@
       "words": [
         {
           "word": "I",
-          "start": 0.04,
-          "end": 0.0961
+          "start": 0.106,
+          "end": 0.272
         },
         {
           "word": "keep",
-          "start": 0.1011,
-          "end": 0.3962
+          "start": 0.3,
+          "end": 0.55
         },
         {
           "word": "all",
-          "start": 0.3962,
-          "end": 0.6162
+          "start": 0.564,
+          "end": 0.731
         },
         {
           "word": "my",
-          "start": 0.6162,
-          "end": 0.7762
+          "start": 0.744,
+          "end": 0.883
         },
         {
           "word": "tools",
-          "start": 0.7762,
-          "end": 1.1763
+          "start": 0.911,
+          "end": 1.328
         },
         {
           "word": "in",
-          "start": 1.1763,
-          "end": 1.2964
+          "start": 1.356,
+          "end": 1.439
         },
         {
           "word": "this",
-          "start": 1.2964,
-          "end": 1.4964
+          "start": 1.467,
+          "end": 1.606
         },
         {
           "word": "shed.",
-          "start": 1.4964,
-          "end": 1.8365
+          "start": 1.633,
+          "end": 2.106
         }
       ],
-      "duration": 1.8365
+      "duration": 2.106
     }
   },
   "sneak_quest_offer": {
@@ -1515,7 +1515,7 @@
     }
   },
   "dad_quest_offer": {
-    "hash": "3e0061e7e59dc1bb",
+    "hash": "092753589b22ea05",
     "entry": {
       "id": "dad_quest_offer",
       "speaker": "dad",
@@ -1524,46 +1524,46 @@
       "words": [
         {
           "word": "Three",
-          "start": 0.0425,
-          "end": 0.2543
+          "start": 0.106,
+          "end": 0.467
         },
         {
           "word": "little",
-          "start": 0.2543,
-          "end": 0.5344
+          "start": 0.481,
+          "end": 0.758
         },
         {
           "word": "bunnies",
-          "start": 0.5344,
-          "end": 0.9144
+          "start": 0.786,
+          "end": 1.175
         },
         {
           "word": "are",
-          "start": 0.9144,
-          "end": 1.1145
+          "start": 1.203,
+          "end": 1.328
         },
         {
           "word": "stuck",
-          "start": 1.1145,
-          "end": 1.4346
+          "start": 1.356,
+          "end": 1.675
         },
         {
           "word": "in",
-          "start": 1.4346,
-          "end": 1.5746
+          "start": 1.703,
+          "end": 1.786
         },
         {
           "word": "the",
-          "start": 1.5746,
-          "end": 1.7346
+          "start": 1.814,
+          "end": 1.911
         },
         {
           "word": "woods!",
-          "start": 1.7346,
-          "end": 2.0747
+          "start": 1.925,
+          "end": 2.439
         }
       ],
-      "duration": 2.0747
+      "duration": 2.439
     }
   },
   "dad_quest_pen": {
@@ -1686,7 +1686,7 @@
     }
   },
   "dad_quest_carrots": {
-    "hash": "ab9e59e66c703e37",
+    "hash": "cc7eab0beb30b104",
     "entry": {
       "id": "dad_quest_carrots",
       "speaker": "dad",
@@ -1695,50 +1695,50 @@
       "words": [
         {
           "word": "Bunnies",
-          "start": 0.04,
-          "end": 0.3942
+          "start": 0.106,
+          "end": 0.536
         },
         {
           "word": "love",
-          "start": 0.3942,
-          "end": 0.6542
+          "start": 0.564,
+          "end": 0.8
         },
         {
           "word": "carrots!",
-          "start": 0.6542,
-          "end": 1.1543
+          "start": 0.828,
+          "end": 1.328
         },
         {
           "word": "Find",
-          "start": 1.2794,
-          "end": 1.6344
+          "start": 1.481,
+          "end": 1.8
         },
         {
           "word": "three",
-          "start": 1.6344,
-          "end": 1.9745
+          "start": 1.828,
+          "end": 2.092
         },
         {
           "word": "in",
-          "start": 1.9745,
-          "end": 2.0745
+          "start": 2.119,
+          "end": 2.189
         },
         {
           "word": "the",
-          "start": 2.0745,
-          "end": 2.2346
+          "start": 2.217,
+          "end": 2.328
         },
         {
           "word": "woods.",
-          "start": 2.2346,
-          "end": 2.5546
+          "start": 2.356,
+          "end": 2.828
         }
       ],
-      "duration": 2.5546
+      "duration": 2.828
     }
   },
   "dad_quest_lure": {
-    "hash": "686bba9fe16baf24",
+    "hash": "a59e7da0a79da1ff",
     "entry": {
       "id": "dad_quest_lure",
       "speaker": "dad",
@@ -1747,65 +1747,65 @@
       "words": [
         {
           "word": "Give",
-          "start": 0.0425,
-          "end": 0.2174
+          "start": 0.106,
+          "end": 0.328
         },
         {
           "word": "a",
-          "start": 0.2174,
-          "end": 0.3174
+          "start": 0.342,
+          "end": 0.425
         },
         {
           "word": "bunny",
-          "start": 0.3174,
-          "end": 0.6175
+          "start": 0.453,
+          "end": 0.772
         },
         {
           "word": "a",
-          "start": 0.6175,
-          "end": 0.7375
+          "start": 0.8,
+          "end": 0.869
         },
         {
           "word": "carrot",
-          "start": 0.7375,
-          "end": 1.1376
+          "start": 0.897,
+          "end": 1.314
         },
         {
           "word": "and",
-          "start": 1.1426,
-          "end": 1.3377
+          "start": 1.342,
+          "end": 1.481
         },
         {
           "word": "walk",
-          "start": 1.3377,
-          "end": 1.5777
+          "start": 1.508,
+          "end": 1.744
         },
         {
           "word": "it",
-          "start": 1.5777,
-          "end": 1.7177
+          "start": 1.758,
+          "end": 1.842
         },
         {
           "word": "home",
-          "start": 1.7177,
-          "end": 1.9578
+          "start": 1.869,
+          "end": 2.092
         },
         {
           "word": "to",
-          "start": 1.9578,
-          "end": 2.0978
+          "start": 2.119,
+          "end": 2.217
         },
         {
           "word": "me!",
-          "start": 2.0978,
-          "end": 2.2779
+          "start": 2.244,
+          "end": 2.592
         }
       ],
-      "duration": 2.2779
+      "duration": 2.592
     }
   },
   "dad_two_more": {
-    "hash": "2a64299c974ab07e",
+    "hash": "39d921abd04e24d0",
     "entry": {
       "id": "dad_two_more",
       "speaker": "dad",
@@ -1814,35 +1814,35 @@
       "words": [
         {
           "word": "Two",
-          "start": 0.04,
-          "end": 0.1607
+          "start": 0.106,
+          "end": 0.272
         },
         {
           "word": "more",
-          "start": 0.1607,
-          "end": 0.3807
+          "start": 0.286,
+          "end": 0.522
         },
         {
           "word": "bunnies",
-          "start": 0.3807,
-          "end": 0.7608
+          "start": 0.55,
+          "end": 0.897
         },
         {
           "word": "to",
-          "start": 0.7608,
-          "end": 0.9208
+          "start": 0.925,
+          "end": 1.05
         },
         {
           "word": "go!",
-          "start": 0.9208,
-          "end": 1.1809
+          "start": 1.078,
+          "end": 1.494
         }
       ],
-      "duration": 1.1809
+      "duration": 1.494
     }
   },
   "dad_one_more": {
-    "hash": "e645234859aee531",
+    "hash": "a30731d885f06c06",
     "entry": {
       "id": "dad_one_more",
       "speaker": "dad",
@@ -1851,35 +1851,35 @@
       "words": [
         {
           "word": "One",
-          "start": 0.0425,
-          "end": 0.2737
+          "start": 0.106,
+          "end": 0.411
         },
         {
           "word": "more",
-          "start": 0.2737,
-          "end": 0.5138
+          "start": 0.439,
+          "end": 0.689
         },
         {
           "word": "bunny",
-          "start": 0.5138,
-          "end": 0.8538
+          "start": 0.717,
+          "end": 1.008
         },
         {
           "word": "to",
-          "start": 0.8538,
-          "end": 1.0139
+          "start": 1.036,
+          "end": 1.175
         },
         {
           "word": "go!",
-          "start": 1.0139,
-          "end": 1.414
+          "start": 1.203,
+          "end": 1.633
         }
       ],
-      "duration": 1.414
+      "duration": 1.633
     }
   },
   "dad_bunnies_home": {
-    "hash": "5ef53a36afec164d",
+    "hash": "4f68b7428564d3c5",
     "entry": {
       "id": "dad_bunnies_home",
       "speaker": "dad",
@@ -1888,35 +1888,35 @@
       "words": [
         {
           "word": "All",
-          "start": 0.04,
-          "end": 0.2267
+          "start": 0.106,
+          "end": 0.383
         },
         {
           "word": "three",
-          "start": 0.2267,
-          "end": 0.5468
+          "start": 0.411,
+          "end": 0.689
         },
         {
           "word": "bunnies",
-          "start": 0.5468,
-          "end": 0.9469
+          "start": 0.717,
+          "end": 1.106
         },
         {
           "word": "are",
-          "start": 0.9469,
-          "end": 1.1269
+          "start": 1.133,
+          "end": 1.258
         },
         {
           "word": "home!",
-          "start": 1.1269,
-          "end": 1.447
+          "start": 1.286,
+          "end": 1.731
         }
       ],
-      "duration": 1.447
+      "duration": 1.731
     }
   },
   "dad_bunny_coin": {
-    "hash": "72ac59dc52da2e42",
+    "hash": "8865d936612e520c",
     "entry": {
       "id": "dad_bunny_coin",
       "speaker": "dad",
@@ -1925,56 +1925,56 @@
       "words": [
         {
           "word": "The",
-          "start": 0.04,
-          "end": 0.1373
+          "start": 0.106,
+          "end": 0.258
         },
         {
           "word": "bunnies",
-          "start": 0.1373,
-          "end": 0.4974
+          "start": 0.286,
+          "end": 0.647
         },
         {
           "word": "want",
-          "start": 0.4974,
-          "end": 0.7774
+          "start": 0.675,
+          "end": 0.925
         },
         {
           "word": "you",
-          "start": 0.7774,
-          "end": 0.9375
+          "start": 0.939,
+          "end": 1.078
         },
         {
           "word": "to",
-          "start": 0.9375,
-          "end": 1.0775
+          "start": 1.106,
+          "end": 1.189
         },
         {
           "word": "have",
-          "start": 1.0775,
-          "end": 1.3175
+          "start": 1.203,
+          "end": 1.453
         },
         {
           "word": "this",
-          "start": 1.3175,
-          "end": 1.4976
+          "start": 1.481,
+          "end": 1.633
         },
         {
           "word": "shiny",
-          "start": 1.5026,
-          "end": 1.9577
+          "start": 1.661,
+          "end": 2.092
         },
         {
           "word": "gold",
-          "start": 1.9577,
-          "end": 2.2778
+          "start": 2.119,
+          "end": 2.439
         },
         {
           "word": "coin!",
-          "start": 2.2778,
-          "end": 2.6378
+          "start": 2.453,
+          "end": 2.911
         }
       ],
-      "duration": 2.6378
+      "duration": 2.911
     }
   },
   "seraphina_bunny": {
@@ -2553,7 +2553,7 @@
     }
   },
   "book_pip_moon_1": {
-    "hash": "fbb6c7f9d569c21b",
+    "hash": "eb25184f65a90f2a",
     "entry": {
       "id": "book_pip_moon_1",
       "speaker": "seraphina",
@@ -2562,50 +2562,50 @@
       "words": [
         {
           "word": "Pip",
-          "start": 0.04,
-          "end": 0.3552
+          "start": 0.114,
+          "end": 0.483
         },
         {
           "word": "the",
-          "start": 0.3804,
-          "end": 0.5755
+          "start": 0.499,
+          "end": 0.691
         },
         {
           "word": "dog",
-          "start": 0.5755,
-          "end": 0.936
+          "start": 0.707,
+          "end": 1.172
         },
         {
           "word": "zoomed",
-          "start": 0.9812,
-          "end": 1.4167
+          "start": 1.188,
+          "end": 1.701
         },
         {
           "word": "up",
-          "start": 1.4419,
-          "end": 1.6169
+          "start": 1.717,
+          "end": 1.957
         },
         {
           "word": "to",
-          "start": 1.6169,
-          "end": 1.7972
+          "start": 1.973,
+          "end": 2.117
         },
         {
           "word": "the",
-          "start": 1.7972,
-          "end": 1.9574
+          "start": 2.133,
+          "end": 2.262
         },
         {
           "word": "moon!",
-          "start": 1.9574,
-          "end": 2.2578
+          "start": 2.278,
+          "end": 2.822
         }
       ],
-      "duration": 2.2578
+      "duration": 2.822
     }
   },
   "book_pip_moon_2": {
-    "hash": "441fd33ccfc9c957",
+    "hash": "1822d2e3aa12fbb7",
     "entry": {
       "id": "book_pip_moon_2",
       "speaker": "seraphina",
@@ -2614,50 +2614,50 @@
       "words": [
         {
           "word": "On",
-          "start": 0.0425,
-          "end": 0.1372
+          "start": 0.114,
+          "end": 0.338
         },
         {
           "word": "the",
-          "start": 0.1372,
-          "end": 0.3175
+          "start": 0.355,
+          "end": 0.451
         },
         {
           "word": "moon",
-          "start": 0.3175,
-          "end": 0.5979
+          "start": 0.467,
+          "end": 0.899
         },
         {
           "word": "Pip",
-          "start": 0.623,
-          "end": 0.9784
+          "start": 0.915,
+          "end": 1.3
         },
         {
           "word": "met",
-          "start": 0.9835,
-          "end": 1.2587
+          "start": 1.316,
+          "end": 1.621
         },
         {
           "word": "a",
-          "start": 1.2587,
-          "end": 1.3589
+          "start": 1.637,
+          "end": 1.749
         },
         {
           "word": "baby",
-          "start": 1.3589,
-          "end": 1.7995
+          "start": 1.765,
+          "end": 2.262
         },
         {
           "word": "dragon!",
-          "start": 1.7995,
-          "end": 2.4003
+          "start": 2.278,
+          "end": 3.095
         }
       ],
-      "duration": 2.4003
+      "duration": 3.095
     }
   },
   "book_pip_moon_3": {
-    "hash": "62ae4628b047c46b",
+    "hash": "a59649de80bf4875",
     "entry": {
       "id": "book_pip_moon_3",
       "speaker": "seraphina",
@@ -2666,45 +2666,45 @@
       "words": [
         {
           "word": "The",
-          "start": 0.04,
-          "end": 0.1494
+          "start": 0.114,
+          "end": 0.322
         },
         {
           "word": "dragon",
-          "start": 0.1494,
-          "end": 0.6902
+          "start": 0.338,
+          "end": 1.044
         },
         {
           "word": "sneezed",
-          "start": 0.6902,
-          "end": 1.311
+          "start": 1.06,
+          "end": 1.717
         },
         {
           "word": "sparkles",
-          "start": 1.3362,
-          "end": 2.032
+          "start": 1.733,
+          "end": 2.694
         },
         {
           "word": "all",
-          "start": 2.1974,
-          "end": 2.4325
+          "start": 2.71,
+          "end": 3.079
         },
         {
           "word": "over",
-          "start": 2.4577,
-          "end": 2.773
+          "start": 3.095,
+          "end": 3.447
         },
         {
           "word": "Pip!",
-          "start": 2.7781,
-          "end": 3.085
+          "start": 3.463,
+          "end": 3.928
         }
       ],
-      "duration": 3.085
+      "duration": 3.928
     }
   },
   "book_pip_moon_4": {
-    "hash": "2f8b1a7865cb2b7b",
+    "hash": "2f81c2fee1e33004",
     "entry": {
       "id": "book_pip_moon_4",
       "speaker": "seraphina",
@@ -2713,46 +2713,46 @@
       "words": [
         {
           "word": "Now",
-          "start": 0.04,
-          "end": 0.2702
+          "start": 0.114,
+          "end": 0.515
         },
         {
           "word": "Pip",
-          "start": 0.3355,
-          "end": 0.6707
+          "start": 0.531,
+          "end": 0.979
         },
         {
           "word": "and",
-          "start": 0.6959,
-          "end": 0.891
+          "start": 0.996,
+          "end": 1.156
         },
         {
           "word": "the",
-          "start": 0.891,
-          "end": 1.0312
+          "start": 1.172,
+          "end": 1.316
         },
         {
           "word": "dragon",
-          "start": 1.0312,
-          "end": 1.5519
+          "start": 1.332,
+          "end": 2.037
         },
         {
           "word": "are",
-          "start": 1.6172,
-          "end": 1.8724
+          "start": 2.053,
+          "end": 2.278
         },
         {
           "word": "best",
-          "start": 1.8724,
-          "end": 2.1928
+          "start": 2.294,
+          "end": 2.774
         },
         {
           "word": "friends!",
-          "start": 2.218,
-          "end": 2.7335
+          "start": 2.79,
+          "end": 3.576
         }
       ],
-      "duration": 2.7335
+      "duration": 3.576
     }
   },
   "seraphina_recap_story": {

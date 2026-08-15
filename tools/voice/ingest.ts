@@ -12,6 +12,13 @@
  *   npm run voice:ingest -- dad-01          one batch by name
  *   npm run voice:ingest -- --force         redo batches already ingested
  *   npm run voice:ingest -- --fade 0.012    a longer join, for an ear check
+ *   npm run voice:ingest -- --provider x    override what made the recording
+ *
+ * **Every clip is stamped with what made its audio.** A real download is
+ * `firefly`; a WAV `voice:simulate` left behind is `simulated`, taken from the
+ * marker file it drops beside it. Nothing in the pipeline counts a simulated
+ * clip as a recording, which is the whole reason the field exists — see
+ * `FIREFLY_PROVIDER` in `firefly.ts`.
  *
  * **Latest ingest wins.** The clip store is keyed by line id, so re-recording
  * one line as a batch of one overwrites whatever was there. That is the patch
@@ -34,13 +41,17 @@ import {
   CLIP_INDEX_VERSION,
   CLIP_RATE,
   FADE_SECONDS,
+  FIREFLY_PROVIDER,
   PEAK_CEILING_DBFS,
+  READABLE_SIDECAR_VERSIONS,
   REVIEW_SCORE,
-  SIDECAR_VERSION,
+  SIMULATED_PROVIDER,
   TARGET_DBFS,
+  isSimulated,
   readClipIndex,
   readJson,
   readLines,
+  readProviderMarker,
   sidecarPath,
   sortedByKey,
   spokenFor,
@@ -61,6 +72,8 @@ interface Options {
   fade?: number;
   model: string;
   date: string;
+  /** Overrides both the marker and the default. For fixing a mis-stamped batch. */
+  provider?: string;
 }
 
 /** What `ingest.py` hands back. Times in seconds, levels in dBFS. */
@@ -117,6 +130,7 @@ function parseArgs(argv: string[]): Options {
     else if (arg === '--fade') opts.fade = Number(value());
     else if (arg === '--model') opts.model = value();
     else if (arg === '--date') opts.date = value();
+    else if (arg === '--provider') opts.provider = value();
     else if (arg.startsWith('--')) throw new Error(`unknown argument ${arg}`);
     else opts.names.push(path.parse(arg).name);
   }
@@ -146,8 +160,10 @@ async function main(): Promise<void> {
       console.log(`${name}: no sidecar — skipped`);
       continue;
     }
-    if (sidecar.version !== SIDECAR_VERSION) {
-      throw new Error(`${name}: sidecar version ${sidecar.version}, this tool speaks ${SIDECAR_VERSION}`);
+    if (!READABLE_SIDECAR_VERSIONS.includes(sidecar.version)) {
+      throw new Error(
+        `${name}: sidecar version ${sidecar.version}, this tool reads ${READABLE_SIDECAR_VERSIONS.join(' and ')}`,
+      );
     }
 
     const audio = await findAudio(opts.dir, name);
@@ -168,19 +184,25 @@ async function main(): Promise<void> {
       continue;
     }
 
+    // What made this audio, decided before anything is written down: an
+    // explicit flag, else the marker `voice:simulate` left beside its WAV, else
+    // a real download. Never a literal at the point the clip record is built —
+    // that is how sixteen simulated clips came to call themselves recordings.
+    const provider = opts.provider ?? (await readProviderMarker(opts.dir, name)) ?? FIREFLY_PROVIDER;
+
     const result = await runIngest(opts, audio, sidecar);
     ingested++;
-    clips += report(name, sidecar, result, spoken);
+    clips += report(name, sidecar, result, spoken, provider);
 
     for (let i = 0; i < sidecar.lines.length; i++) {
       const entry = sidecar.lines[i]!;
       const line = result.lines[i]!;
       const scores = line.words.filter((w) => w.end > w.start).map((w) => w.score);
       index.clips[entry.id] = {
-        provider: 'firefly',
+        provider,
         batch: name,
         indexInBatch: i,
-        speaker: sidecar.speaker,
+        speaker: entry.speaker ?? sidecar.speaker,
         profile: sidecar.profile,
         voice: sidecar.profileSettings.voice,
         // The hash of what was RECORDED, not of what the line says today. The
@@ -237,9 +259,12 @@ async function main(): Promise<void> {
   index.batches = sortedByKey(index.batches);
   await writeFile(CLIP_INDEX, stringify(index), 'utf8');
 
+  const held = Object.values(index.clips);
+  const simulated = held.filter(isSimulated).length;
   console.log(
     `\n${ingested} batch${ingested === 1 ? '' : 'es'}, ${clips} clips, ` +
-      `${Object.keys(index.clips).length} of ${lines.length} lines now recorded`,
+      `${held.length - simulated} of ${lines.length} lines now recorded` +
+      (simulated ? ` (plus ${simulated} simulated, which do not count)` : ''),
   );
   console.log('next: npm run voice:build, then npm run voice:status');
 }
@@ -296,12 +321,18 @@ function report(
   sidecar: BatchSidecar,
   result: IngestResult,
   spoken: Map<string, string>,
+  provider: string,
 ): number {
   console.log(
     `\n${name} — ${sidecar.speaker}/${sidecar.profile}, ${result.sourceRate} Hz ` +
       `${result.sourceChannels === 1 ? 'mono' : `${result.sourceChannels}ch`} → ${result.clipRate} Hz mono mp3, ` +
       `${result.audioSeconds}s aligned in ${result.alignSeconds}s`,
   );
+  if (provider === SIMULATED_PROVIDER) {
+    console.log('  SIMULATED — edge-tts standing in for Firefly. These do not count as recorded.');
+  } else if (provider !== FIREFLY_PROVIDER) {
+    console.log(`  provider: ${provider}`);
+  }
   console.log(`${'line'.padEnd(24)} secs   gain  peak  worst  trimmed   review`);
 
   for (let i = 0; i < result.lines.length; i++) {

@@ -140,10 +140,10 @@ vocabulary all of it shares — profiles, the spoken-text hash, the clip store.
 
 | Command | What |
 | --- | --- |
-| `npm run voice:batch` | Cuts paste-ready batch files into `voice-batches/`: a `.txt` of nothing but spoken text, and a `.json` sidecar of line ids in order. Coverage-first by default; `--stale`, `--ids`, `--speaker`, `--profile`. Never mixes two speakers or two profiles. |
+| `npm run voice:batch` | Cuts paste-ready batch files into `voice-batches/`: a `.txt` of nothing but spoken text, blank-line separated, and a `.json` sidecar of line ids in order. Coverage-first by default; `--stale`, `--ids`, `--speaker`, `--profile`. Never mixes two profiles. `--per-profile` is the whole-script mode: one unnumbered file per profile (`dad.txt`, `storybook.txt`), every line of it, no splitting. |
 | `npm run voice:ingest` | Takes `voice-batches/<batch>.wav` apart into one committed clip per line under `content/voice/clips/`, with provenance in `index.json`. |
-| `npm run voice:status` | Coverage, stale lines, and the words the aligner was unsure of. Reads only `content/`. |
-| `npm run voice:simulate` | Stands in for Matt: speaks a batch as one continuous edge-tts utterance and drops the WAV in as if it were a download. |
+| `npm run voice:status` | Coverage, stale lines, simulated stand-ins, and the words the aligner was unsure of. Reads only `content/`. |
+| `npm run voice:simulate` | Stands in for Matt: speaks a batch as one continuous edge-tts utterance and drops the WAV in as if it were a download, with a `<batch>.provider` marker saying `simulated`. |
 | `npm run voice:audit` | Every voiced line as one CSV on the drive — id, speaker, profile, *where it plays*, shown text, spoken text, length. For reading the script before committing it to a recording. |
 
 `voice-batches/README.md` is Matt's copy of the loop and is the only file in
@@ -157,6 +157,24 @@ clip matches its line, because it answers wrongly and confidently.
 
 **Latest ingest wins.** The clip store is keyed by line id, so re-recording one
 line as a batch of one overwrites it. That is the patch mechanism.
+
+**A simulated clip is not a recording.** Every clip carries the provider that
+made its audio: `firefly` for a real download, `simulated` for one
+`voice:simulate` produced. The ingest takes it from the `<batch>.provider`
+marker rather than from a literal, so a rehearsal cannot be mistaken for the
+real thing with no flags typed — which is exactly what happened on 2026-08-15,
+when sixteen simulated clips were committed as `firefly` and read as recorded
+for a day. Coverage in `voice:status`, in `debug.json` and in the sound debug
+view counts `firefly` only; simulated lines are badged `sim` and listed as work
+still to do. Build and playback are unaffected: the words are the right words.
+
+**Profile values do not fingerprint a clip.** `voice:build`'s hash for a
+recorded line is the clip's provider, filename, spoken hash, ingest date and the
+line's text — nothing from `profiles.json` — and `clipStateFor` compares the
+spoken hash alone. So filling the real Firefly voice names in later neither
+invalidates a clip nor forces a re-cut. A clip recorded while the profile said
+`TBD` is not flagged `profile-moved` when the name arrives; it is reported once,
+quietly, as a voice nobody has written down.
 
 `src/voice/barks.ts` — the low kind of speech: one word, her own voice, dropped
 rather than queued. Naming barks are derived from ids (`ruby` → `seraphina_ruby`),

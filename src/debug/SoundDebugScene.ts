@@ -81,7 +81,15 @@ interface Filters {
   batch: number;
 }
 
-const FLAG_OPTIONS = ['all', 'any flag', 'stale', 'low-confidence', 'tight-join', 'profile-moved'];
+const FLAG_OPTIONS = [
+  'all',
+  'any flag',
+  'stale',
+  'simulated',
+  'low-confidence',
+  'tight-join',
+  'profile-moved',
+];
 
 export class SoundDebugScene extends Phaser.Scene {
   private voice!: VoiceBank;
@@ -343,13 +351,20 @@ export class SoundDebugScene extends Phaser.Scene {
     this.coverage.setText(
       file
         ? `recorded ${file.totals.recorded}/${file.totals.lines}   ` +
+            // Only when there are any: a zero here reads as a category of work
+            // rather than as the absence of a problem.
+            (file.totals.simulated ? `simulated ${file.totals.simulated}   ` : '') +
             `stale ${file.totals.stale}   ` +
             `unrecorded lines fall back to ${file.fallback}   ` +
             `low confidence at or under ${file.reviewScore.toFixed(2)}`
         : '',
     );
     this.groups.setText(
-      file ? file.groups.map((g) => `${g.key} ${g.recorded}/${g.total}`).join('    ') : '',
+      file
+        ? file.groups
+            .map((g) => `${g.key} ${g.recorded}/${g.total}${g.simulated ? ` +${g.simulated}sim` : ''}`)
+            .join('    ')
+        : '',
     );
     this.filterLine.setText(
       `[1] ${this.groupOptions[this.filters.group]}   ` +
@@ -430,6 +445,10 @@ export class SoundDebugScene extends Phaser.Scene {
       `flags      ${line.flags.length ? line.flags.join(', ') : 'none'}`,
     ];
 
+    if (line.flags.includes('simulated')) {
+      rows.push('', 'SIMULATED — edge-tts standing in for Firefly.', 'Not a recording. Counts as nothing.');
+    }
+
     if (line.low.length) {
       rows.push('', 'the aligner was unsure of:');
       for (const word of line.low) {
@@ -450,7 +469,15 @@ function pad(text: string, width: number): string {
 
 /** Short badges, because a row that wraps is a row nobody reads. */
 function short(flag: string): string {
-  return flag === 'low-confidence' ? 'low' : flag === 'tight-join' ? 'tight' : flag === 'profile-moved' ? 'moved' : flag;
+  return flag === 'low-confidence'
+    ? 'low'
+    : flag === 'tight-join'
+      ? 'tight'
+      : flag === 'profile-moved'
+        ? 'moved'
+        : flag === 'simulated'
+          ? 'sim'
+          : flag;
 }
 
 /** Hard-wrap for the detail panel, which is a fixed-width box of plain text. */

@@ -21,18 +21,25 @@
 
 import { isSpeakable } from './align.js';
 import {
+  PLACEHOLDER_VOICE,
   REVIEW_SCORE,
   clipStateFor,
+  isSimulated,
   profileFor,
   type ClipIndex,
   type ProfileBook,
 } from './firefly.js';
 import type { LineSpec, ManifestLine } from './types.js';
 
-export const DEBUG_SIDECAR_VERSION = 1;
+export const DEBUG_SIDECAR_VERSION = 2;
 
 /** What is wrong with a line, in the words `voice:status` already uses. */
-export type VoiceDebugFlag = 'stale' | 'low-confidence' | 'tight-join' | 'profile-moved';
+export type VoiceDebugFlag =
+  | 'stale'
+  | 'simulated'
+  | 'low-confidence'
+  | 'tight-join'
+  | 'profile-moved';
 
 /**
  * A word the aligner placed but was not sure of.
@@ -76,9 +83,10 @@ export interface VoiceDebugFile {
   fallback: string;
   /** The score at or under which a word is worth an ear. See `REVIEW_SCORE`. */
   reviewScore: number;
-  totals: { lines: number; recorded: number; stale: number };
+  /** `recorded` is real recordings only — a simulated clip is counted apart. */
+  totals: { lines: number; recorded: number; simulated: number; stale: number };
   /** Coverage by speaker/profile, exactly as `voice:status` groups it. */
-  groups: { key: string; recorded: number; total: number }[];
+  groups: { key: string; recorded: number; simulated: number; total: number }[];
   batches: VoiceDebugBatch[];
   lines: VoiceDebugLine[];
 }
@@ -96,10 +104,11 @@ export function buildDebugSidecar(
   fallback: string,
 ): VoiceDebugFile {
   const shown = new Map(manifest.map((entry) => [entry.id, entry]));
-  const groups = new Map<string, { recorded: number; total: number }>();
+  const groups = new Map<string, { recorded: number; simulated: number; total: number }>();
 
   const out: VoiceDebugLine[] = [];
   let recorded = 0;
+  let simulated = 0;
   let stale = 0;
 
   for (const line of lines) {
@@ -107,9 +116,12 @@ export function buildDebugSidecar(
     const state = clipStateFor(line, clips);
     const entry = shown.get(line.id);
 
-    const group = groups.get(`${line.speaker}/${profile}`) ?? { recorded: 0, total: 0 };
+    const group = groups.get(`${line.speaker}/${profile}`) ?? { recorded: 0, simulated: 0, total: 0 };
     group.total++;
-    if (state.state === 'fresh') group.recorded++;
+    if (state.state === 'fresh') {
+      if (isSimulated(state.clip)) group.simulated++;
+      else group.recorded++;
+    }
     groups.set(`${line.speaker}/${profile}`, group);
 
     const flags: VoiceDebugFlag[] = [];
@@ -122,16 +134,31 @@ export function buildDebugSidecar(
       flags.push('stale');
     }
     if (state.state === 'fresh') {
-      recorded++;
       const clip = state.clip;
+      // A stand-in is not a recording. It plays, so it is in the list and can
+      // be listened to; it is badged so nobody reads the row as finished work,
+      // and it counts towards nothing above.
+      if (isSimulated(clip)) {
+        simulated++;
+        flags.push('simulated');
+      } else {
+        recorded++;
+      }
       if (clip.align.review.length) {
         flags.push('low-confidence');
         low.push(...lowWords(clip.words, entry?.words ?? []));
       }
       if (!clip.cut.usableGap) flags.push('tight-join');
       // Prosody lives in the Firefly profile rather than in our data, so a
-      // profile edited after a batch was cut is a silent change of voice.
-      if (clip.voice !== profiles.profiles[clip.profile]?.voice) flags.push('profile-moved');
+      // profile edited after a batch was cut is a silent change of voice. A
+      // clip recorded while the profile still said TBD has no voice to have
+      // drifted from — see the same carve-out in `status.ts`.
+      if (
+        clip.voice !== PLACEHOLDER_VOICE &&
+        clip.voice !== profiles.profiles[clip.profile]?.voice
+      ) {
+        flags.push('profile-moved');
+      }
     }
 
     out.push({
@@ -150,7 +177,7 @@ export function buildDebugSidecar(
     version: DEBUG_SIDECAR_VERSION,
     fallback,
     reviewScore: REVIEW_SCORE,
-    totals: { lines: lines.length, recorded, stale },
+    totals: { lines: lines.length, recorded, simulated, stale },
     groups: [...groups]
       .map(([key, counts]) => ({ key, ...counts }))
       .sort((a, b) => (a.key < b.key ? -1 : 1)),

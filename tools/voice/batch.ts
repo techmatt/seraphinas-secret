@@ -14,10 +14,10 @@
  *   voice-batches/dad-01.json   the sidecar: which line ids, in order, what
  *                               each hashes to, which profile, what day
  *
- * Batches are never mixed: one speaker, one voice profile, because that is what
- * the Firefly UI is set up for at the moment of pasting. Coverage-first is the
- * default — the lines with no clip yet — and a batch of one line is legal and
- * ordinary, since that is how a single edited line gets re-recorded.
+ * Batches are never mixed: one voice profile, because that is what the Firefly
+ * UI is set up for at the moment of pasting. Coverage-first is the default —
+ * the lines with no clip yet — and a batch of one line is legal and ordinary,
+ * since that is how a single edited line gets re-recorded.
  *
  *   npm run voice:batch                       every line lacking a clip
  *   npm run voice:batch -- --speaker dad      one speaker's gaps
@@ -26,7 +26,14 @@
  *   npm run voice:batch -- --stale            only lines whose text has changed
  *   npm run voice:batch -- --all              everything, gaps or not
  *   npm run voice:batch -- --again            re-cut lines already waiting in a batch
+ *   npm run voice:batch -- --per-profile      one file per profile, whole script
  *   npm run voice:batch -- --size 15 --dry-run
+ *
+ * `--per-profile` is the sit-down-and-record-the-whole-thing mode: every line of
+ * a profile in one file named after that profile — `dad.txt`, `storybook.txt` —
+ * with no numbering and no size limit, because the unit of work is a recording
+ * session and not a dozen lines. It implies `--all`. If a single paste turns out
+ * to be more than Firefly will speak in one go, that is what `--size` is for.
  */
 
 import { mkdir, readdir, writeFile } from 'node:fs/promises';
@@ -53,8 +60,9 @@ import {
 } from './firefly.js';
 import type { LineSpec } from './types.js';
 
-/** One batch's worth of candidates: never more than one speaker, never more than one profile. */
+/** One batch's worth of candidates: never more than one profile. */
 interface Group {
+  /** The one speaker in it, or `mixed` — see `writeBatch`. */
   speaker: string;
   profile: string;
   lines: LineSpec[];
@@ -70,6 +78,8 @@ interface Options {
   select: 'missing' | 'stale' | 'all';
   /** Cut a line again even though an un-recorded batch is already waiting for it. */
   again: boolean;
+  /** One file per profile, named after it, holding all of it. Implies `--all`. */
+  perProfile: boolean;
   dryRun: boolean;
   /** Today, as the sidecar records it. Overridable so tests are reproducible. */
   date: string;
@@ -81,9 +91,11 @@ function parseArgs(argv: string[]): Options {
     size: DEFAULT_BATCH_SIZE,
     select: 'missing',
     again: false,
+    perProfile: false,
     dryRun: false,
     date: new Date().toISOString().slice(0, 10),
   };
+  let sized = false;
 
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i]!;
@@ -94,19 +106,30 @@ function parseArgs(argv: string[]): Options {
     };
 
     if (arg === '--dir') opts.dir = value();
-    else if (arg === '--size') opts.size = Number(value());
+    else if (arg === '--size') ((opts.size = Number(value())), (sized = true));
     else if (arg === '--speaker') opts.speaker = value();
     else if (arg === '--profile') opts.profile = value();
     else if (arg === '--ids') opts.ids = value().split(',').map((s) => s.trim()).filter(Boolean);
     else if (arg === '--stale') opts.select = 'stale';
     else if (arg === '--all') opts.select = 'all';
     else if (arg === '--again') opts.again = true;
+    else if (arg === '--per-profile') opts.perProfile = true;
     else if (arg === '--dry-run') opts.dryRun = true;
     else if (arg === '--date') opts.date = value();
     else throw new Error(`unknown argument ${arg}`);
   }
 
   if (!Number.isInteger(opts.size) || opts.size < 1) throw new Error('--size wants a positive integer');
+
+  // A whole profile is the point of the mode, so it takes everything and does
+  // not split — unless a --size was actually typed, which is the escape hatch
+  // for a Firefly that will not swallow a thirty-line paste.
+  if (opts.perProfile) {
+    if (opts.select === 'missing') opts.select = 'all';
+    if (!sized) opts.size = Number.MAX_SAFE_INTEGER;
+    opts.again = true;
+  }
+
   return opts;
 }
 
@@ -146,14 +169,18 @@ async function main(): Promise<void> {
   }
   if (pending.size) console.log(`(holding back ${pending.size} lines already waiting in an unrecorded batch)`);
 
-  // One speaker and one profile per batch: that pair is what Firefly's UI is
-  // set to when the paste happens, and getting it wrong is a whole re-record.
+  // One profile per batch: the profile is what Firefly's UI is set to when the
+  // paste happens, and getting it wrong is a whole re-record. Normally the
+  // speaker is split on too, because a speaker is a person and a session is a
+  // person; `--per-profile` drops that, since the Firefly setup is the same
+  // either way and the point of the mode is one file to paste.
   const groups = new Map<string, Group>();
   for (const line of chosen) {
     const profile = profileFor(line, profiles);
-    const key = `${line.speaker}/${profile}`;
+    const key = opts.perProfile ? profile : `${line.speaker}/${profile}`;
     let group = groups.get(key);
     if (!group) groups.set(key, (group = { speaker: line.speaker, profile, lines: [] }));
+    else if (group.speaker !== line.speaker) group.speaker = MIXED_SPEAKER;
     group.lines.push(line);
   }
 
@@ -163,9 +190,14 @@ async function main(): Promise<void> {
   let batches = 0;
   let written = 0;
   for (const { speaker, profile, lines: group } of groups.values()) {
+    // Named after the profile, unnumbered, one per profile — so a re-cut lands
+    // on the same file rather than accumulating `dad-02`, `dad-03`. Splitting
+    // is the exception here, and only `--size` asks for it.
+    const single = opts.perProfile && group.length <= opts.size;
     for (let i = 0; i < group.length; i += opts.size) {
       const slice = group.slice(i, i + opts.size);
-      const name = nextName(speaker, profile, taken);
+      const name = single ? profile : nextName(speaker, profile, taken);
+      if (single && taken.has(name)) console.log(`(${name} already existed here — overwritten)`);
       taken.add(name);
       batches++;
       written += slice.length;
@@ -204,6 +236,9 @@ async function pendingLines(dir: string, index: Awaited<ReturnType<typeof readCl
   return waiting;
 }
 
+/** A batch holding more than one speaker, which only `--per-profile` can make. */
+const MIXED_SPEAKER = 'mixed';
+
 /** The first free number for this speaker and profile, never reusing one. */
 function nextName(speaker: string, profile: string, taken: Set<string>): string {
   for (let i = 1; ; i++) {
@@ -228,7 +263,14 @@ async function writeBatch(
   // Nothing but the text: no ids, no comments, no header. It exists to be
   // selected whole and pasted into a box, and anything else in it gets read
   // out loud in the recording.
-  await writeFile(batchTextPath(opts.dir, name), `${spoken.join('\n')}\n`, 'utf8');
+  //
+  // A blank line between two lines, because the cut between two clips goes at
+  // the quietest point in the gap and the gap has to exist. It costs nothing
+  // when Firefly would have paused anyway, and it is the documented fix when it
+  // would not have — so it is how every batch is written rather than a remedy
+  // Matt applies by hand after a run-together comes back. The ingest never
+  // reads this file, only the sidecar, so the spacing changes no timings.
+  await writeFile(batchTextPath(opts.dir, name), `${spoken.join('\n\n')}\n`, 'utf8');
 
   const sidecar: BatchSidecar = {
     version: SIDECAR_VERSION,
@@ -240,6 +282,9 @@ async function writeBatch(
     text: `${name}.txt`,
     lines: group.map((line, i) => ({
       id: line.id,
+      // Per line as well as per batch: a whole-profile batch can hold two
+      // speakers, and the clip's provenance should say which one said it.
+      speaker: line.speaker,
       spoken: spoken[i]!,
       spokenHash: spokenHash(spoken[i]!),
     })),

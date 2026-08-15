@@ -1,51 +1,46 @@
 {
-  "version": 1,
+  "version": 2,
   "fallback": "edge-tts",
   "reviewScore": 0.4,
   "totals": {
     "lines": 76,
-    "recorded": 13,
-    "stale": 3
+    "recorded": 0,
+    "simulated": 0,
+    "stale": 0
   },
   "groups": [
     {
       "key": "dad/dad",
-      "recorded": 9,
+      "recorded": 0,
+      "simulated": 0,
       "total": 12
     },
     {
       "key": "morgana/morgana",
       "recorded": 0,
+      "simulated": 0,
       "total": 13
     },
     {
       "key": "seraphina/seraphina",
       "recorded": 0,
+      "simulated": 0,
       "total": 30
     },
     {
       "key": "seraphina/storybook",
-      "recorded": 4,
+      "recorded": 0,
+      "simulated": 0,
       "total": 4
     },
     {
       "key": "sneak/sneak",
       "recorded": 0,
+      "simulated": 0,
       "total": 17
     }
   ],
-  "batches": [
-    {
-      "name": "dad-01",
-      "ingested": "2026-08-15",
-      "lines": 12
-    },
-    {
-      "name": "seraphina-storybook-01",
-      "ingested": "2026-08-15",
-      "lines": 4
-    }
-  ],
+  "batches": [],
   "lines": [
     {
       "id": "seraphina_hello",
@@ -102,10 +97,8 @@
       "speaker": "dad",
       "profile": "dad",
       "provider": "edge-tts",
-      "batch": "dad-01",
-      "flags": [
-        "stale"
-      ],
+      "batch": null,
+      "flags": [],
       "low": [],
       "seconds": 1.994
     },
@@ -203,21 +196,21 @@
       "id": "dad_helper",
       "speaker": "dad",
       "profile": "dad",
-      "provider": "firefly",
-      "batch": "dad-01",
+      "provider": "edge-tts",
+      "batch": null,
       "flags": [],
       "low": [],
-      "seconds": 1.5608
+      "seconds": 1.856
     },
     {
       "id": "dad_shed",
       "speaker": "dad",
       "profile": "dad",
-      "provider": "firefly",
-      "batch": "dad-01",
+      "provider": "edge-tts",
+      "batch": null,
       "flags": [],
       "low": [],
-      "seconds": 1.8365
+      "seconds": 2.106
     },
     {
       "id": "sneak_quest_offer",
@@ -453,21 +446,19 @@
       "id": "dad_quest_offer",
       "speaker": "dad",
       "profile": "dad",
-      "provider": "firefly",
-      "batch": "dad-01",
+      "provider": "edge-tts",
+      "batch": null,
       "flags": [],
       "low": [],
-      "seconds": 2.0747
+      "seconds": 2.439
     },
     {
       "id": "dad_quest_pen",
       "speaker": "dad",
       "profile": "dad",
       "provider": "edge-tts",
-      "batch": "dad-01",
-      "flags": [
-        "stale"
-      ],
+      "batch": null,
+      "flags": [],
       "low": [],
       "seconds": 3.578
     },
@@ -476,10 +467,8 @@
       "speaker": "dad",
       "profile": "dad",
       "provider": "edge-tts",
-      "batch": "dad-01",
-      "flags": [
-        "stale"
-      ],
+      "batch": null,
+      "flags": [],
       "low": [],
       "seconds": 2.189
     },
@@ -487,69 +476,61 @@
       "id": "dad_quest_carrots",
       "speaker": "dad",
       "profile": "dad",
-      "provider": "firefly",
-      "batch": "dad-01",
+      "provider": "edge-tts",
+      "batch": null,
       "flags": [],
       "low": [],
-      "seconds": 2.5546
+      "seconds": 2.828
     },
     {
       "id": "dad_quest_lure",
       "speaker": "dad",
       "profile": "dad",
-      "provider": "firefly",
-      "batch": "dad-01",
+      "provider": "edge-tts",
+      "batch": null,
       "flags": [],
       "low": [],
-      "seconds": 2.2779
+      "seconds": 2.592
     },
     {
       "id": "dad_two_more",
       "speaker": "dad",
       "profile": "dad",
-      "provider": "firefly",
-      "batch": "dad-01",
+      "provider": "edge-tts",
+      "batch": null,
       "flags": [],
       "low": [],
-      "seconds": 1.1809
+      "seconds": 1.494
     },
     {
       "id": "dad_one_more",
       "speaker": "dad",
       "profile": "dad",
-      "provider": "firefly",
-      "batch": "dad-01",
-      "flags": [
-        "low-confidence"
-      ],
-      "low": [
-        {
-          "word": "go!",
-          "score": 0.2,
-          "index": 4
-        }
-      ],
-      "seconds": 1.414
+      "provider": "edge-tts",
+      "batch": null,
+      "flags": [],
+      "low": [],
+      "seconds": 1.633
     },
     {
       "id": "dad_bunnies_home",
       "speaker": "dad",
       "profile": "dad",
-      "provider": "firefly",
-      "batch": "dad-01",
+      "provider": "edge-tts",
+      "batch": null,
       "flags": [],
       "low": [],
-      "seconds": 1.447
+      "seconds": 1.731
     },
     {
       "id": "dad_bunny_coin",
       "speaker": "dad",
       "profile": "dad",
-      "provider": "firefly",
-      "batch": "dad-01",
+      "provider": "edge-tts",
+      "batch": null,
       "flags": [],
       "low": [],
-      "seconds": 2.6378
+      "seconds": 2.911
     },
     {
       "id": "seraphina_bunny",
@@ -705,49 +686,41 @@
       "id": "book_pip_moon_1",
       "speaker": "seraphina",
       "profile": "storybook",
-      "provider": "firefly",
-      "batch": "seraphina-storybook-01",
+      "provider": "edge-tts",
+      "batch": null,
       "flags": [],
       "low": [],
-      "seconds": 2.2578
+      "seconds": 2.822
     },
     {
       "id": "book_pip_moon_2",
       "speaker": "seraphina",
       "profile": "storybook",
-      "provider": "firefly",
-      "batch": "seraphina-storybook-01",
+      "provider": "edge-tts",
+      "batch": null,
       "flags": [],
       "low": [],
-      "seconds": 2.4003
+      "seconds": 3.095
     },
     {
       "id": "book_pip_moon_3",
       "speaker": "seraphina",
       "profile": "storybook",
-      "provider": "firefly",
-      "batch": "seraphina-storybook-01",
-      "flags": [
-        "low-confidence"
-      ],
-      "low": [
-        {
-          "word": "The",
-          "score": 0.3998,
-          "index": 0
-        }
-      ],
-      "seconds": 3.085
+      "provider": "edge-tts",
+      "batch": null,
+      "flags": [],
+      "low": [],
+      "seconds": 3.928
     },
     {
       "id": "book_pip_moon_4",
       "speaker": "seraphina",
       "profile": "storybook",
-      "provider": "firefly",
-      "batch": "seraphina-storybook-01",
+      "provider": "edge-tts",
+      "batch": null,
       "flags": [],
       "low": [],
-      "seconds": 2.7335
+      "seconds": 3.576
     },
     {
       "id": "seraphina_recap_story",
