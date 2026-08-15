@@ -58,7 +58,8 @@ export const PEAK_CEILING_DBFS = -1;
 /**
  * Linear fade at each cut edge, seconds. The spike used 8 ms and nobody could
  * hear it; it is a constant rather than a literal because Matt has not yet put
- * a real Firefly join in his ears. `--fade` overrides it on the command line.
+ * a real Firefly join in his ears. `voice:ingest --fade` overrides it for a
+ * one-off comparison, and this is the number to change when he has decided.
  */
 export const FADE_SECONDS = 0.008;
 

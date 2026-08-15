@@ -32,6 +32,8 @@ import {
   CLIP_DIR,
   CLIP_INDEX,
   CLIP_INDEX_VERSION,
+  CLIP_RATE,
+  FADE_SECONDS,
   PEAK_CEILING_DBFS,
   REVIEW_SCORE,
   SIDECAR_VERSION,
@@ -253,9 +255,10 @@ async function runIngest(opts: Options, audio: string, sidecar: BatchSidecar): P
     audio,
     outDir: opts.outDir,
     model: opts.model,
+    clipRate: CLIP_RATE,
     targetDbfs: TARGET_DBFS,
     peakCeilingDbfs: PEAK_CEILING_DBFS,
-    ...(opts.fade === undefined ? {} : { fadeSeconds: opts.fade }),
+    fadeSeconds: opts.fade ?? FADE_SECONDS,
     // The text the generator wrote, verbatim: the cut points are found by
     // aligning against exactly this, so a paraphrase here shifts every clip.
     lines: sidecar.lines.map((l) => ({ id: l.id, text: l.spoken })),
