@@ -16,7 +16,7 @@
 import Phaser from 'phaser';
 import { DEPTH, GAME_HEIGHT } from '../config';
 import { makeButtonDot, makeGlow, PAD_COLOR } from './ButtonDot';
-import { ICON_SHEETS, ICON_SIZE, TOOL_ICONS } from './toolIcons';
+import { BOOK_SHEET, ICON_SHEETS, ICON_SIZE, TOOL_ICONS } from './toolIcons';
 import { SLOTS, type ToolBelt } from '../world/ToolBelt';
 
 /** One box, and the gap to the next. Big enough to read across a living room. */
@@ -71,6 +71,10 @@ export function preloadToolIcons(scene: Phaser.Scene): void {
     if (scene.textures.exists(file)) continue;
     scene.load.spritesheet(file, file, { frameWidth: ICON_SIZE, frameHeight: ICON_SIZE });
   }
+  // And the book sheet, which is the one thing here that is not on the 16-pixel
+  // grid: it is loaded whole and given a named sub-frame instead. See
+  // `registerBookArt`.
+  if (!scene.textures.exists(BOOK_SHEET)) scene.load.image(BOOK_SHEET, BOOK_SHEET);
 }
 
 export function makeToolRow(scene: Phaser.Scene, belt: ToolBelt): ToolRow {

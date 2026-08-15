@@ -29,8 +29,9 @@ export class GroundItem {
     readonly id: string,
     /**
      * Which 16-pixel cell to draw. Handed in rather than looked up by id: a
-     * hammer is drawn from the tool sheet and a carrot from the crop sheet, and
-     * one table keyed by id would have to know about both. See `toolIcons.ts`.
+     * hammer is drawn from the tool sheet, a carrot from the crop sheet and a
+     * storybook off the house decoration sheet, and one table keyed by id would
+     * have to know about all three. See `toolIcons.ts`.
      */
     icon: IconDef,
     /** Where it lies, in tiles: the point she walks up to. */

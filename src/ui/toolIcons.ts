@@ -21,6 +21,8 @@
  * left lying in the grass, what stops it disappearing into the road.
  */
 
+import Phaser from 'phaser';
+
 /** Where `npm run assets:sync` puts the pack, from the browser's point of view. */
 const ICONS = 'assets/Cute_Fantasy/Icons/Outline/Tool_Icons_Outline.png';
 
@@ -79,6 +81,54 @@ const FOOD_ICONS = 'assets/Cute_Fantasy/Icons/Outline/Food_Icons_Outline.png';
  * showing, which is this game's picture of "a tree came down".
  */
 const RESOURCE_ICONS = 'assets/Cute_Fantasy/Icons/Outline/Resources_Icons_Outline.png';
+
+/**
+ * The UI pack's book sheet, and the one rectangle of it this game uses: an open
+ * two-page spread, 224x134 pixels at (8, 5).
+ *
+ * The only picture in twelve packs that is already the thing the book reader
+ * draws — a tan spread with a spine down the middle and two blank pages either
+ * side of it — so the reader is a picture with a sentence laid on it rather than
+ * a rectangle somebody drew in code. Measured with `world:measure`, like every
+ * other rectangle in this game.
+ *
+ * It is loaded as a plain image and given one named sub-frame, rather than as a
+ * spritesheet: 1680x432 divides on the 16-pixel grid, but the spread does not
+ * sit on it — it is 14 tiles across starting half a tile in. That is the same
+ * arrangement `BUNNY_ICON` has, and `frameOf` in QuestRow already knows both.
+ */
+export const BOOK_SHEET = 'assets/Cute_Fantasy_UI/UI/Book_UI.png';
+export const BOOK_SPREAD = { frame: 'bookSpread', x: 8, y: 5, w: 224, h: 134 } as const;
+
+/**
+ * Register the spread as a named frame on the sheet. Idempotent, and safe to
+ * call before the sheet has arrived — a zone whose art never loaded draws the
+ * reader's own fallback and throws nothing.
+ */
+export function registerBookArt(scene: Phaser.Scene): void {
+  if (!scene.textures.exists(BOOK_SHEET)) return;
+  const texture = scene.textures.get(BOOK_SHEET);
+  texture.setFilter(Phaser.Textures.FilterMode.NEAREST);
+  if (texture.has(BOOK_SPREAD.frame)) return;
+  texture.add(BOOK_SPREAD.frame, 0, BOOK_SPREAD.x, BOOK_SPREAD.y, BOOK_SPREAD.w, BOOK_SPREAD.h);
+}
+
+/**
+ * `Placeable_Decoration.png`: nine columns by eleven rows of 16-pixel cells of
+ * small things that sit on furniture. Row 3, column 5 is a little open book —
+ * the same cell `tools/world/catalog.ts` calls `book` and stands on the shelf in
+ * her bedroom, which is why it needs no measuring: it has been in the world
+ * since the house was built.
+ *
+ * The storybook is drawn from it rather than from the reader's own two-page
+ * spread, which is fourteen times the size and comes out a thin sliver at one
+ * tile. The picture she picks up, the box on the quest row and the book lying
+ * open on the rug are all this one cell.
+ */
+const DECOR = 'assets/Cute_Fantasy/Buildings/House_Decor/Placeable_Decoration.png';
+const DECOR_COLUMNS = 9;
+
+export const BOOK_ICON: IconDef = { file: DECOR, slot: 3 * DECOR_COLUMNS + 5 };
 
 /** One icon on a sheet: the file, and which 16-pixel slot along it. */
 export interface IconDef {
@@ -165,5 +215,6 @@ export const ICON_SHEETS = [
     CARROT_WORLD.file,
     CARROT_ICON.file,
     LOG_ICON.file,
+    BOOK_ICON.file,
   ]),
 ];

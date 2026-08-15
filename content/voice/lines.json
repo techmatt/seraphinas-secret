@@ -308,6 +308,105 @@
     "note": "Pressing green at a bunny with an empty pocket. It names the fix rather than the failure, exactly like seraphina_need_axe: what she needs is the thing to go and do."
   },
   {
+    "id": "hazel_story_offer",
+    "speaker": "hazel",
+    "text": "Will you read me a story?",
+    "note": "Storytime, offered — the third quest, and Hazel's second. One sentence with nothing in the middle of it, so edge-tts has nowhere to put a second of silence. 'Story' and 'read' are the two words this whole quest exists to teach and they are both in the first thing anybody says about it."
+  },
+  {
+    "id": "hazel_story_book",
+    "speaker": "hazel",
+    "text": "There is a storybook on the bookshelf!",
+    "note": "The second half of the offer and phase one's instruction — one line doing both, the way sneak_quest_stones and hazel_quest_pen do. The trailing bang is free; a mid-line one would cost ~0.9 s of a lit sentence with no word lit."
+  },
+  {
+    "id": "hazel_story_come",
+    "speaker": "hazel",
+    "text": "Come and sit on the rug with me!",
+    "note": "Phase two: the walk across the living room. 'The rug' rather than a direction, because the rug is the thing that is glowing and she can see it from the bookshelf."
+  },
+  {
+    "id": "hazel_story_read",
+    "speaker": "hazel",
+    "text": "Press the green button to open the book!",
+    "note": "Phase three, and what the yellow button replays until the book is open. It names the colour and never the letter, the same way the ritual's lines do — the dot on the pad under her thumb is the same green."
+  },
+  {
+    "id": "hazel_book_moon",
+    "speaker": "hazel",
+    "text": "All the way to the moon!",
+    "note": "What she says as the first page turns. The reaction belongs to the page just finished rather than the one arriving, so it is a thing said about a story and not a caption on one. It is spoken in the gap between the leaf going over and the new page starting to read itself — see RoomScene.turnPage."
+  },
+  {
+    "id": "hazel_book_dragon",
+    "speaker": "hazel",
+    "text": "A baby dragon!",
+    "note": "The second page. Short on purpose: three delighted noises and one big line at the end is the shape, and a paragraph between pages would be the grown-up talking over the story."
+  },
+  {
+    "id": "hazel_book_sparkles",
+    "speaker": "hazel",
+    "text": "Sparkles everywhere!",
+    "note": "The third page."
+  },
+  {
+    "id": "hazel_book_best",
+    "speaker": "hazel",
+    "text": "That was the best story ever! Thank you Seraphina.",
+    "say": "That was the best story ever, thank you Seraphina.",
+    "note": "The last page, and the bigger line the whole read has been building to — nothing follows it but the book closing. Comma where the text has a bang: the mid-line '!' silence again."
+  },
+  {
+    "id": "hazel_story_hug",
+    "speaker": "hazel",
+    "text": "Big hug! I love story time.",
+    "say": "Big hug, I love story time.",
+    "note": "The celebration beat, said while she leans over and bumps into her — there is no hug animation in the pack and there is not going to be one, so the hug is the movement and this is the word for it. Mid-line '!' split."
+  },
+  {
+    "id": "hazel_story_coin",
+    "speaker": "hazel",
+    "text": "Here is a shiny gold coin for the best reader!",
+    "note": "The gift line, hers rather than Seraphina's — she is handing something over, exactly like sneak_coin and hazel_bunny_coin. 'Gold coin' is the pair of words it exists to teach and it is said as the coin flies across the screen. One sentence with no punctuation in the middle of it."
+  },
+  {
+    "id": "seraphina_storybook",
+    "speaker": "seraphina",
+    "text": "Storybook!",
+    "note": "A naming bark, said as she takes it off the shelf. Not `seraphina_book`: that one is already the bookshelf's own line, 'I want to read a book!'. The compound word is what she is being taught anyway, and every other bark in the game is the noun for the thing in her hands. See src/voice/barks.ts."
+  },
+  {
+    "id": "book_pip_moon_1",
+    "speaker": "seraphina",
+    "text": "Pip the dog zoomed up to the moon!",
+    "rate": "-22%",
+    "note": "Book #1, page one. The four book pages are the only lines in the game with a prosody override on them: `rate` here replaces the seraphina speaker's -8% outright rather than compounding with it, so -22% is fourteen points slower than everything else she says — a deliberate storybook pace, read to somebody rather than said to them. It is also the slowest thing in the game bar seraphina_sparky, which is a phonics line and not a sentence."
+  },
+  {
+    "id": "book_pip_moon_2",
+    "speaker": "seraphina",
+    "text": "On the moon Pip met a baby dragon!",
+    "rate": "-22%"
+  },
+  {
+    "id": "book_pip_moon_3",
+    "speaker": "seraphina",
+    "text": "The dragon sneezed sparkles all over Pip!",
+    "rate": "-22%"
+  },
+  {
+    "id": "book_pip_moon_4",
+    "speaker": "seraphina",
+    "text": "Now Pip and the dragon are best friends!",
+    "rate": "-22%"
+  },
+  {
+    "id": "seraphina_recap_story",
+    "speaker": "seraphina",
+    "text": "I read my friend a whole story.",
+    "note": "A day the story was read cover to cover. 'My friend' rather than her name, for seraphina_recap_errand's reason: nobody in the game has ever said it out loud, and bedtime is not where a name should be introduced. Third in the recap's order — under the two bigger finished jobs and over the errand. See src/state/recap.ts."
+  },
+  {
     "id": "seraphina_recap_bunnies",
     "speaker": "seraphina",
     "text": "I took three little bunnies home to their den.",
