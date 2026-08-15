@@ -330,7 +330,7 @@
     "id": "morgana_story_book",
     "speaker": "morgana",
     "text": "There is a storybook on the bookshelf!",
-    "note": "The second half of the offer and phase one's instruction — one line doing both, the way sneak_quest_stones and morgana_quest_pen do. The trailing bang is free; a mid-line one would cost ~0.9 s of a lit sentence with no word lit."
+    "note": "The second half of the offer and phase one's instruction — one line doing both, the way sneak_quest_stones and dad_quest_pen do. The trailing bang is free; a mid-line one would cost ~0.9 s of a lit sentence with no word lit."
   },
   {
     "id": "morgana_story_come",
@@ -380,7 +380,7 @@
     "id": "morgana_story_coin",
     "speaker": "morgana",
     "text": "Here is a shiny gold coin for the best reader!",
-    "note": "The gift line, hers rather than Seraphina's — she is handing something over, exactly like sneak_coin and morgana_bunny_coin. 'Gold coin' is the pair of words it exists to teach and it is said as the coin flies across the screen. One sentence with no punctuation in the middle of it."
+    "note": "The gift line, hers rather than Seraphina's — she is handing something over, exactly like sneak_coin and dad_bunny_coin. 'Gold coin' is the pair of words it exists to teach and it is said as the coin flies across the screen. One sentence with no punctuation in the middle of it."
   },
   {
     "id": "seraphina_storybook",
