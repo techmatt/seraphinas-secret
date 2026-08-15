@@ -192,11 +192,16 @@ test('the faerie quest, from the offer to the cave', async ({ page }) => {
   // Before anything: a boy with a cloud over his head, and no quest.
   const idle = await readHooks(page);
   expect(idle.quest.id, 'nothing is on yet').toBeNull();
-  // Two people with something to ask, which is what two quests looks like from
-  // the yard: a boy on his doorstep and a girl by the pond. One of them can be
-  // said yes to, and saying yes to either takes both clouds off the sky.
-  expect(idle.quest.offers.sort(), 'both of them are asking').toEqual(['hazel', 'sneak']);
-  expect(idle.quest.markers, 'with a thought bubble apiece, actually built').toBe(2);
+  // Three people with something to ask, which is what three quests looks like
+  // from the yard: a boy on his doorstep, a girl by the pond and a father by his
+  // shed. One of them can be said yes to, and saying yes to any takes every
+  // cloud off the sky.
+  expect(idle.quest.offers.sort(), 'all three of them are asking').toEqual([
+    'dad',
+    'hazel',
+    'sneak',
+  ]);
+  expect(idle.quest.markers, 'with a thought bubble apiece, actually built').toBe(3);
   expect(idle.tools.slots, 'she has the axe and three empty boxes').toEqual([
     'axe',
     null,
@@ -211,7 +216,7 @@ test('the faerie quest, from the offer to the cave', async ({ page }) => {
   expect(taken.quest.id, 'the job is hers').toBe('faerie');
   expect(taken.quest.phase, 'and it starts with the hammer').toBe('hammer');
   expect(taken.quest.offers, 'nobody is offering anything any more').toEqual([]);
-  expect(taken.quest.markers, 'so both bubbles have gone').toBe(0);
+  expect(taken.quest.markers, 'so every bubble has gone').toBe(0);
   expect(taken.quest.instruction, 'and the job is a line he can say again').toBe(
     'sneak_quest_hammer',
   );
@@ -419,8 +424,8 @@ test('the faerie quest, from the offer to the cave', async ({ page }) => {
   expect(after.faeries.length, 'and all three came through the door with her').toBe(3);
   expect(
     after.npcs.map((n) => n.id).sort(),
-    'while Sneak and Hazel are back at their own spots',
-  ).toEqual(['hazel', 'sneak']);
+    'while Sneak and Hazel are back at their own spots, and Dad never left his',
+  ).toEqual(['dad', 'hazel', 'sneak']);
   expect(after.quest.circle, 'the cave keeps the circle; the village never had one').toBe(false);
 
   // And he has his own two lines back — the first thing he has been able to say
@@ -764,11 +769,12 @@ test('the yellow button remembers, the wrong tool cannot spoil it, a doorway doe
   await standAt(page, 'playroom');
   expect(await walkThroughDoorway(page), 'out into the new day').toBe('outside');
   const newDay = await readHooks(page);
-  expect(newDay.quest.offers.sort(), 'and both jobs are going again').toEqual([
+  expect(newDay.quest.offers.sort(), 'and every job is going again').toEqual([
+    'dad',
     'hazel',
     'sneak',
   ]);
-  expect(newDay.quest.markers, 'with the thought bubbles back over their heads').toBe(2);
+  expect(newDay.quest.markers, 'with the thought bubbles back over their heads').toBe(3);
   expect(
     newDay.trees.find((t) => t.id === tree.id)?.state,
     'the tree she felled grew back while she slept',
@@ -807,10 +813,17 @@ test('the yellow button remembers, the wrong tool cannot spoil it, a doorway doe
  * and that what the first one left in the world survives the second one being
  * taken. It ends on the recap, which is the only sentence that can say both
  * halves of a day like that happened.
+ *
+ * **Three minutes rather than the suite's two and a half.** It is the longest
+ * test in the fast suite by a distance — two whole quests and a night — and it
+ * came in at 1.7 min on a good run and touched the 150 s cap on one run in
+ * three. The cap it is given is its own; the suite-wide default stays where it
+ * is, because nothing else is anywhere near it.
  */
 test('the bunny rescue, the faerie quest after it, and a night that says both', async ({
   page,
 }) => {
+  test.setTimeout(180_000);
   const { errors } = await bootGame(page);
   await waitForVoice(page);
 
@@ -824,14 +837,14 @@ test('the bunny rescue, the faerie quest after it, and a night that says both', 
   // Before anything: a clearing with nothing in it. The pen is the quest's
   // furniture, so it must not exist on an afternoon nobody took the job.
   const morning = await readHooks(page);
-  expect(morning.quest.offers, 'she is one of the two asking').toContain('hazel');
+  expect(morning.quest.offers, 'he is one of the three asking').toContain('dad');
   expect(penTrees(morning), 'and there is no ring in the wood yet').toEqual([]);
   expect(morning.bunnies, 'and no bunnies anywhere').toEqual([]);
 
-  const pond = morning.npcs.find((n) => n.id === 'hazel')!;
+  const shed = morning.npcs.find((n) => n.id === 'dad')!;
 
-  // Take it. Two presses, both of them her talking.
-  await standNear(page, 'hazel', { y: 72 });
+  // Take it. Two presses, both of them him talking.
+  await standNear(page, 'dad', { y: 72 });
   for (let press = 0; press < 6; press++) {
     if ((await readHooks(page)).quest.id) break;
     await tap(page, 'KeyZ');
@@ -840,9 +853,9 @@ test('the bunny rescue, the faerie quest after it, and a night that says both', 
   const taken = await readHooks(page);
   expect(taken.quest.id, 'the job is hers').toBe('bunny');
   expect(taken.quest.phase, 'and it starts with the walk out').toBe('toThePen');
-  expect(taken.quest.giver, 'hers to repeat, in her voice').toBe('hazel');
-  expect(taken.quest.instruction).toBe('hazel_quest_pen');
-  expect(taken.quest.offers, 'and neither of them is offering anything now').toEqual([]);
+  expect(taken.quest.giver, 'his to repeat, in his voice').toBe('dad');
+  expect(taken.quest.instruction).toBe('dad_quest_pen');
+  expect(taken.quest.offers, 'and none of them is offering anything now').toEqual([]);
 
   // The ring, sixteen of it, standing and solid — and every one of them a tree
   // she is allowed to fell, which is what makes the phase after this possible.
@@ -874,11 +887,11 @@ test('the bunny rescue, the faerie quest after it, and a night that says both', 
     ).toBeLessThan(tile * 2);
   }
 
-  // And Hazel has gone on ahead to the den, which is a long way from her pond.
-  const atDen = taken.npcs.find((n) => n.id === 'hazel')!;
+  // And Dad has gone on ahead to the den, which is a long way from his shed.
+  const atDen = taken.npcs.find((n) => n.id === 'dad')!;
   expect(
-    Math.hypot(atDen.x - pond.x, atDen.y - pond.y),
-    'she is not where the map put her any more',
+    Math.hypot(atDen.x - shed.x, atDen.y - shed.y),
+    'he is not where the map put him any more',
   ).toBeGreaterThan(tile * 10);
 
   // --- phase one: the walk out ---------------------------------------------
@@ -894,7 +907,7 @@ test('the bunny rescue, the faerie quest after it, and a night that says both', 
   }
   const arrived = await readHooks(page);
   expect(arrived.quest.phase, 'walking up to it is the whole of that job').toBe('freeThem');
-  expect(arrived.quest.instruction, 'and the job is now the axe').toBe('hazel_quest_chop');
+  expect(arrived.quest.instruction, 'and the job is now the axe').toBe('dad_quest_chop');
   expect(
     arrived.quest.slots.map((s) => s.kind),
     'four boxes, one per fall, all the same picture',
@@ -938,7 +951,7 @@ test('the bunny rescue, the faerie quest after it, and a night that says both', 
     freed.bunnies.every((b) => b.state === 'loose'),
     'and the bunnies are out through the gap',
   ).toBe(true);
-  expect(freed.quest.instruction, 'the job is carrots now').toBe('hazel_quest_carrots');
+  expect(freed.quest.instruction, 'the job is carrots now').toBe('dad_quest_carrots');
   expect(freed.quest.slots.map((s) => s.id), 'three of them, in the quest’s order').toEqual([
     'carrot_1',
     'carrot_2',
@@ -949,7 +962,7 @@ test('the bunny rescue, the faerie quest after it, and a night that says both', 
   // The gentle refusal, at the one moment it can happen: three bunnies hopping
   // about and nothing in her pocket. It costs her nothing and it names the fix
   // rather than the failure, which is what every "no" in this game does.
-  await afterInstruction(page, 'hazel_quest_carrots');
+  await afterInstruction(page, 'dad_quest_carrots');
   await standByProp(page, freed.bunnies[0]!.id);
   await tap(page, 'KeyZ');
   const empty = await readHooks(page);
@@ -978,7 +991,7 @@ test('the bunny rescue, the faerie quest after it, and a night that says both', 
   );
   const carrying = await readHooks(page);
   expect(carrying.quest.held.length, 'all three carrots').toBe(3);
-  expect(carrying.quest.instruction, 'and the job is the walk home').toBe('hazel_quest_lure');
+  expect(carrying.quest.instruction, 'and the job is the walk home').toBe('dad_quest_lure');
   expect(carrying.quest.slots.map((s) => s.kind), 'three bunny boxes now').toEqual([
     'bunny',
     'bunny',
@@ -987,7 +1000,7 @@ test('the bunny rescue, the faerie quest after it, and a night that says both', 
   expect(carrying.quest.objects, 'and there is nothing left lying in the grass').toEqual([]);
 
   // --- phase four: one at a time, three times -------------------------------
-  await afterInstruction(page, 'hazel_quest_lure');
+  await afterInstruction(page, 'dad_quest_lure');
   const den = { x: Math.round(atDen.x / tile), y: Math.round(atDen.y / tile) };
 
   for (let trip = 1; trip <= 3; trip++) {
@@ -1040,11 +1053,11 @@ test('the bunny rescue, the faerie quest after it, and a night that says both', 
     expect(dropped.quest.following, 'nothing is following her now').toBeNull();
     expect(bunnyState(dropped, loose[0]!.id), 'that one lives here').toBe('home');
 
-    // ...and Hazel counts down what is left, in a clip cut knowing the number.
+    // ...and Dad counts down what is left, in a clip cut knowing the number.
     if (trip < 3) {
       await page.waitForFunction(
         (want) => (window as unknown as { __seraphina: Hooks }).__seraphina.voice.lineId === want,
-        trip === 1 ? 'hazel_two_more' : 'hazel_one_more',
+        trip === 1 ? 'dad_two_more' : 'dad_one_more',
         { timeout: 20_000 },
       );
     }
@@ -1057,10 +1070,9 @@ test('the bunny rescue, the faerie quest after it, and a night that says both', 
   expect(done.session.run.completed, 'the day has it down as done').toEqual(['bunny']);
   // Everything she has not done today is on offer again, the instant this one
   // parks rather than tomorrow morning: finishing one quest must not cost her
-  // another. Sneak is across the village with the faeries, and Hazel — standing
-  // right here, bunnies home — has her *second* job to ask for, which is the
-  // story. One head, one cloud, and the next of her jobs under it. See
-  // `QuestEngine.offerFrom`; `story.spec` is where that one gets played.
+  // another. Sneak is across the village with the faeries and Hazel is at the
+  // pond with the story; the man standing right here has nothing left to ask,
+  // which is the other half of the same rule. See `QuestEngine.offerFrom`.
   expect(done.quest.offers.sort(), 'and everything else is going again').toEqual([
     'hazel',
     'sneak',
@@ -1074,12 +1086,12 @@ test('the bunny rescue, the faerie quest after it, and a night that says both', 
 
   await page.waitForFunction(
     () =>
-      (window as unknown as { __seraphina: Hooks }).__seraphina.voice.lineId === 'hazel_bunny_coin',
+      (window as unknown as { __seraphina: Hooks }).__seraphina.voice.lineId === 'dad_bunny_coin',
     undefined,
     { timeout: 30_000 },
   );
   const paid = await readHooks(page);
-  expect(paid.voice.bubble.speaker, 'out of her own mouth — she is handing it over').toBe('hazel');
+  expect(paid.voice.bubble.speaker, 'out of his own mouth — he is handing it over').toBe('dad');
   expect(paid.voice.words.length, 'with words on screen to light up').toBeGreaterThan(0);
   expect(paid.coins, 'and the count did not move again on the way past').toBe(1);
 
@@ -1101,11 +1113,11 @@ test('the bunny rescue, the faerie quest after it, and a night that says both', 
     fallen(back),
     'and the four she felled are still down',
   ).toBe(4);
-  // Hazel has walked back to her pond, now the quest has let go of her.
-  const walkedBack = back.npcs.find((n) => n.id === 'hazel')!;
+  // Dad has walked back to his shed, now the quest has let go of him.
+  const walkedBack = back.npcs.find((n) => n.id === 'dad')!;
   expect(
-    Math.hypot(walkedBack.x - pond.x, walkedBack.y - pond.y),
-    'and she is back where the map put her',
+    Math.hypot(walkedBack.x - shed.x, walkedBack.y - shed.y),
+    'and he is back where the map put him',
   ).toBeLessThan(tile);
 
   // --- and then the other job, on the same afternoon ------------------------
@@ -1162,9 +1174,9 @@ test('the bunny rescue, the faerie quest after it, and a night that says both', 
   ]);
   expect(bothDone.faeries.length, 'three faeries out of the fire').toBe(3);
   expect(bothDone.coins, 'and a coin apiece, which is two of her three boxes').toBe(2);
-  // Two of the three jobs are behind her and the third is Hazel's other one, so
-  // there is exactly one cloud left in the sky and it is over the girl who wants
-  // a story. Sneak has nothing left to ask.
+  // Two of the three jobs are behind her and the third is Hazel's, so there is
+  // exactly one cloud left in the sky and it is over the girl who wants a story.
+  // Neither Sneak nor Dad has anything left to ask.
   expect(bothDone.quest.offers, 'and Hazel still has a story to be read').toEqual(['hazel']);
   expect(bothDone.quest.markers, 'one cloud left, and only one').toBe(1);
 

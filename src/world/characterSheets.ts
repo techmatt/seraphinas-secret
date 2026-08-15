@@ -102,6 +102,15 @@ export interface CharacterSheet {
   layers: SheetLayer[];
   anims: AnimRow[];
   /**
+   * Which row of the frame the top of this character's head is on. Absent is
+   * the player's own 23, which every paper-doll character shares.
+   *
+   * Only the grown-ups need it: a premade NPC is drawn taller in the same
+   * 64-pixel frame, and anything that has to be put *above* somebody — a green
+   * dot, a thought bubble, a balloon — measures from here. See `headHeight`.
+   */
+  headTop?: number;
+  /**
    * How big this character is drawn, as a fraction of everybody else. Absent is
    * full size.
    *
@@ -116,6 +125,9 @@ export interface CharacterSheet {
 
 /** Where `npm run assets:sync` puts the pack, from the browser's point of view. */
 const PLAYER = 'assets/Cute_Fantasy/Player';
+
+/** The pack's premade grown-ups, on a grid of their own. See `DAD`. */
+const NPCS = 'assets/Cute_Fantasy/NPCs (Premade)';
 
 /**
  * The player grid: 9 columns of 64x64 across 56 rows. The character is drawn
@@ -253,15 +265,16 @@ export const SERAPHINA: CharacterSheet = {
 };
 
 /**
- * The rest of the cast, drawn off the same body.
+ * The children, drawn off the same body.
  *
- * The pack's own NPC sheets are no help here: `NPCs (Premade)/` is eight adults
- * with jobs — a bartender, a miner, a chef — and `Cute_Fantasy_Characters/` is
- * knights, orcs, goblins and angels on a different grid again. There is no
- * child in the pack except the one the paper doll makes, so a child is what the
- * paper doll makes. Which is the arrangement paying off rather than a
- * compromise: a new person is six file paths, on the grid everything already
- * agrees on, with the walk cycle and the idle breath already registered.
+ * The pack's own NPC sheets are no help for these: `NPCs (Premade)/` is eight
+ * grown-ups with jobs — a bartender, a miner, a chef — and
+ * `Cute_Fantasy_Characters/` is knights, orcs, goblins and angels on a
+ * different grid again. There is no child in the pack except the one the paper
+ * doll makes, so a child is what the paper doll makes. Which is the arrangement
+ * paying off rather than a compromise: a new child is six file paths, on the
+ * grid everything already agrees on, with the walk cycle and the idle breath
+ * already registered. The grown-up goes the other way — see `DAD`.
  *
  * They are given `STANDING_ROWS` and no axe. Nobody but Seraphina swings
  * anything, and a chop row mapped for somebody who cannot chop is a fact
@@ -322,6 +335,43 @@ export const HAZEL: CharacterSheet = kid(
 );
 
 /**
+ * Dad: the one grown-up in the game, and the one character who is not the paper
+ * doll.
+ *
+ * `kid()` cannot make an adult. There is a single body under every layer in
+ * `Player/` and it is a child's — different hair and a different shirt is the
+ * whole of what the paper doll can say, so a "dad" built out of it would be
+ * Sneak in a farmer's shirt. The pack's answer is `NPCs (Premade)/`: eight
+ * grown-ups with jobs, each drawn *taller and broader in the same 64-pixel
+ * frame*, and — measured, because the read_me is licence text — with their feet
+ * on row 40 exactly like the player's. So an adult drops in beside the children
+ * with nothing to reconcile but the head, which is what `headTop` is for.
+ *
+ * `Farmer_Bob.png` of the eight. His landmark is a shed in the farm quarter and
+ * he is the only one of them dressed for it — straw hat and blue dungarees, 17
+ * by 22 pack pixels against Seraphina's 13 by 18, which is a father-sized
+ * difference at a glance rather than a fact you have to be told. Lumberjack
+ * Jack and Fisherman Fin are the other two men who would suit a village; both
+ * are grey-haired, which reads as a grandfather.
+ *
+ * His grid is his own: 384x832 is six columns by thirteen rows, not the
+ * player's nine by fifty-six. The pack's row convention holds — 0-2 idle and
+ * 3-5 walk, each in down / right / up order — so `STANDING_ROWS` is his as
+ * well, and the eight rows below them are job animations nothing asks for. He
+ * does not walk today either; the walk is registered because a person who can
+ * only stand still is a fact written down that nothing checks.
+ */
+export const DAD: CharacterSheet = {
+  id: 'dad',
+  frameWidth: 64,
+  frameHeight: 64,
+  columns: 6,
+  headTop: 19,
+  layers: [{ key: 'dad-base', file: `${NPCS}/Farmer_Bob.png` }],
+  anims: STANDING_ROWS,
+};
+
+/**
  * Every sheet a map file may name. Map data carries the string; this is the one
  * place that turns it into layers — the same arrangement as a line id and the
  * voice manifest, so a person in the layout is authored content and never a
@@ -331,4 +381,5 @@ export const CHARACTER_SHEETS: Record<string, CharacterSheet> = {
   seraphina: SERAPHINA,
   sneak: SNEAK,
   hazel: HAZEL,
+  dad: DAD,
 };

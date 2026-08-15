@@ -26,9 +26,17 @@ to its own shadow, 0 when a box comes out spanning the sheet.
   overlay did. See `src/world/characterSheets.ts`.
 - **NPC sheets are not on the player grid.** `Cute_Fantasy_Characters/` (knights,
   orcs, goblins, angels) and `NPCs (Premade)/` are each their own grid, and the
-  pack has no child in it at all. Every person in this game is therefore the
-  player paper doll with different hair and shirt — see `kid()`. If a future
-  prompt does use a pack NPC sheet, measure that sheet on its own.
+  pack has no child in it at all. Every *child* in this game is therefore the
+  player paper doll with different hair and shirt — see `kid()`.
+- **`NPCs (Premade)/` is the pack's only adult, and it drops straight in.**
+  Measured 2026-08-15 for Dad: the eight sheets are 6 columns of the same 64x64
+  frame (Farmer_Bob/Buba 384x832 = 13 rows, Lumberjack/Miner 384x640 = 10,
+  Bartenders/Chef 384x448 = 7, Fisherman_Fin 576x832 = 9 columns), rows 0-2 idle
+  and 3-5 walk in the pack's own down/right/up order, and the rest job
+  animations. The part worth writing down: **their feet are on frame row 40,
+  exactly like the player's**, so `FOOT_ORIGIN_Y` needs no adjusting — only the
+  head does, since a grown-up starts at row 19 rather than 23 (`headTop` on the
+  sheet). Bob and Buba are 17x22 pack pixels against Seraphina's 13x18.
 - **Interior furniture and wall sheets are not safely indexable.** A bed is 25 px
   of art in a 32 px slot; a counter unit is 16×20. That is the whole reason
   `catalog.ts` is a list of measured rectangles rather than frame numbers.

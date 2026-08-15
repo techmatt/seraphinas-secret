@@ -41,6 +41,10 @@ export const FOOT_ORIGIN_Y = 41 / 64;
  * person in it is eighteen pixels tall between rows 23 and 40. Anything that has
  * to be put *above* somebody — a green dot, a speech balloon — needs that number
  * rather than the frame's, or it lands on their chest.
+ *
+ * The default rather than the rule: a grown-up is drawn taller in the same
+ * frame and says so with `headTop` on its own sheet. Their feet are still on
+ * row 41, which is what lets the two share everything else.
  */
 const HEAD_TOP_Y = 23 / 64;
 
@@ -206,7 +210,11 @@ export class Character extends Phaser.GameObjects.Container {
    * a little sister is drawn at three quarters of everybody else.
    */
   get headHeight(): number {
-    return (FOOT_ORIGIN_Y - HEAD_TOP_Y) * this.sheet.frameHeight * this.drawScale;
+    const top =
+      this.sheet.headTop === undefined
+        ? HEAD_TOP_Y
+        : this.sheet.headTop / this.sheet.frameHeight;
+    return (FOOT_ORIGIN_Y - top) * this.sheet.frameHeight * this.drawScale;
   }
 
   private get drawScale(): number {

@@ -32,9 +32,9 @@ const npc = (hooks: Snapshot, id: string) => {
  * asserted on at all: a person is data now — a sheet, a spot and a list of lines
  * — so the second one has to work without a line of code of her own.
  *
- * Both of them have a job to hand out now, so the *cycle* — press again, get the
- * next thing, wrap for ever — is asked of Hazel after Sneak's job has been taken
- * off the board. Which is worth the reordering on its own: taking one quest is
+ * Everybody out here has a job to hand out now, so the *cycle* — press again,
+ * get the next thing, wrap for ever — is asked of Hazel after Sneak's job has
+ * been taken off the board. Which is worth the reordering on its own: taking one quest is
  * what puts the other person back to being an ordinary person, and that is the
  * whole of "one quest at a time" seen from the pavement.
  */
@@ -74,7 +74,7 @@ test('people can be walked through, pressed, and answer over their own heads', a
   // Her own job, not her own chatter: she has a cloud over her head too, and the
   // first thing a person with one says is what they want. Her lines come back
   // below, once somebody else's job has been taken.
-  expect(her.voice.lineId, 'the first line of the job she is offering').toBe('hazel_quest_offer');
+  expect(her.voice.lineId, 'the first line of the job she is offering').toBe('hazel_story_offer');
   expect(her.voice.bubble.speaker, 'her balloon, over her').toBe('hazel');
   expect(Math.abs(her.voice.bubble.x - hazel.x)).toBeLessThan(40);
 

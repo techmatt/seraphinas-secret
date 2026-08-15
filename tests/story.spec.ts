@@ -74,13 +74,12 @@ async function turnPage(page: Page) {
  * village is crossable on foot is `world.spec`'s claim, and this test's subject
  * starts at the bookshelf.
  *
- * **The morning is stood in for.** Hazel carries two of the three quests and one
- * head wears one thought bubble, so the story is only ever offered on an
- * afternoon the bunnies are already home — see `QuestEngine.offerFrom`.
- * `quest.spec` plays that afternoon honestly and it costs a minute and a half;
- * `finishQuest` writes it down instead, which is the same standing-in
- * `grantCoin` is and for the same reason: the state is otherwise unreachable
- * from a fresh page inside one test's budget.
+ * **Taken from the pond on a fresh morning**, which it could not be until
+ * 2026-08-15: Hazel carried the bunnies as well, one head wears one cloud, and
+ * the story was only ever offered on an afternoon the bunnies were already home.
+ * One quest per person (Matt) means her cloud is the story from the moment the
+ * day starts. `finishQuest` is still here and now buys only what it says — a
+ * second finished job for the recap to have to choose between.
  *
  * The three things asked hardest are the three the design is actually about:
  * green during a read does *nothing* and costs her nothing, the word being
@@ -95,23 +94,23 @@ test('storytime: a book off the shelf, and four pages read aloud on the rug', as
   await waitForVoice(page);
 
   const morning = await readHooks(page);
-  expect(morning.quest.offers.sort(), 'two people with something to ask').toEqual([
+  expect(morning.quest.offers.sort(), 'three people with something to ask').toEqual([
+    'dad',
     'hazel',
     'sneak',
   ]);
 
-  // This morning's job, written down rather than lived. Hazel's first is the
-  // bunnies and her second is the story, and one cloud cannot offer both.
+  // A bunny afternoon behind her, written down rather than lived — not to
+  // unlock anything any more, but because the recap at the end of this test is
+  // about *two* finished jobs and their order, and playing the wood honestly to
+  // get there costs a minute and a half that `quest.spec` already spends. The
+  // same standing-in `grantCoin` is.
   await page.evaluate(() =>
     (window as unknown as { __seraphina: Hooks }).__seraphina.finishQuest('bunny'),
   );
-
-  const afternoon = await readHooks(page);
-  expect(afternoon.session.run.completed, 'the bunnies are down as done').toEqual(['bunny']);
-  expect(
-    afternoon.quest.offers.sort(),
-    'and she is asking again, for the other one',
-  ).toEqual(['hazel', 'sneak']);
+  expect((await readHooks(page)).session.run.completed, 'the bunnies are down as done').toEqual([
+    'bunny',
+  ]);
 
   // Take it. Two presses, both of them her talking.
   await standNear(page, 'hazel', { y: 72 });
@@ -121,7 +120,7 @@ test('storytime: a book off the shelf, and four pages read aloud on the rug', as
   }
 
   const taken = await readHooks(page);
-  expect(taken.quest.id, 'the second of her jobs is hers').toBe('story');
+  expect(taken.quest.id, 'the one job she has is hers').toBe('story');
   expect(taken.quest.phase, 'and it starts at the bookshelf').toBe('getBook');
   expect(taken.quest.giver, 'hers to repeat, in her voice').toBe('hazel');
   expect(taken.quest.instruction).toBe('hazel_story_book');

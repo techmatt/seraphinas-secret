@@ -52,8 +52,9 @@ export interface QuestHooks {
   giver: string | null;
   /**
    * Everybody in this zone wearing a thought bubble, and empty once any job is
-   * taken. A list because there are two quests: before either is accepted there
-   * is a boy on a doorstep and a girl by a pond, each with something to ask.
+   * taken. A list because there are three quests: before any is accepted there
+   * is a boy on a doorstep, a girl by a pond and a father by his shed, each with
+   * something to ask.
    */
   offers: string[];
   /** How many of those bubbles are actually built and on screen. */
@@ -295,10 +296,10 @@ export interface TestHooks {
   /**
    * Write a quest down as done today without playing it.
    *
-   * The same standing-in as `giveTool` and `grantCoin`, for the same kind of
-   * otherwise-unreachable state: Hazel gives two of the three quests and one
-   * head wears one thought bubble, so her second is only on offer on an
-   * afternoon her first is already finished. See `QuestEngine.offerFrom`.
+   * The same standing-in as `giveTool` and `grantCoin`. Nothing is gated behind
+   * another job any more — every giver has exactly one — so what this buys is
+   * only a day with more than one thing in it: `story.spec` writes a bunny
+   * afternoon down so the recap has two finished jobs to order.
    */
   finishQuest: (id: string) => void;
   /** Where she is in the one quest that can be running. See QuestHooks. */

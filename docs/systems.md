@@ -27,11 +27,12 @@ returns. The seam between "cleared by a night" and "kept" is
 `src/quest/QuestEngine.ts` (rules, no Phaser), `src/quest/Quest.ts` (types),
 `src/quest/quests.ts` (the table — `faerie`, `bunny` and `story`).
 
-One quest at a time; there is no quest log. **Three quests, two givers, two
-thought bubbles.** Sneak has one job and Hazel has two, and one head wears one
-cloud — so `offerFrom` gives her the first of hers she has not done today, which
-makes the story her *second* job on any afternoon. Accepting anything takes every
-bubble off the sky. **Finishing one puts the others back**, that instant and
+One quest at a time; there is no quest log. **Three quests, three givers, three
+thought bubbles** — Sneak the faeries, Dad the bunnies, Hazel the story, one job
+each (Matt, 2026-08-15). `offerFrom` still *searches* for the first of a
+person's quests she has not done today, so a second job for somebody is a row in
+the table and no code; nobody has one, so it never serialises. Accepting
+anything takes every bubble off the sky. **Finishing one puts the others back**, that instant and
 wherever she is standing: the day refuses only what she has already done, which
 is `run.completed` on the store and is written by `advance` when a quest parks
 (Matt, 2026-08-13). Anything a finished quest left in the world — the ring, the

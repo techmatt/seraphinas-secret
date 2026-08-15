@@ -181,22 +181,22 @@ const BED = 'bed';
 const DAD_BEDTIME = 'dad_bedtime';
 
 /**
- * The two ways the lure phase says no, and the two Hazel says how-many.
+ * The two ways the lure phase says no, and the two Dad says how-many.
  *
- * Both refusals are hers rather than Hazel's, because neither is somebody
- * talking to her: they are the world answering a button, which is the narrative
- * voice rule in CLAUDE.md. The counting pair is Hazel's, because she is standing
+ * Both refusals are hers rather than Dad's, because neither is somebody talking
+ * to her: they are the world answering a button, which is the narrative voice
+ * rule in CLAUDE.md. The counting pair is Dad's, because he is the one standing
  * at the den watching them arrive — and it is indexed by how many are home, so
  * one bunny in means "two more" and there is no third entry, because the third
  * one home is not a count, it is the end.
  */
 const BUNNY_ONE_AT_A_TIME = 'seraphina_one_bunny';
 const BUNNY_NEEDS_CARROT = 'seraphina_need_carrot';
-const BUNNIES_LEFT = ['hazel_two_more', 'hazel_one_more'];
+const BUNNIES_LEFT = ['dad_two_more', 'dad_one_more'];
 
-/** The last two things anybody says about the bunnies. Hers, at the den. */
-const HAZEL_HOME = 'hazel_bunnies_home';
-const HAZEL_COIN = 'hazel_bunny_coin';
+/** The last two things anybody says about the bunnies. His, at the den. */
+const BUNNIES_HOME = 'dad_bunnies_home';
+const BUNNY_COIN = 'dad_bunny_coin';
 
 /** ...and the last two about the story. Hers too, on the rug. */
 const HAZEL_HUG = 'hazel_story_hug';
@@ -870,15 +870,12 @@ export class RoomScene extends Phaser.Scene {
     // night test have a coin worth keeping — and what lets a fourth coin be
     // offered to a full pocket at all, which is otherwise unreachable.
     hooks.grantCoin = () => this.grantCoin();
-    // And the same standing-in for a job already done today.
-    //
-    // Hazel carries two of the three quests and one head has one thought bubble,
-    // so her second job — the story — is only ever on offer on an afternoon the
-    // bunnies are already home. That afternoon costs a minute and a half to play
-    // through honestly, and `quest.spec` already plays it; a test about the book
-    // would be paying for the wood again to reach the shelf. This writes the
-    // morning down without living it, the way `grantCoin` hands over a coin
-    // nothing earned. See `QuestEngine.offerFrom`.
+    // And the same standing-in for a job already done today: a morning written
+    // down without being lived, the way `grantCoin` hands over a coin nothing
+    // earned. It no longer unlocks anything — every giver has one job since the
+    // bunnies moved to Dad — and what it is for now is a day with two finished
+    // jobs in it, which is what `story.spec`'s recap needs and what playing two
+    // quests honestly costs a minute and a half of.
     hooks.finishQuest = (id) => {
       session.completeQuest(id);
       this.refreshQuestHud();
@@ -1197,9 +1194,9 @@ export class RoomScene extends Phaser.Scene {
       giver: quests.giver,
       /**
        * Everybody in this zone wearing a thought bubble right now, and how many
-       * are actually built. A list because there are two quests: two of them
-       * before either is taken, none at all while one is running, and whatever
-       * she has not done yet again the moment it is finished.
+       * are actually built. A list because there are three quests: all three
+       * before any is taken, none at all while one is running, and whatever she
+       * has not done yet again the moment it is finished.
        */
       offers: this.npcs.filter((npc) => quests.offerFrom(npc.id) !== null).map((n) => n.id),
       markers: this.markers.length,
@@ -2337,7 +2334,7 @@ export class RoomScene extends Phaser.Scene {
       return;
     }
 
-    // ...and Hazel counts what is left, out loud, in a sentence that was cut
+    // ...and Dad counts what is left, out loud, in a sentence that was cut
     // knowing the number. There is no synthesiser in this game and there never
     // will be, so "two more" and "one more" are two clips and a lookup — see
     // `state/recap.ts` for the same rule from the other end.
@@ -2370,8 +2367,8 @@ export class RoomScene extends Phaser.Scene {
 
     this.time.delayedCall(SUMMONING_BEAT, () => {
       if (!this.scene.isActive() || this.leaving) return;
-      this.sayFrom('hazel', HAZEL_HOME);
-      this.sayNext(HAZEL_HOME, 'hazel', HAZEL_COIN, () => this.payUp(earned, 'hazel'));
+      this.sayFrom('dad', BUNNIES_HOME);
+      this.sayNext(BUNNIES_HOME, 'dad', BUNNY_COIN, () => this.payUp(earned, 'dad'));
     });
   }
 
@@ -2917,9 +2914,9 @@ export class RoomScene extends Phaser.Scene {
    * instead — the honest picture of what just happened, and not a failure. The
    * store was told either way, so nothing here can get the count wrong.
    *
-   * `from` is whose hand it comes out of. There are two quests and two people
-   * who finish one, and the coin is thrown from wherever that person is
-   * standing — which for a guest is not where the map put them.
+   * `from` is whose hand it comes out of. Three quests, a giver each, and the
+   * coin is thrown from wherever that person is standing — which for a guest is
+   * not where the map put them.
    */
   private payUp(earned: boolean, fromId: string): void {
     const from = this.npcs.find((npc) => npc.id === fromId);
@@ -3231,11 +3228,14 @@ export class RoomScene extends Phaser.Scene {
   /**
    * Dad, calling her in from indoors, once the light starts going.
    *
-   * He is a voice and not a person: there is no Dad standing in the world and
-   * this prompt is explicit that there is not going to be one today. So the
-   * balloon is anchored at the front door — the words come out of the *house* —
-   * and it is his voice rather than hers, which is the one place the narrative
-   * rule in CLAUDE.md does not apply, because this is somebody actually talking.
+   * **This one is still a voice and not a person**, and deliberately so now
+   * that there is a Dad standing out by his shed (Matt, 2026-08-15: the dusk
+   * call-in stays exactly as it is). He is calling her in from *indoors* — the
+   * balloon is anchored at the front door and the words come out of the house —
+   * and wiring it to the man in the yard would turn "come home" into "come over
+   * here", said by somebody she can see is not at home. It is his voice rather
+   * than hers, which is the one place the narrative rule in CLAUDE.md does not
+   * apply, because this is somebody actually talking.
    *
    * Asked every frame and nearly always a no. Four things have to be true, and
    * each of them is a different kind of restraint:

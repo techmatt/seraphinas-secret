@@ -47,6 +47,13 @@ export const CATEGORIES = [
   // `tools/world/catalog.ts`, because the HUD is not a place in the world and
   // the generator has no business knowing what an axe looks like in a box.
   'Cute_Fantasy/Icons',
+  // The pack's own grown-ups, for Dad. Every other person in the game is the
+  // player paper doll in different clothes, which cannot be made an adult —
+  // there is one body under all of it. These eight are drawn taller and
+  // broader on the same 64-px frame with their feet on the same ground line,
+  // so one of them is the only adult the pack has. See `DAD` in
+  // `src/world/characterSheets.ts`.
+  'Cute_Fantasy/NPCs (Premade)',
   // The UI pack's icon sheet, for the coin. A separate download from the base
   // pack and the first folder here that is not `Cute_Fantasy/` — the coin is the
   // one thing in the game the base pack has no picture of at all. Only `UI/` is

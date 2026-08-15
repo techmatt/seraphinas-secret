@@ -34,7 +34,7 @@
     "id": "dad_bedtime",
     "speaker": "dad",
     "text": "Time for bed!",
-    "note": "Called from inside the house when the light starts going, once a day and never again — see the day clock. He is not a person standing in the world and there is no plan for him to be one, so the balloon is anchored at the front door instead: the words come out of the house. The one line in the game not spoken by somebody on screen, and the one exception to the narrative-voice rule in CLAUDE.md — this is Dad talking, not the world."
+    "note": "Called from inside the house when the light starts going, once a day and never again — see the day clock. There IS a Dad standing in the world since 2026-08-15, out by his shed, and this line is still not his: he is calling her in from indoors, so the balloon stays anchored at the front door and the words come out of the house. The one line in the game not spoken by somebody on screen, and the one exception to the narrative-voice rule in CLAUDE.md — this is Dad talking, not the world."
   },
   {
     "id": "seraphina_apple",
@@ -62,7 +62,7 @@
     "id": "seraphina_bed",
     "speaker": "seraphina",
     "text": "My cozy bed. Time to sleep!",
-    "note": "The bed is the sleep trigger now, so its line is the offer as well as the name: press green once and she says this, press it again while it is still in the air and the day ends. Two sentences on purpose — the first is still the word the prop is teaching, the second is the question. Hers, not Dad's: dad_bedtime is kept below for the day Dad is a person standing in the room."
+    "note": "The bed is the sleep trigger now, so its line is the offer as well as the name: press green once and she says this, press it again while it is still in the air and the day ends. Two sentences on purpose — the first is still the word the prop is teaching, the second is the question. Hers, not Dad's: dad_bedtime is the one he calls from the front door, and he is out by his shed rather than in this room."
   },
   {
     "id": "sneak_faeries",
@@ -89,6 +89,18 @@
     "id": "hazel_pebble",
     "speaker": "hazel",
     "text": "I found a shiny pebble!"
+  },
+  {
+    "id": "dad_helper",
+    "speaker": "dad",
+    "text": "Hello, my little helper!",
+    "note": "Dad's first idle line, said outside his shed. What a giver says once his job is done and he is an ordinary person again — see whatTheySay. One sentence, trailing bang, nothing mid-line to buy a second of silence."
+  },
+  {
+    "id": "dad_shed",
+    "speaker": "dad",
+    "text": "I keep all my tools in this shed.",
+    "note": "His second, and it explains where he is standing. 'Tools' is the word it exists to teach: she has a belt of them and this is the only line in the game that says the word out loud."
   },
   {
     "id": "sneak_quest_offer",
@@ -228,60 +240,60 @@
     "note": "The last line of the quest, and the first coin in the game. His, out of his own mouth — he is handing her something. One sentence with no punctuation in the middle of it, so edge-tts has nowhere to put a second of silence, and the trailing '!' is free. 'Gold coin' is the pair of words the whole line exists to teach: it is said as the coin flies across the screen into the row, so the words and the picture are one event. See RoomScene.payUp."
   },
   {
-    "id": "hazel_quest_offer",
-    "speaker": "hazel",
+    "id": "dad_quest_offer",
+    "speaker": "dad",
     "text": "Three little bunnies are stuck in the woods!",
-    "note": "The bunny rescue, offered. One sentence with nothing in the middle of it, so edge-tts has nowhere to put a second of silence and the trailing bang is free. 'Bunnies' is in every line of this quest — she cannot read the word yet and hearing it nine times in an afternoon is how that changes."
+    "note": "The bunny rescue, offered. Dad's since 2026-08-15 — one quest per person (Matt), so the rescue moved off Hazel and every line of it was re-cut in his voice; the words are unchanged. One sentence with nothing in the middle of it, so edge-tts has nowhere to put a second of silence and the trailing bang is free. 'Bunnies' is in every line of this quest — she cannot read the word yet and hearing it nine times in an afternoon is how that changes."
   },
   {
-    "id": "hazel_quest_pen",
-    "speaker": "hazel",
+    "id": "dad_quest_pen",
+    "speaker": "dad",
     "text": "Little trees are all around the bunnies! Go and find them.",
     "say": "Little trees are all around the bunnies, go and find them.",
     "note": "The second half of the offer, and phase one's instruction — the same line doing both, the way sneak_quest_stones does. Comma where the text has a bang: a mid-line '!' buys ~0.9 s of a lit sentence with no word lit."
   },
   {
-    "id": "hazel_quest_chop",
-    "speaker": "hazel",
+    "id": "dad_quest_chop",
+    "speaker": "dad",
     "text": "Chop the little trees to free the bunnies!",
     "note": "Phase two. The verb and the reason in one breath, because what she has to hold in her head is why she is swinging."
   },
   {
-    "id": "hazel_quest_carrots",
-    "speaker": "hazel",
+    "id": "dad_quest_carrots",
+    "speaker": "dad",
     "text": "Bunnies love carrots! Find three in the woods.",
     "say": "Bunnies love carrots, find three in the woods.",
     "note": "Phase three. Same mid-line '!' fix."
   },
   {
-    "id": "hazel_quest_lure",
-    "speaker": "hazel",
+    "id": "dad_quest_lure",
+    "speaker": "dad",
     "text": "Give a bunny a carrot and walk it home to me!",
-    "note": "Phase four, and the whole mechanic in one sentence: a carrot, a bunny, a walk. 'One at a time' is deliberately not in it — being told a rule she has not broken yet is a rule she will not remember, and the game says so out loud the moment she tries. See seraphina_one_bunny."
+    "note": "Phase four, and the whole mechanic in one sentence: a carrot, a bunny, a walk. 'To me' is still true of the den — he is the one waiting at it now. 'One at a time' is deliberately not in it: being told a rule she has not broken yet is a rule she will not remember, and the game says so out loud the moment she tries. See seraphina_one_bunny."
   },
   {
-    "id": "hazel_two_more",
-    "speaker": "hazel",
+    "id": "dad_two_more",
+    "speaker": "dad",
     "text": "Two more bunnies to go!",
     "note": "Said at the den as the first one arrives. Pre-cut with the number in it, because there is no synthesiser in this game and there is never going to be one — two counts means two clips and a lookup. See BUNNIES_LEFT in RoomScene."
   },
   {
-    "id": "hazel_one_more",
-    "speaker": "hazel",
+    "id": "dad_one_more",
+    "speaker": "dad",
     "text": "One more bunny to go!",
     "note": "And the second. There is no third: the third one home is not a count, it is the end of the quest."
   },
   {
-    "id": "hazel_bunnies_home",
-    "speaker": "hazel",
+    "id": "dad_bunnies_home",
+    "speaker": "dad",
     "text": "All three bunnies are home!",
-    "note": "The big moment of the second quest, said over the celebration at the den."
+    "note": "The big moment of the bunny quest, said over the celebration at the den."
   },
   {
-    "id": "hazel_bunny_coin",
-    "speaker": "hazel",
+    "id": "dad_bunny_coin",
+    "speaker": "dad",
     "text": "The bunnies want you to have this shiny gold coin!",
-    "note": "The gift line, and hers rather than Seraphina's — she is standing at the den handing something over, which is somebody talking and not the world's own voice, exactly like sneak_coin. 'Gold coin' is the pair of words the line exists to teach and it is said as the coin flies across the screen. One sentence with no punctuation in the middle of it."
+    "note": "The gift line, and his rather than Seraphina's — he is standing at the den handing something over, which is somebody talking and not the world's own voice, exactly like sneak_coin. 'Gold coin' is the pair of words the line exists to teach and it is said as the coin flies across the screen. One sentence with no punctuation in the middle of it."
   },
   {
     "id": "seraphina_bunny",

@@ -1,12 +1,12 @@
 /**
- * Every quest in the game. There are three, and two givers.
+ * Every quest in the game. There are three, and a giver each.
  *
  * **The faerie quest.** Sneak's spell book has a spell that summons faeries and
  * it needs three magic stones. She finds a hammer by the well, cracks a stone
  * open in three different corners of the village, and takes them to him at the
  * Secret Cave — which is where this stops, and where the next prompt starts.
  *
- * **The bunny rescue.** Hazel has found three bunnies penned in the Mystic Woods
+ * **The bunny rescue.** Dad has found three bunnies penned in the Mystic Woods
  * behind a ring of tiny trees. She walks out to them, chops four of the ring
  * down, finds three carrots in the wood, and leads the bunnies home to the den
  * one at a time.
@@ -16,24 +16,28 @@
  * *Pip Goes to the Moon* — the game's reading flagship, and the one quest whose
  * whole middle is a takeover UI rather than the world. See `ui/BookReader.ts`.
  *
- * **Three quests, two thought bubbles**, because a bubble sits over a head and
- * Hazel has two jobs. She asks for the bunnies first and for the story once they
- * are home; the order is this table's, and `QuestEngine.offerFrom` is the two
- * lines that make it so. A night puts both back, in order.
+ * **One quest per person** (Matt, 2026-08-15), which is what makes it three
+ * quests and three thought bubbles. Hazel used to carry the bunnies as well as
+ * the story, and a bubble sits over a head — so her second job could only be
+ * offered on an afternoon her first was already done, and that is not the shape
+ * of a day this game wants. The rescue moved to Dad, whose own landmark is the
+ * shed it was always plausible he had come back from the wood to. Every morning
+ * now has all three clouds in the sky at once.
  *
- * **Two thought bubbles at once is on purpose** (claude.ai, 2026-08-13). Before
- * anything is taken there is a boy on his doorstep and a girl by the pond, each
- * with a cloud over their head, and she can do one of them.
- * The engine's older comment worried that a second bubble is a choice she has to
- * make; two friends who each want help, on opposite sides of a village she can
- * only be in one half of, is not that kind of choice — and the alternative was
- * gating the second quest behind the first, which would put the bunnies out of
- * reach of any afternoon that did not start with a spell book. One quest at a
- * time is still absolute: the moment either is accepted, both bubbles go.
+ * **Three thought bubbles at once is on purpose** (claude.ai, 2026-08-13, and
+ * one more of them since). Before anything is taken there is a boy on his
+ * doorstep, a girl by the pond and a father by his shed, each with a cloud over
+ * their head, and she can do any one of them. The engine's older comment worried
+ * that a second bubble is a choice she has to make; three people who each want
+ * help, spread across a village she can only be in one part of, is not that kind
+ * of choice — and the alternative was gating quests behind each other, which
+ * would put the bunnies out of reach of any afternoon that did not start with a
+ * spell book. One quest at a time is still absolute: the moment any is accepted,
+ * every bubble goes.
  *
- * And the moment either is *finished*, the other one's comes back (Matt,
- * 2026-08-13). Both of these are one afternoon's work in either order; the day
- * only ever refuses the one she has already done.
+ * And the moment one is *finished*, the others come back (Matt, 2026-08-13).
+ * All three are one afternoon's work in any order; the day only ever refuses
+ * what she has already done.
  *
  * The spots below are chosen so that each stone is a *walk* and none of them is
  * a search: one west where the main road runs out into the wood, one south by
@@ -239,15 +243,15 @@ const PEN_MIDDLE = { x: PEN.x + PEN.size / 2, y: PEN.y + PEN.size / 2 } as const
 const DEN = { id: 'den', zone: 'outside', x: 6.5, y: 16.5 } as const;
 
 /**
- * Hazel's spot at the den — half a tile off it, so a bunny settling on the den
- * is never drawn inside her, and facing the way the wood opens.
+ * Dad's spot at the den — half a tile off it, so a bunny settling on the den is
+ * never drawn inside him, and facing the way the wood opens.
  */
-const HAZEL_AT_DEN = { x: DEN.x + 1.1, y: DEN.y - 0.2 } as const;
+const DAD_AT_DEN = { x: DEN.x + 1.1, y: DEN.y - 0.2 } as const;
 
 export const BUNNY_QUEST: Quest = {
   id: 'bunny',
-  giver: 'hazel',
-  offer: ['hazel_quest_offer', 'hazel_quest_pen'],
+  giver: 'dad',
+  offer: ['dad_quest_offer', 'dad_quest_pen'],
   pen: {
     ...PEN,
     /**
@@ -274,7 +278,7 @@ export const BUNNY_QUEST: Quest = {
        * ring, which is the first place outside it she can actually stand.
        */
       id: 'toThePen',
-      instruction: 'hazel_quest_pen',
+      instruction: 'dad_quest_pen',
       goal: { kind: 'travel', zone: 'outside', at: { ...PEN_MIDDLE, r: 3.6 } },
     },
     {
@@ -284,7 +288,7 @@ export const BUNNY_QUEST: Quest = {
        * something she may do rather than something she must.
        */
       id: 'freeThem',
-      instruction: 'hazel_quest_chop',
+      instruction: 'dad_quest_chop',
       goal: { kind: 'fell', falls: ['fall_1', 'fall_2', 'fall_3', 'fall_4'] },
     },
     {
@@ -296,7 +300,7 @@ export const BUNNY_QUEST: Quest = {
        * button off one.
        */
       id: 'carrots',
-      instruction: 'hazel_quest_carrots',
+      instruction: 'dad_quest_carrots',
       goal: {
         kind: 'gather',
         of: 'carrot',
@@ -314,7 +318,7 @@ export const BUNNY_QUEST: Quest = {
        * a funny line rather than a locked button — see CLAUDE.md.
        */
       id: 'lure',
-      instruction: 'hazel_quest_lure',
+      instruction: 'dad_quest_lure',
       goal: {
         kind: 'lure',
         bunnies: ['bunny_1', 'bunny_2', 'bunny_3'],
@@ -334,26 +338,26 @@ export const BUNNY_QUEST: Quest = {
     },
   ],
   /**
-   * She goes on ahead and waits at the den, for every phase but the last.
+   * He goes on ahead and waits at the den, for every phase but the last.
    *
    * The Sneak-to-cave precedent exactly, including where it stops: `done` is not
    * in the list, so the moment the third bunny is home the quest has let go of
-   * her — and she is still standing at the den for the whole celebration,
-   * because nothing rebuilds a zone in the middle of one. She is back at the
-   * pond the next time the wood is built, which is the next time she walks
-   * through a door.
+   * him — and he is still standing at the den for the whole celebration, because
+   * nothing rebuilds a zone in the middle of one. He is back at his shed the
+   * next time the wood is built, which is the next time she walks through a
+   * door.
    */
   gather: {
     during: ['toThePen', 'freeThem', 'carrots', 'lure'],
     guests: [
       {
-        id: 'hazel',
-        sheet: 'hazel',
+        id: 'dad',
+        sheet: 'dad',
         zone: 'outside',
-        x: HAZEL_AT_DEN.x,
-        y: HAZEL_AT_DEN.y,
+        x: DAD_AT_DEN.x,
+        y: DAD_AT_DEN.y,
         facing: 'down',
-        lines: ['hazel_play', 'hazel_pebble'],
+        lines: ['dad_helper', 'dad_shed'],
       },
     ],
   },
@@ -401,10 +405,11 @@ const PIP_PAGES = ['page_1', 'page_2', 'page_3', 'page_4'];
 /**
  * Storytime: Hazel asks to be read to.
  *
- * **Hazel's second job of the day**, and that is a consequence rather than a
- * design: a thought bubble sits over a head, and one head cannot offer two
- * things at once. So she asks for the bunnies first and for the story once the
- * bunnies are home — see `QuestEngine.offerFrom` — and a night puts both back.
+ * **Her only job**, since 2026-08-15. It was her second for two days — she
+ * carried the bunnies as well, and one head cannot wear two clouds, so the
+ * story was only ever on offer on an afternoon the bunnies were already home.
+ * The rescue is Dad's now and hers is the one thing she asks for, every
+ * morning, from the moment she is stood by the pond.
  *
  * Three phases and none of them is a hunt. The book is on the shelf it has
  * always been on, the walk is across one room, and the reading is the whole

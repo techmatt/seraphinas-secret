@@ -7,8 +7,8 @@
  * is the one the boy next door asked for, and the yellow button says what it is.
  *
  * One at a *time*, though, and not one a day: finishing a job puts every other
- * job back on offer that instant, so both of the game's quests are one
- * afternoon's work in either order (Matt, 2026-08-13). The day remembers what
+ * job back on offer that instant, so all three of the game's quests are one
+ * afternoon's work in any order (Matt, 2026-08-13). The day remembers what
  * she has already done in `SessionData.run.completed`, which is a list of
  * finished things rather than a log of unfinished ones — nothing to read, and
  * nothing on screen.
@@ -130,23 +130,28 @@ export class QuestEngine {
    *
    * Two things take a bubble off a head, and they are different lengths. A job
    * being *on* takes every bubble off until it is over — one active quest, and
-   * the other giver waits — and that is the whole of what accepting one does.
+   * the other givers wait — and that is the whole of what accepting one does.
    * A job being *finished* takes only its own giver's, and only until she
    * sleeps: a four-year-old who finishes a quest and is immediately asked to do
    * it again has not finished anything.
    *
    * So the moment the active quest parks, everything she has not done today is
    * on offer again, from wherever she happens to be standing when it happens
-   * (Matt, 2026-08-13: finishing one quest must not prevent the other). Both
-   * jobs in one afternoon, in either order.
+   * (Matt, 2026-08-13: finishing one quest must not prevent the others). Every
+   * job in one afternoon, in any order.
    *
    * **One person may carry more than one job**, and then the bubble is about the
-   * first of theirs she has not done today — Hazel has the bunnies and the
-   * story, and one cloud over one head cannot offer two things at once. So her
-   * second job is her *next* one: it comes on offer the instant the first parks,
-   * and a night puts both back in order. Written as a search over the table
-   * rather than a lookup, because "the quest this person gives" stopped being a
-   * question with one answer the day a person had two.
+   * first of theirs she has not done today: one cloud over one head cannot offer
+   * two things at once, so their second job is their *next* one, on offer the
+   * instant the first parks.
+   *
+   * Nobody does, today. Hazel carried the bunnies and the story until
+   * 2026-08-15, when the rescue moved to Dad — one quest per person (Matt),
+   * because a job that can only be asked for after another job is not a shape
+   * this game wants a day to have. So the search below always finds at most one
+   * and this paragraph never happens; it is kept because the *find* is still the
+   * honest way to ask the question, and a second job for somebody is a row in
+   * the table rather than a change here.
    */
   offerFrom(npcId: string): Quest | null {
     if (this.store.quest && !this.finished) return null;
