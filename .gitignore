@@ -21,6 +21,12 @@ dist-ssr/
 # tools/voice/align/requirements.txt in a couple of minutes. See its README.
 /tools/voice/align/.venv/
 
+# Matt's Firefly drop folder: generated batch text, its sidecar, and the WAV he
+# downloads. All three are INPUTS to the ingest, not build outputs — what gets
+# committed is the finished clips under content/voice/clips/. See its README.
+/voice-batches/*
+!/voice-batches/README.md
+
 # Working files: alignment dumps and cut audio, all regenerable by re-running
 # the spike scripts. `scratch/` itself is a fine place for a file worth keeping.
 /scratch/voice-align/

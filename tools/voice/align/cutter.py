@@ -57,19 +57,19 @@ def _frames(pcm: np.ndarray, rate: int) -> np.ndarray:
     return np.sqrt((pcm[:usable].reshape(-1, hop) ** 2).mean(axis=1))
 
 
-def find_cut(rms: np.ndarray, floor: float, start: float, end: float) -> tuple[float, bool]:
+def longest_quiet_run(rms: np.ndarray, floor: float, start: float, end: float) -> tuple[float, float]:
     """
-    The best place to cut between two words, and whether it was a real silence.
+    The longest stretch of frames under the silence floor inside a window.
 
-    Preferred: the middle of the longest run of frames under the silence floor.
-    Failing that — two words with no gap the aligner could see — the single
-    quietest frame, reported as unusable so the caller can say so out loud.
+    Returned as (start, end) in seconds; no run at all comes back as two equal
+    numbers. Where a pause *is* is a different question from where a word ends,
+    and the aligner only answers the second one — it gets the first wrong
+    whenever a word has no crisp onset to find. See `ingest.py`.
     """
     lo = max(0, int(start / HOP_SECONDS))
     hi = min(len(rms), max(lo + 1, int(end / HOP_SECONDS)))
-    window = rms[lo:hi]
+    quiet = rms[lo:hi] < floor
 
-    quiet = window < floor
     best_start, best_len, run_start = -1, 0, -1
     for i, is_quiet in enumerate(quiet):
         if is_quiet and run_start < 0:
@@ -81,13 +81,30 @@ def find_cut(rms: np.ndarray, floor: float, start: float, end: float) -> tuple[f
     if run_start >= 0 and len(quiet) - run_start > best_len:
         best_start, best_len = run_start, len(quiet) - run_start
 
-    if best_len * HOP_SECONDS >= USABLE_GAP_SECONDS:
-        return (lo + best_start + best_len / 2) * HOP_SECONDS, True
-    return (lo + int(np.argmin(window))) * HOP_SECONDS, False
+    if best_len == 0:
+        return lo * HOP_SECONDS, lo * HOP_SECONDS
+    return (lo + best_start) * HOP_SECONDS, (lo + best_start + best_len) * HOP_SECONDS
 
 
-def _fade(clip: np.ndarray, rate: int) -> np.ndarray:
-    n = min(int(rate * FADE_SECONDS), len(clip) // 2)
+def find_cut(rms: np.ndarray, floor: float, start: float, end: float) -> tuple[float, bool]:
+    """
+    The best place to cut between two words, and whether it was a real silence.
+
+    Preferred: the middle of the longest run of frames under the silence floor.
+    Failing that — two words with no gap the aligner could see — the single
+    quietest frame, reported as unusable so the caller can say so out loud.
+    """
+    run_start, run_end = longest_quiet_run(rms, floor, start, end)
+    if run_end - run_start >= USABLE_GAP_SECONDS:
+        return (run_start + run_end) / 2, True
+
+    lo = max(0, int(start / HOP_SECONDS))
+    hi = min(len(rms), max(lo + 1, int(end / HOP_SECONDS)))
+    return (lo + int(np.argmin(rms[lo:hi]))) * HOP_SECONDS, False
+
+
+def _fade(clip: np.ndarray, rate: int, seconds: float = FADE_SECONDS) -> np.ndarray:
+    n = min(int(rate * seconds), len(clip) // 2)
     if n <= 0:
         return clip
     ramp = np.linspace(0.0, 1.0, n, dtype=np.float32)
