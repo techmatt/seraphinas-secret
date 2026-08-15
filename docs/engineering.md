@@ -103,7 +103,11 @@ to its own shadow, 0 when a box comes out spanning the sheet.
   `public/voice/.build-cache.json`.
 - **The game may only read `public/voice/manifest.json`.** No file under `src/`
   may know a provider exists. That is the whole reason the manifest is the
-  contract.
+  contract. The **one** exception is `src/debug/voiceDebug.ts`, which reads the
+  build's `public/voice/debug.json` sidecar so the sound debug view can say
+  which batch a clip came out of — auditing a recording session is the one job
+  that cannot be done without knowing. It is dev tooling, nothing else imports
+  it, and the fence holds everywhere else.
 - `npm run voice:inspect` answers "do the highlights match the audio" and "is
   this phonics line saying the sound or the letter" without anybody listening.
 

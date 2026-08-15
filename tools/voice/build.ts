@@ -25,6 +25,7 @@ import { copyFile, mkdir, readFile, readdir, stat, unlink, writeFile } from 'nod
 import path from 'node:path';
 
 import { align, isSpeakable } from './align.js';
+import { buildDebugSidecar } from './debugSidecar.js';
 import {
   CLIP_DIR,
   clipStateFor,
@@ -211,6 +212,16 @@ async function main(): Promise<void> {
 
   await writeFile(path.join(opts.out, 'manifest.json'), `${JSON.stringify(manifest, null, 2)}\n`);
   await writeFile(cacheFile, `${JSON.stringify(nextCache, null, 2)}\n`);
+
+  // Beside the manifest, never inside it: where each line came from, which
+  // batch, and which words the aligner doubted. Only the dev-only sound debug
+  // view reads it, and the game is unchanged if it is deleted. See
+  // `debugSidecar.ts`.
+  const profiles = await readProfiles().catch(() => null);
+  if (profiles) {
+    const sidecar = buildDebugSidecar(lines, manifest.lines, clipIndex, profiles, provider.id);
+    await writeFile(path.join(opts.out, 'debug.json'), `${JSON.stringify(sidecar, null, 2)}\n`);
+  }
 
   const orphans = (await readdir(opts.out))
     .filter((f) => f.endsWith('.mp3'))

@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { GAME_WIDTH, GAME_HEIGHT } from './config';
+import { SoundDebugScene } from './debug/SoundDebugScene';
 import { RoomScene } from './scenes/RoomScene';
 import { TitleScene } from './scenes/TitleScene';
 import { installTestHooks } from './testHooks';
@@ -20,7 +21,10 @@ const config: Phaser.Types.Core.GameConfig = {
     gamepad: true,
   },
   // Only the first entry starts on its own. The title screen is the one door in.
-  scene: [TitleScene, RoomScene],
+  // The sound debug view is registered and never started: the room launches it
+  // on a keyboard key, which is the whole of what makes it unreachable from the
+  // pad — see `debug/SoundDebugScene.ts`.
+  scene: [TitleScene, RoomScene, SoundDebugScene],
 };
 
 new Phaser.Game(config);

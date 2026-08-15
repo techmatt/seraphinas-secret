@@ -20,6 +20,11 @@ import {
 import { unlockAudio } from '../audio/context';
 import { DEPTH, GAME_HEIGHT, TILE, TILE_SIZE, WORLD_SCALE } from '../config';
 import {
+  SOUND_DEBUG_KEY,
+  SOUND_DEBUG_SCENE,
+  type SoundDebugData,
+} from '../debug/SoundDebugScene';
+import {
   gatheredBy,
   itemOf,
   lureOf,
@@ -476,6 +481,8 @@ export class RoomScene extends Phaser.Scene {
 
   /** Hold this and the collision grid shows. See DebugHitboxes. */
   private hitboxKey?: Phaser.Input.Keyboard.Key;
+  /** Opens the sound debug view. Keyboard only, on purpose — see `setupInput`. */
+  private debugKey?: Phaser.Input.Keyboard.Key;
   private hitboxes!: DebugHitboxes;
   /** Forced on by a test, so a headless screenshot can hold no key at all. */
   private hitboxesPinned = false;
@@ -892,6 +899,11 @@ export class RoomScene extends Phaser.Scene {
 
   override update(_time: number, delta: number): void {
     if (!this.world) return;
+
+    if (this.debugKey && Phaser.Input.Keyboard.JustDown(this.debugKey)) {
+      this.openSoundDebug();
+      return;
+    }
 
     // A tab that was in the background can hand over a delta measured in
     // seconds; anything past a quarter of one is a stall, not a walk.
@@ -1314,6 +1326,10 @@ export class RoomScene extends Phaser.Scene {
     // circle listens to either of these.
     this.redKeys = this.addKeys(keyboard, ['C', 'L']);
     this.hitboxKey = keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.B);
+    // The sound debug view. A keyboard key and nothing else, which is what
+    // makes it dev-only: the pad is the game's input and there is no sequence
+    // of presses on it that arrives here. See `debug/SoundDebugScene.ts`.
+    this.debugKey = keyboard.addKey(Phaser.Input.Keyboard.KeyCodes[SOUND_DEBUG_KEY]);
 
     // The title screen already unlocked audio; this is only insurance for a
     // context the browser suspended again while the tab was in the background.
@@ -1327,6 +1343,29 @@ export class RoomScene extends Phaser.Scene {
     names: (keyof typeof Phaser.Input.Keyboard.KeyCodes)[],
   ): Phaser.Input.Keyboard.Key[] {
     return names.map((name) => keyboard.addKey(Phaser.Input.Keyboard.KeyCodes[name]));
+  }
+
+  /**
+   * Hand the screen to the sound debug view and take the world's away.
+   *
+   * Paused rather than stopped, so leaving puts her back exactly where she was
+   * standing, mid-quest and mid-sentence — a debug view that cost the afternoon
+   * it was opened during would not get opened. A paused scene still renders, so
+   * the view draws an opaque backdrop over it.
+   *
+   * The keys are reset on the way back in: nothing in the debug view is one of
+   * the game's, but `JustDown` reads a flag that survives a pause, and a key
+   * still latched when the world resumes is one press arriving a minute late.
+   */
+  private openSoundDebug(): void {
+    this.scene.launch(SOUND_DEBUG_SCENE, {
+      voice: this.voice,
+      onExit: () => {
+        this.input.keyboard?.resetKeys();
+        this.scene.resume();
+      },
+    } satisfies SoundDebugData);
+    this.scene.pause();
   }
 
   /**

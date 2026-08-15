@@ -38,6 +38,15 @@ export interface RibbonStyle {
   spoken: string;
   /** Everybody else's. */
   resting: string;
+  /**
+   * The colour of a word somebody has flagged, and the bar drawn under it.
+   *
+   * Nothing in the game ever sets this: the game shows every word the same
+   * because every word is equally hers. It exists for the sound debug view,
+   * where the whole job is "listen *here*" — the words the aligner was unsure
+   * of are marked so an ear knows where to go. See `markWords`.
+   */
+  marked?: string;
 }
 
 interface Laid {
@@ -50,6 +59,10 @@ export class WordRibbon extends Phaser.GameObjects.Container {
   private laid: Laid[] = [];
   private timed: TimedWord[] = [];
   private lit = -1;
+
+  /** Words flagged by `markWords`, and the bars drawn under them. */
+  private marked = new Set<number>();
+  private bars: Phaser.GameObjects.Rectangle[] = [];
 
   /** The block the words came out to, so the caller can frame it. */
   private block = { width: 0, height: 0 };
@@ -139,7 +152,7 @@ export class WordRibbon extends Phaser.GameObjects.Container {
     const previous = this.laid[this.lit];
     if (previous) {
       this.scene.tweens.killTweensOf(previous.text);
-      previous.text.setColor(this.style.resting).setScale(1);
+      previous.text.setColor(this.restingFor(this.lit)).setScale(1);
     }
 
     this.lit = index;
@@ -164,6 +177,41 @@ export class WordRibbon extends Phaser.GameObjects.Container {
     });
   }
 
+  /**
+   * Flag some of the words on screen: a different resting colour and a bar
+   * under each, both of which survive the word lighting up and going out again.
+   *
+   * Dev tooling only — nothing in the game marks a word. `layout` clears the
+   * marks, so the call goes *after* the line is laid out, which is also the only
+   * order that makes sense: the indices are into the line that is up.
+   *
+   * A no-op unless the style names a `marked` colour, so the two callers that
+   * do not want this cannot get it by accident.
+   */
+  markWords(indices: Iterable<number>): void {
+    this.clearMarks();
+    if (!this.style.marked) return;
+    this.marked = new Set(indices);
+
+    const bar = Phaser.Display.Color.HexStringToColor(this.style.marked).color;
+    for (const index of this.marked) {
+      const laid = this.laid[index];
+      if (!laid) continue;
+      if (index !== this.lit) laid.text.setColor(this.style.marked);
+      const rule = this.scene.add.rectangle(
+        laid.text.x,
+        laid.text.y + laid.text.height / 2,
+        laid.text.width,
+        4,
+        bar,
+      );
+      // Above the slab and below the words: a bar drawn over a glyph would be
+      // the thing hiding what it is pointing at.
+      this.addAt(rule, 1);
+      this.bars.push(rule);
+    }
+  }
+
   /** Take the words away, and any tween still running on one of them. */
   clear(): void {
     for (const { text } of this.laid) {
@@ -175,6 +223,19 @@ export class WordRibbon extends Phaser.GameObjects.Container {
     this.lit = -1;
     this.slab.setVisible(false);
     this.block = { width: 0, height: 0 };
+    this.clearMarks();
+  }
+
+  /** What a word goes back to once it stops being the one being said. */
+  private restingFor(index: number): string {
+    return this.marked.has(index) ? (this.style.marked ?? this.style.resting) : this.style.resting;
+  }
+
+  private clearMarks(): void {
+    for (const bar of this.bars) bar.destroy();
+    this.bars = [];
+    for (const index of this.marked) this.laid[index]?.text.setColor(this.style.resting);
+    this.marked = new Set();
   }
 }
 

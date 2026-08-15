@@ -1,0 +1,817 @@
+{
+  "version": 1,
+  "fallback": "edge-tts",
+  "reviewScore": 0.4,
+  "totals": {
+    "lines": 75,
+    "recorded": 16,
+    "stale": 0
+  },
+  "groups": [
+    {
+      "key": "dad/dad",
+      "recorded": 12,
+      "total": 12
+    },
+    {
+      "key": "hazel/hazel",
+      "recorded": 0,
+      "total": 13
+    },
+    {
+      "key": "seraphina/seraphina",
+      "recorded": 0,
+      "total": 29
+    },
+    {
+      "key": "seraphina/storybook",
+      "recorded": 4,
+      "total": 4
+    },
+    {
+      "key": "sneak/sneak",
+      "recorded": 0,
+      "total": 17
+    }
+  ],
+  "batches": [
+    {
+      "name": "dad-01",
+      "ingested": "2026-08-15",
+      "lines": 12
+    },
+    {
+      "name": "seraphina-storybook-01",
+      "ingested": "2026-08-15",
+      "lines": 4
+    }
+  ],
+  "lines": [
+    {
+      "id": "seraphina_hello",
+      "speaker": "seraphina",
+      "profile": "seraphina",
+      "provider": "edge-tts",
+      "batch": null,
+      "flags": [],
+      "low": [],
+      "seconds": 1.504
+    },
+    {
+      "id": "seraphina_secret",
+      "speaker": "seraphina",
+      "profile": "seraphina",
+      "provider": "edge-tts",
+      "batch": null,
+      "flags": [],
+      "low": [],
+      "seconds": 3.732
+    },
+    {
+      "id": "seraphina_sparky",
+      "speaker": "seraphina",
+      "profile": "seraphina",
+      "provider": "edge-tts",
+      "batch": null,
+      "flags": [],
+      "low": [],
+      "seconds": 1.933
+    },
+    {
+      "id": "seraphina_munchy",
+      "speaker": "seraphina",
+      "profile": "seraphina",
+      "provider": "edge-tts",
+      "batch": null,
+      "flags": [],
+      "low": [],
+      "seconds": 2.441
+    },
+    {
+      "id": "seraphina_well",
+      "speaker": "seraphina",
+      "profile": "seraphina",
+      "provider": "edge-tts",
+      "batch": null,
+      "flags": [],
+      "low": [],
+      "seconds": 2.14
+    },
+    {
+      "id": "dad_bedtime",
+      "speaker": "dad",
+      "profile": "dad",
+      "provider": "firefly",
+      "batch": "dad-01",
+      "flags": [],
+      "low": [],
+      "seconds": 0.9551
+    },
+    {
+      "id": "seraphina_apple",
+      "speaker": "seraphina",
+      "profile": "seraphina",
+      "provider": "edge-tts",
+      "batch": null,
+      "flags": [],
+      "low": [],
+      "seconds": 1.762
+    },
+    {
+      "id": "seraphina_book",
+      "speaker": "seraphina",
+      "profile": "seraphina",
+      "provider": "edge-tts",
+      "batch": null,
+      "flags": [],
+      "low": [],
+      "seconds": 1.531
+    },
+    {
+      "id": "seraphina_again",
+      "speaker": "seraphina",
+      "profile": "seraphina",
+      "provider": "edge-tts",
+      "batch": null,
+      "flags": [],
+      "low": [],
+      "seconds": 1.408
+    },
+    {
+      "id": "seraphina_wardrobe",
+      "speaker": "seraphina",
+      "profile": "seraphina",
+      "provider": "edge-tts",
+      "batch": null,
+      "flags": [],
+      "low": [],
+      "seconds": 0.906
+    },
+    {
+      "id": "seraphina_bed",
+      "speaker": "seraphina",
+      "profile": "seraphina",
+      "provider": "edge-tts",
+      "batch": null,
+      "flags": [],
+      "low": [],
+      "seconds": 3.329
+    },
+    {
+      "id": "sneak_faeries",
+      "speaker": "sneak",
+      "profile": "sneak",
+      "provider": "edge-tts",
+      "batch": null,
+      "flags": [],
+      "low": [],
+      "seconds": 4.531
+    },
+    {
+      "id": "sneak_secrets",
+      "speaker": "sneak",
+      "profile": "sneak",
+      "provider": "edge-tts",
+      "batch": null,
+      "flags": [],
+      "low": [],
+      "seconds": 2.514
+    },
+    {
+      "id": "hazel_play",
+      "speaker": "hazel",
+      "profile": "hazel",
+      "provider": "edge-tts",
+      "batch": null,
+      "flags": [],
+      "low": [],
+      "seconds": 1.949
+    },
+    {
+      "id": "hazel_pebble",
+      "speaker": "hazel",
+      "profile": "hazel",
+      "provider": "edge-tts",
+      "batch": null,
+      "flags": [],
+      "low": [],
+      "seconds": 1.595
+    },
+    {
+      "id": "dad_helper",
+      "speaker": "dad",
+      "profile": "dad",
+      "provider": "firefly",
+      "batch": "dad-01",
+      "flags": [],
+      "low": [],
+      "seconds": 1.5608
+    },
+    {
+      "id": "dad_shed",
+      "speaker": "dad",
+      "profile": "dad",
+      "provider": "firefly",
+      "batch": "dad-01",
+      "flags": [],
+      "low": [],
+      "seconds": 1.8365
+    },
+    {
+      "id": "sneak_quest_offer",
+      "speaker": "sneak",
+      "profile": "sneak",
+      "provider": "edge-tts",
+      "batch": null,
+      "flags": [],
+      "low": [],
+      "seconds": 5.108
+    },
+    {
+      "id": "sneak_quest_stones",
+      "speaker": "sneak",
+      "profile": "sneak",
+      "provider": "edge-tts",
+      "batch": null,
+      "flags": [],
+      "low": [],
+      "seconds": 5.637
+    },
+    {
+      "id": "sneak_quest_hammer",
+      "speaker": "sneak",
+      "profile": "sneak",
+      "provider": "edge-tts",
+      "batch": null,
+      "flags": [],
+      "low": [],
+      "seconds": 1.925
+    },
+    {
+      "id": "sneak_quest_crack",
+      "speaker": "sneak",
+      "profile": "sneak",
+      "provider": "edge-tts",
+      "batch": null,
+      "flags": [],
+      "low": [],
+      "seconds": 1.985
+    },
+    {
+      "id": "sneak_quest_cave",
+      "speaker": "sneak",
+      "profile": "sneak",
+      "provider": "edge-tts",
+      "batch": null,
+      "flags": [],
+      "low": [],
+      "seconds": 3.69
+    },
+    {
+      "id": "seraphina_axe",
+      "speaker": "seraphina",
+      "profile": "seraphina",
+      "provider": "edge-tts",
+      "batch": null,
+      "flags": [],
+      "low": [],
+      "seconds": 0.689
+    },
+    {
+      "id": "seraphina_hammer",
+      "speaker": "seraphina",
+      "profile": "seraphina",
+      "provider": "edge-tts",
+      "batch": null,
+      "flags": [],
+      "low": [],
+      "seconds": 0.756
+    },
+    {
+      "id": "seraphina_malachite",
+      "speaker": "seraphina",
+      "profile": "seraphina",
+      "provider": "edge-tts",
+      "batch": null,
+      "flags": [],
+      "low": [],
+      "seconds": 1.001
+    },
+    {
+      "id": "seraphina_ruby",
+      "speaker": "seraphina",
+      "profile": "seraphina",
+      "provider": "edge-tts",
+      "batch": null,
+      "flags": [],
+      "low": [],
+      "seconds": 0.702
+    },
+    {
+      "id": "seraphina_sapphire",
+      "speaker": "seraphina",
+      "profile": "seraphina",
+      "provider": "edge-tts",
+      "batch": null,
+      "flags": [],
+      "low": [],
+      "seconds": 0.96
+    },
+    {
+      "id": "seraphina_need_axe",
+      "speaker": "seraphina",
+      "profile": "seraphina",
+      "provider": "edge-tts",
+      "batch": null,
+      "flags": [],
+      "low": [],
+      "seconds": 1.436
+    },
+    {
+      "id": "seraphina_need_hammer",
+      "speaker": "seraphina",
+      "profile": "seraphina",
+      "provider": "edge-tts",
+      "batch": null,
+      "flags": [],
+      "low": [],
+      "seconds": 1.463
+    },
+    {
+      "id": "sneak_cave_greet",
+      "speaker": "sneak",
+      "profile": "sneak",
+      "provider": "edge-tts",
+      "batch": null,
+      "flags": [],
+      "low": [],
+      "seconds": 3.005
+    },
+    {
+      "id": "sneak_press_red",
+      "speaker": "sneak",
+      "profile": "sneak",
+      "provider": "edge-tts",
+      "batch": null,
+      "flags": [],
+      "low": [],
+      "seconds": 1.384
+    },
+    {
+      "id": "sneak_press_green",
+      "speaker": "sneak",
+      "profile": "sneak",
+      "provider": "edge-tts",
+      "batch": null,
+      "flags": [],
+      "low": [],
+      "seconds": 1.492
+    },
+    {
+      "id": "sneak_press_blue",
+      "speaker": "sneak",
+      "profile": "sneak",
+      "provider": "edge-tts",
+      "batch": null,
+      "flags": [],
+      "low": [],
+      "seconds": 1.396
+    },
+    {
+      "id": "sneak_try_red",
+      "speaker": "sneak",
+      "profile": "sneak",
+      "provider": "edge-tts",
+      "batch": null,
+      "flags": [],
+      "low": [],
+      "seconds": 1.264
+    },
+    {
+      "id": "sneak_try_green",
+      "speaker": "sneak",
+      "profile": "sneak",
+      "provider": "edge-tts",
+      "batch": null,
+      "flags": [],
+      "low": [],
+      "seconds": 1.336
+    },
+    {
+      "id": "sneak_try_blue",
+      "speaker": "sneak",
+      "profile": "sneak",
+      "provider": "edge-tts",
+      "batch": null,
+      "flags": [],
+      "low": [],
+      "seconds": 1.252
+    },
+    {
+      "id": "sneak_faeries_real",
+      "speaker": "sneak",
+      "profile": "sneak",
+      "provider": "edge-tts",
+      "batch": null,
+      "flags": [],
+      "low": [],
+      "seconds": 2.776
+    },
+    {
+      "id": "hazel_pretty",
+      "speaker": "hazel",
+      "profile": "hazel",
+      "provider": "edge-tts",
+      "batch": null,
+      "flags": [],
+      "low": [],
+      "seconds": 0.946
+    },
+    {
+      "id": "sneak_thanks",
+      "speaker": "sneak",
+      "profile": "sneak",
+      "provider": "edge-tts",
+      "batch": null,
+      "flags": [],
+      "low": [],
+      "seconds": 2.238
+    },
+    {
+      "id": "sneak_coin",
+      "speaker": "sneak",
+      "profile": "sneak",
+      "provider": "edge-tts",
+      "batch": null,
+      "flags": [],
+      "low": [],
+      "seconds": 2.466
+    },
+    {
+      "id": "dad_quest_offer",
+      "speaker": "dad",
+      "profile": "dad",
+      "provider": "firefly",
+      "batch": "dad-01",
+      "flags": [],
+      "low": [],
+      "seconds": 2.0747
+    },
+    {
+      "id": "dad_quest_pen",
+      "speaker": "dad",
+      "profile": "dad",
+      "provider": "firefly",
+      "batch": "dad-01",
+      "flags": [],
+      "low": [],
+      "seconds": 3.1431
+    },
+    {
+      "id": "dad_quest_chop",
+      "speaker": "dad",
+      "profile": "dad",
+      "provider": "firefly",
+      "batch": "dad-01",
+      "flags": [],
+      "low": [],
+      "seconds": 1.9688
+    },
+    {
+      "id": "dad_quest_carrots",
+      "speaker": "dad",
+      "profile": "dad",
+      "provider": "firefly",
+      "batch": "dad-01",
+      "flags": [],
+      "low": [],
+      "seconds": 2.5546
+    },
+    {
+      "id": "dad_quest_lure",
+      "speaker": "dad",
+      "profile": "dad",
+      "provider": "firefly",
+      "batch": "dad-01",
+      "flags": [],
+      "low": [],
+      "seconds": 2.2779
+    },
+    {
+      "id": "dad_two_more",
+      "speaker": "dad",
+      "profile": "dad",
+      "provider": "firefly",
+      "batch": "dad-01",
+      "flags": [],
+      "low": [],
+      "seconds": 1.1809
+    },
+    {
+      "id": "dad_one_more",
+      "speaker": "dad",
+      "profile": "dad",
+      "provider": "firefly",
+      "batch": "dad-01",
+      "flags": [
+        "low-confidence"
+      ],
+      "low": [
+        {
+          "word": "go!",
+          "score": 0.2,
+          "index": 4
+        }
+      ],
+      "seconds": 1.414
+    },
+    {
+      "id": "dad_bunnies_home",
+      "speaker": "dad",
+      "profile": "dad",
+      "provider": "firefly",
+      "batch": "dad-01",
+      "flags": [],
+      "low": [],
+      "seconds": 1.447
+    },
+    {
+      "id": "dad_bunny_coin",
+      "speaker": "dad",
+      "profile": "dad",
+      "provider": "firefly",
+      "batch": "dad-01",
+      "flags": [],
+      "low": [],
+      "seconds": 2.6378
+    },
+    {
+      "id": "seraphina_bunny",
+      "speaker": "seraphina",
+      "profile": "seraphina",
+      "provider": "edge-tts",
+      "batch": null,
+      "flags": [],
+      "low": [],
+      "seconds": 0.621
+    },
+    {
+      "id": "seraphina_carrot",
+      "speaker": "seraphina",
+      "profile": "seraphina",
+      "provider": "edge-tts",
+      "batch": null,
+      "flags": [],
+      "low": [],
+      "seconds": 0.729
+    },
+    {
+      "id": "seraphina_one_bunny",
+      "speaker": "seraphina",
+      "profile": "seraphina",
+      "provider": "edge-tts",
+      "batch": null,
+      "flags": [],
+      "low": [],
+      "seconds": 2.604
+    },
+    {
+      "id": "seraphina_need_carrot",
+      "speaker": "seraphina",
+      "profile": "seraphina",
+      "provider": "edge-tts",
+      "batch": null,
+      "flags": [],
+      "low": [],
+      "seconds": 1.735
+    },
+    {
+      "id": "hazel_story_offer",
+      "speaker": "hazel",
+      "profile": "hazel",
+      "provider": "edge-tts",
+      "batch": null,
+      "flags": [],
+      "low": [],
+      "seconds": 1.453
+    },
+    {
+      "id": "hazel_story_book",
+      "speaker": "hazel",
+      "profile": "hazel",
+      "provider": "edge-tts",
+      "batch": null,
+      "flags": [],
+      "low": [],
+      "seconds": 2.22
+    },
+    {
+      "id": "hazel_story_come",
+      "speaker": "hazel",
+      "profile": "hazel",
+      "provider": "edge-tts",
+      "batch": null,
+      "flags": [],
+      "low": [],
+      "seconds": 1.913
+    },
+    {
+      "id": "hazel_story_read",
+      "speaker": "hazel",
+      "profile": "hazel",
+      "provider": "edge-tts",
+      "batch": null,
+      "flags": [],
+      "low": [],
+      "seconds": 2.291
+    },
+    {
+      "id": "hazel_book_moon",
+      "speaker": "hazel",
+      "profile": "hazel",
+      "provider": "edge-tts",
+      "batch": null,
+      "flags": [],
+      "low": [],
+      "seconds": 1.418
+    },
+    {
+      "id": "hazel_book_dragon",
+      "speaker": "hazel",
+      "profile": "hazel",
+      "provider": "edge-tts",
+      "batch": null,
+      "flags": [],
+      "low": [],
+      "seconds": 1.217
+    },
+    {
+      "id": "hazel_book_sparkles",
+      "speaker": "hazel",
+      "profile": "hazel",
+      "provider": "edge-tts",
+      "batch": null,
+      "flags": [],
+      "low": [],
+      "seconds": 1.524
+    },
+    {
+      "id": "hazel_book_best",
+      "speaker": "hazel",
+      "profile": "hazel",
+      "provider": "edge-tts",
+      "batch": null,
+      "flags": [],
+      "low": [],
+      "seconds": 3.328
+    },
+    {
+      "id": "hazel_story_hug",
+      "speaker": "hazel",
+      "profile": "hazel",
+      "provider": "edge-tts",
+      "batch": null,
+      "flags": [],
+      "low": [],
+      "seconds": 2.373
+    },
+    {
+      "id": "hazel_story_coin",
+      "speaker": "hazel",
+      "profile": "hazel",
+      "provider": "edge-tts",
+      "batch": null,
+      "flags": [],
+      "low": [],
+      "seconds": 2.892
+    },
+    {
+      "id": "seraphina_storybook",
+      "speaker": "seraphina",
+      "profile": "seraphina",
+      "provider": "edge-tts",
+      "batch": null,
+      "flags": [],
+      "low": [],
+      "seconds": 1.096
+    },
+    {
+      "id": "book_pip_moon_1",
+      "speaker": "seraphina",
+      "profile": "storybook",
+      "provider": "firefly",
+      "batch": "seraphina-storybook-01",
+      "flags": [],
+      "low": [],
+      "seconds": 2.2578
+    },
+    {
+      "id": "book_pip_moon_2",
+      "speaker": "seraphina",
+      "profile": "storybook",
+      "provider": "firefly",
+      "batch": "seraphina-storybook-01",
+      "flags": [],
+      "low": [],
+      "seconds": 2.4003
+    },
+    {
+      "id": "book_pip_moon_3",
+      "speaker": "seraphina",
+      "profile": "storybook",
+      "provider": "firefly",
+      "batch": "seraphina-storybook-01",
+      "flags": [
+        "low-confidence"
+      ],
+      "low": [
+        {
+          "word": "The",
+          "score": 0.3998,
+          "index": 0
+        }
+      ],
+      "seconds": 3.085
+    },
+    {
+      "id": "book_pip_moon_4",
+      "speaker": "seraphina",
+      "profile": "storybook",
+      "provider": "firefly",
+      "batch": "seraphina-storybook-01",
+      "flags": [],
+      "low": [],
+      "seconds": 2.7335
+    },
+    {
+      "id": "seraphina_recap_story",
+      "speaker": "seraphina",
+      "profile": "seraphina",
+      "provider": "edge-tts",
+      "batch": null,
+      "flags": [],
+      "low": [],
+      "seconds": 2.278
+    },
+    {
+      "id": "seraphina_recap_bunnies",
+      "speaker": "seraphina",
+      "profile": "seraphina",
+      "provider": "edge-tts",
+      "batch": null,
+      "flags": [],
+      "low": [],
+      "seconds": 3.011
+    },
+    {
+      "id": "seraphina_recap_faeries",
+      "speaker": "seraphina",
+      "profile": "seraphina",
+      "provider": "edge-tts",
+      "batch": null,
+      "flags": [],
+      "low": [],
+      "seconds": 2.808
+    },
+    {
+      "id": "seraphina_recap_errand",
+      "speaker": "seraphina",
+      "profile": "seraphina",
+      "provider": "edge-tts",
+      "batch": null,
+      "flags": [],
+      "low": [],
+      "seconds": 3.026
+    },
+    {
+      "id": "seraphina_recap_stones",
+      "speaker": "seraphina",
+      "profile": "seraphina",
+      "provider": "edge-tts",
+      "batch": null,
+      "flags": [],
+      "low": [],
+      "seconds": 2.699
+    },
+    {
+      "id": "seraphina_recap_trees",
+      "speaker": "seraphina",
+      "profile": "seraphina",
+      "provider": "edge-tts",
+      "batch": null,
+      "flags": [],
+      "low": [],
+      "seconds": 2.835
+    },
+    {
+      "id": "seraphina_goodnight",
+      "speaker": "seraphina",
+      "profile": "seraphina",
+      "provider": "edge-tts",
+      "batch": null,
+      "flags": [],
+      "low": [],
+      "seconds": 2.808
+    }
+  ]
+}

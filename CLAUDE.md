@@ -28,7 +28,8 @@ headless boot/screenshot smoke tests.
 | `content/world/` | Authored map layout: regions, roads, where buildings go. Source of truth. |
 | `tools/voice/` | The voice generator, plus the Firefly batch/ingest loop. Providers live under `providers/`; nothing else may. |
 | `tools/world/` | The map generator, plus the catalog of which pack rectangle is which. |
-| `tools/assets/` | Mirrors the side-loaded art pack into `public/assets/`. |
+| `tools/assets/` | Mirrors the side-loaded art pack — and Matt's `stories/` book pictures — into `public/assets/`. |
+| `content/books/` | Authored books: the sentences and which picture goes beside each. Pictures live in the side-load; see its README. |
 | `public/` | Static assets served as-is. `voice/` and `world/` are generated — do not hand-edit. |
 | `voice-batches/` | Matt's Firefly drop folder: generated batch text in, downloaded WAVs back. Gitignored bar its README. |
 | `tests/` | Playwright specs, plus `harness.ts` (boot, route, steer, read hooks). |
@@ -47,7 +48,10 @@ Reports live outside the repo entirely — see **Report delivery** below.
 fast suite; see **The two test suites**), `npm run test:slow` (the picture
 tours and the long walk), `npm run test:all` (both),
 `npm run typecheck` (`src/`, `tools/` and `content/`), `npm run voice:build`
-(regenerate audio; incremental, `--force` to redo everything),
+(regenerate audio; incremental, `--force` to redo everything — it also writes the
+`debug.json` sidecar the in-game sound debug view reads; **V** opens that view),
+`npm run voice:audit` (every voiced line as one CSV on the drive: where it plays,
+what it shows, what Firefly is asked to say),
 `npm run voice:inspect` (check word timings and phonics against the actual
 waveform, without listening),
 `npm run voice:batch` / `voice:ingest` / `voice:status` (the manual Adobe

@@ -36,6 +36,9 @@ const RIBBON: RibbonStyle = {
   slab: 0xff8fd8,
   spoken: '#ffffff',
   resting: '#3a2450',
+  // Only the sound debug view ever puts a mark on a word. Nothing in the game
+  // does, and nothing in the game may: see `markWords` below.
+  marked: '#b3261e',
 };
 
 /**
@@ -194,6 +197,21 @@ export class SpeechBubble extends Phaser.GameObjects.Container {
     this.playback = null;
     this.scrubbed = seconds;
     this.applyHighlight(seconds);
+  }
+
+  /**
+   * Underline some of the words in the balloon that is up.
+   *
+   * The sound debug view's, and nobody else's: it plays a clip through this
+   * exact balloon so Matt is auditing the highlight the game will really draw,
+   * and the words the aligner doubted are the ones he is listening for. Called
+   * after `say`, because laying a line out is what clears the marks.
+   *
+   * In the game itself this is never called and the balloon is what it has
+   * always been — every word the same, because every word is equally hers.
+   */
+  markWords(indices: Iterable<number>): void {
+    this.ribbon.markWords(indices);
   }
 
   stop(): void {

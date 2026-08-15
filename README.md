@@ -27,6 +27,12 @@ it. Which categories get copied is the `CATEGORIES` list in
 If the side-load is missing, the sync stops with a message saying so rather than
 letting the game 404 its way to a blank screen.
 
+The side-load also holds **Matt's own book pictures**, which are not pack art:
+`stories/<book_id>/page<N>.png`, mirrored by the same command. That folder is
+optional on both ends — a book nobody has drawn yet is normal, the reader draws
+a placeholder card, and the sync writes a stand-in PNG for Matt to paint over
+rather than failing. See `content/books/README.md`.
+
 ## The world
 
 The map is generated, not hand-placed. It goes:

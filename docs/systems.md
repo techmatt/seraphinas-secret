@@ -112,6 +112,10 @@ Content-time, never at runtime:
 - Output: `public/voice/manifest.json` plus mp3s. **The game may only read the
   manifest** — no file under `src/` may know the provider exists, and the
   manifest does not say which of the two filled a line in.
+- Also output: `public/voice/debug.json`, a sidecar built by
+  `tools/voice/debugSidecar.ts` that says exactly what the manifest may not —
+  provider, batch, flags, and the doubted words' indices. Read by the sound
+  debug view and nothing else. Delete it and the game is unchanged.
 - Runtime: `src/voice/VoiceBank.ts` loads it; `src/ui/WordRibbon.ts` is the
   highlight itself — one Text per word, a slab behind the live one — and
   `src/ui/SpeechBubble.ts` is the balloon drawn round it. The book reader uses
@@ -137,6 +141,7 @@ vocabulary all of it shares — profiles, the spoken-text hash, the clip store.
 | `npm run voice:ingest` | Takes `voice-batches/<batch>.wav` apart into one committed clip per line under `content/voice/clips/`, with provenance in `index.json`. |
 | `npm run voice:status` | Coverage, stale lines, and the words the aligner was unsure of. Reads only `content/`. |
 | `npm run voice:simulate` | Stands in for Matt: speaks a batch as one continuous edge-tts utterance and drops the WAV in as if it were a download. |
+| `npm run voice:audit` | Every voiced line as one CSV on the drive — id, speaker, profile, *where it plays*, shown text, spoken text, length. For reading the script before committing it to a recording. |
 
 `voice-batches/README.md` is Matt's copy of the loop and is the only file in
 that folder that is committed — the batch text, the sidecar and the download
@@ -154,6 +159,29 @@ line as a batch of one overwrites it. That is the patch mechanism.
 rather than queued. Naming barks are derived from ids (`ruby` → `seraphina_ruby`),
 so a new stone is a line in `lines.json` and nothing else.
 
+### The sound debug view
+
+`src/debug/SoundDebugScene.ts` — the review surface for the ingest loop, opened
+with the **V** key from any room and left with escape, red or the pad's B. It is
+dev-only *because* the way in is a keyboard key: the pad is the game's input, so
+Julia has no sequence of presses that arrives here.
+
+Every manifest line in a list, with the coverage summary `voice:status` prints
+along the top; filters over speaker/profile, provider, flag and batch (`1`–`4`,
+`0` clears), which is what makes "review just what batch N ingested" one press.
+Selecting and pressing enter plays the line through a **real `SpeechBubble` and
+`WordRibbon`** — the point is auditing the highlight the game will draw, not the
+audio — with the words the aligner doubted underlined in red
+(`WordRibbon.markWords`, which nothing in the game calls).
+
+`M` appends the selected id and the time to `scratch/voice-review.json` via a
+dev-server route in `vite.config.ts`. Gitignored, append-only, and how a
+listening session's verdicts reach the next prompt.
+
+Its data is `public/voice/debug.json`, reached through `src/debug/voiceDebug.ts`
+— **the one file under `src/` that knows a provider exists**, quarantined there
+on purpose.
+
 ## The book reader
 
 `src/ui/BookReader.ts` — the takeover: a two-page spread, a picture on the left,
@@ -164,9 +192,15 @@ with the balloon.
 
 The books are authored data: `content/books/index.ts`, read by the game directly
 because there is nothing to generate. Adding book #2 is an entry in `BOOKS`.
-Page pictures are site-root-relative paths under `public/books/<id>/pageN.png`
-and **may be missing** — the reader draws a placeholder card instead, so
-dropping the real PNGs in needs no code change. See `public/books/README.md`.
+
+Page pictures come out of the **side-load**, in Matt's own format (Matt,
+2026-08-15): `<pack>/stories/<book_id>/pageN.png`, mirrored to
+`public/assets/stories/` by `assets:sync` as an *optional* category, and named in
+each page's `image` field. So book ids use underscores — the id is a folder name.
+A picture **may be missing**: the reader draws a placeholder card, and
+`assets:sync` (or `npm run books:placeholders`) writes a stand-in PNG into the
+side-load for every undrawn page, never overwriting one. `hooks.book.picture`
+says which of the two the left page drew. See `content/books/README.md`.
 
 While it is open `RoomScene.update` asks the world nothing: no walking, no
 doorways, no dot. The day clock keeps running. Green is ignored mid-sentence and

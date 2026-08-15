@@ -13,6 +13,7 @@
     "build": "npm run typecheck && vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.tools.json",
+    "voice:audit": "tsx tools/voice/audit.ts",
     "voice:batch": "tsx tools/voice/batch.ts",
     "voice:build": "tsx tools/voice/build.ts",
     "voice:ingest": "tsx tools/voice/ingest.ts",

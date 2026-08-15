@@ -31,6 +31,11 @@ dist-ssr/
 # the spike scripts. `scratch/` itself is a fine place for a file worth keeping.
 /scratch/voice-align/
 
+# What Matt marked while listening in the sound debug view, appended by the dev
+# server. A record of one listening session, read by whatever prompt comes next
+# and remade by listening again — see src/debug/SoundDebugScene.ts.
+/scratch/voice-review.json
+
 # Playwright
 /test-results/
 /playwright-report/
