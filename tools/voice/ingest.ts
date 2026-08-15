@@ -37,7 +37,6 @@ import path from 'node:path';
 import {
   BATCH_DIR,
   CLIP_DIR,
-  CLIP_INDEX,
   CLIP_INDEX_VERSION,
   CLIP_RATE,
   FADE_SECONDS,
@@ -142,7 +141,11 @@ async function main(): Promise<void> {
   const opts = parseArgs(process.argv.slice(2));
   const lines = await readLines();
   const spoken = new Map(lines.map((line) => [line.id, spokenFor(line)]));
-  const index = await readClipIndex();
+  // The index lives inside the clip folder, so `--out` moves both — which is
+  // what makes the whole loop rehearsable against a scratch store without
+  // touching the committed one. `build.ts` already reads it this way.
+  const indexFile = path.join(opts.outDir, 'index.json');
+  const index = await readClipIndex(indexFile);
 
   const names = opts.names.length ? opts.names : await allBatches(opts.dir);
   if (!names.length) {
@@ -257,7 +260,7 @@ async function main(): Promise<void> {
   index.version = CLIP_INDEX_VERSION;
   index.clips = sortedByKey(index.clips);
   index.batches = sortedByKey(index.batches);
-  await writeFile(CLIP_INDEX, stringify(index), 'utf8');
+  await writeFile(indexFile, stringify(index), 'utf8');
 
   const held = Object.values(index.clips);
   const simulated = held.filter(isSimulated).length;

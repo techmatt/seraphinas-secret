@@ -30,6 +30,7 @@ import {
   CLIP_DIR,
   clipStateFor,
   forgetMissingAudio,
+  isSimulated,
   profileFor,
   readClipIndex,
   readProfiles,
@@ -166,6 +167,7 @@ async function main(): Promise<void> {
   const stale: { line: LineSpec; clip: ClipRecord }[] = [];
   const missing: LineSpec[] = [];
   let recorded = 0;
+  let simulated = 0;
   let built = 0;
   let skipped = 0;
 
@@ -173,7 +175,9 @@ async function main(): Promise<void> {
     const state = clipStateFor(line, clipIndex);
     if (state.state === 'stale') stale.push({ line, clip: state.clip });
     if (state.state === 'missing') missing.push(line);
-    if (state.state === 'fresh') recorded++;
+    // A simulated clip is used — the words are the right words — but it is not
+    // a recording and is never counted as one. See `firefly.ts`.
+    if (state.state === 'fresh') (isSimulated(state.clip) ? simulated++ : recorded++);
 
     const voice = resolveVoice(line, book);
     const hash =
@@ -205,8 +209,13 @@ async function main(): Promise<void> {
     built++;
   }
 
+  // What actually filled these lines in, taken from the clips rather than
+  // assumed: a `simulated` clip must not report itself as `firefly` here either.
   const sources = new Set(
-    lines.map((line) => (clipStateFor(line, clipIndex).state === 'fresh' ? 'firefly' : provider.id)),
+    lines.map((line) => {
+      const state = clipStateFor(line, clipIndex);
+      return state.state === 'fresh' ? state.clip.provider : provider.id;
+    }),
   );
   manifest.provider = [...sources].join('+');
 
@@ -231,10 +240,11 @@ async function main(): Promise<void> {
     console.log(`  removed orphan ${orphan}`);
   }
 
-  await announce(opts, lines, recorded, stale, missing);
+  await announce(opts, lines, recorded, simulated, stale, missing);
 
   console.log(
     `voice: ${built} built, ${skipped} unchanged, ${recorded} from recordings, ` +
+      (simulated ? `${simulated} from simulated stand-ins, ` : '') +
       `${manifest.lines.length} lines in ${path.join(opts.out, 'manifest.json')}`,
   );
 }
@@ -308,6 +318,7 @@ async function announce(
   opts: Options,
   lines: LineSpec[],
   recorded: number,
+  simulated: number,
   stale: { line: LineSpec; clip: ClipRecord }[],
   missing: LineSpec[],
 ): Promise<void> {
@@ -335,8 +346,9 @@ async function announce(
     }
     const summary = [...byProfile].map(([key, n]) => `${key} ${n}`).join(', ');
     console.log(
-      `\ncoverage: ${recorded}/${lines.length} lines recorded; ` +
-        `${missing.length} on edge-tts (${summary}) — npm run voice:status for the list`,
+      `\ncoverage: ${recorded}/${lines.length} lines recorded` +
+        (simulated ? ` (plus ${simulated} simulated, which count as nothing)` : '') +
+        `; ${missing.length} on edge-tts (${summary}) — npm run voice:status for the list`,
     );
   }
 }
