@@ -116,6 +116,11 @@ Content-time, never at runtime:
   lines that use it, at `-22%` against her usual `-8%`.
 - Checking: `npm run voice:inspect` compares word boundaries against the real
   waveform and reports phonics shape, without anybody listening.
+- Timings without a provider that gives them: `tools/voice/align/` — a Python
+  forced aligner (torchaudio CTC) that recovers word spans from the audio and
+  the text alone, plus a cutter that splits a multi-line batch recording into
+  one clip per line. Built for the Firefly plan, which returns WAVs and no
+  timestamps. Not wired into `voice:build` yet; see its README.
 
 `src/voice/barks.ts` — the low kind of speech: one word, her own voice, dropped
 rather than queued. Naming barks are derived from ids (`ruby` → `seraphina_ruby`),

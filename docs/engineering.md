@@ -107,6 +107,30 @@ to its own shadow, 0 when a box comes out spanning the sheet.
 - `npm run voice:inspect` answers "do the highlights match the audio" and "is
   this phonics line saying the sound or the letter" without anybody listening.
 
+## Forced alignment (for the providers that give no timings)
+
+Measured 2026-08-15 over all 75 lines, against edge-tts's own word boundaries.
+
+- **Raw CTC word spans start about 115 ms late, every word, in the same
+  direction.** That is the model emitting a character some frames after the
+  sound that caused it, not noise: median +115 ms, p5 +75, p95 +177. Subtract
+  the constant (`LATENCY_SECONDS` in `tools/voice/align/aligner.py`) and the
+  median start error falls to 27 ms, p95 80 ms, with 10 of 436 words over
+  100 ms. **Ends need no correction** — they were within 33 ms untouched.
+- **Pitch shifting and slowed prosody are not the risk they looked like.**
+  Hazel at +40 Hz and Sneak at −35 Hz align *better* than Seraphina's own
+  voice; the −22% storybook pages are a few ms worse and no more.
+- **The bigger model is not worth it.** `MMS_FA` (1.2 GB) lands within a few
+  milliseconds of `WAV2VEC2_ASR_BASE_960H` (360 MB) and costs about three
+  times the wall clock. Alignment runs at roughly 10× realtime on CPU either
+  way: 0.24 s per line, plus one ~1 s model load per batch.
+- **edge-tts pauses about 0.94 s at a full stop and 0.32 s at a comma**, which
+  is what makes cutting a batch recording into per-line clips easy — the cut
+  goes at the quietest point between the last word of one line and the first
+  of the next. Both pause sizes were tested; every join landed inside the real
+  gap. A CTC span's own confidence score reliably flags the words that follow
+  a pause, which are the only ones that wander.
+
 ## Runtime
 
 - **`npm install phaser` resolves Phaser 4.** Stay pinned `^3` in package.json.
