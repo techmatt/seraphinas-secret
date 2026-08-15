@@ -1,5 +1,5609 @@
 {
   "version": 1,
-  "clips": {},
-  "batches": {}
+  "clips": {
+    "book_pip_moon_1": {
+      "provider": "firefly",
+      "batch": "storybook",
+      "indexInBatch": 0,
+      "speaker": "seraphina",
+      "profile": "storybook",
+      "voice": "Vinita",
+      "spoken": "Pip the dog zoomed up to the moon!",
+      "spokenHash": "bc63bb4766e61556",
+      "audio": "book_pip_moon_1.mp3",
+      "bytes": 14760,
+      "seconds": 1.7895,
+      "ingested": "2026-08-15",
+      "align": {
+        "model": "wav2vec2_base",
+        "latency": 0.115,
+        "minScore": 0.76,
+        "medianScore": 1,
+        "review": []
+      },
+      "cut": {
+        "startSeconds": 0,
+        "endSeconds": 2.0275,
+        "trimmedHead": 0.0855,
+        "trimmedTail": 0.1525,
+        "usableGap": true
+      },
+      "loudness": {
+        "targetDbfs": -19,
+        "gainDb": 3.48,
+        "peakDbfs": -3.65,
+        "speechDbfs": -22.48
+      },
+      "words": [
+        {
+          "word": "Pip",
+          "start": 0.04,
+          "end": 0.2952,
+          "score": 0.9969
+        },
+        {
+          "word": "the",
+          "start": 0.2952,
+          "end": 0.4355,
+          "score": 0.7647
+        },
+        {
+          "word": "dog",
+          "start": 0.4355,
+          "end": 0.676,
+          "score": 1
+        },
+        {
+          "word": "zoomed",
+          "start": 0.6812,
+          "end": 1.0367,
+          "score": 0.9445
+        },
+        {
+          "word": "up",
+          "start": 1.0367,
+          "end": 1.1569,
+          "score": 0.9997
+        },
+        {
+          "word": "to",
+          "start": 1.1569,
+          "end": 1.2772,
+          "score": 0.8715
+        },
+        {
+          "word": "the",
+          "start": 1.2772,
+          "end": 1.3974,
+          "score": 0.9974
+        },
+        {
+          "word": "moon!",
+          "start": 1.3974,
+          "end": 1.698,
+          "score": 0.9547
+        }
+      ]
+    },
+    "book_pip_moon_2": {
+      "provider": "firefly",
+      "batch": "storybook",
+      "indexInBatch": 1,
+      "speaker": "seraphina",
+      "profile": "storybook",
+      "voice": "Vinita",
+      "spoken": "On the moon Pip met a baby dragon!",
+      "spokenHash": "06bdf8e84265dc77",
+      "audio": "book_pip_moon_2.mp3",
+      "bytes": 15600,
+      "seconds": 1.8425,
+      "ingested": "2026-08-15",
+      "align": {
+        "model": "wav2vec2_base",
+        "latency": 0.115,
+        "minScore": 0.96,
+        "medianScore": 1,
+        "review": []
+      },
+      "cut": {
+        "startSeconds": 2.0275,
+        "endSeconds": 4.1775,
+        "trimmedHead": 0.1525,
+        "trimmedTail": 0.155,
+        "usableGap": true
+      },
+      "loudness": {
+        "targetDbfs": -19,
+        "gainDb": 7.9,
+        "peakDbfs": -4.6,
+        "speechDbfs": -26.9
+      },
+      "words": [
+        {
+          "word": "On",
+          "start": 0.04,
+          "end": 0.1446,
+          "score": 0.999
+        },
+        {
+          "word": "the",
+          "start": 0.1446,
+          "end": 0.2648,
+          "score": 0.9989
+        },
+        {
+          "word": "moon",
+          "start": 0.2648,
+          "end": 0.5053,
+          "score": 0.9996
+        },
+        {
+          "word": "Pip",
+          "start": 0.5053,
+          "end": 0.7658,
+          "score": 0.9584
+        },
+        {
+          "word": "met",
+          "start": 0.7658,
+          "end": 0.9261,
+          "score": 0.9737
+        },
+        {
+          "word": "a",
+          "start": 0.9261,
+          "end": 1.0062,
+          "score": 0.9982
+        },
+        {
+          "word": "baby",
+          "start": 1.0062,
+          "end": 1.2868,
+          "score": 0.9999
+        },
+        {
+          "word": "dragon!",
+          "start": 1.2868,
+          "end": 1.7477,
+          "score": 0.9778
+        }
+      ]
+    },
+    "book_pip_moon_3": {
+      "provider": "firefly",
+      "batch": "storybook",
+      "indexInBatch": 2,
+      "speaker": "seraphina",
+      "profile": "storybook",
+      "voice": "Vinita",
+      "spoken": "The dragon sneezed sparkles all over Pip!",
+      "spokenHash": "a41493529549343e",
+      "audio": "book_pip_moon_3.mp3",
+      "bytes": 17976,
+      "seconds": 2.08,
+      "ingested": "2026-08-15",
+      "align": {
+        "model": "wav2vec2_base",
+        "latency": 0.115,
+        "minScore": 0.69,
+        "medianScore": 0.96,
+        "review": []
+      },
+      "cut": {
+        "startSeconds": 4.1775,
+        "endSeconds": 6.6175,
+        "trimmedHead": 0.1975,
+        "trimmedTail": 0.1625,
+        "usableGap": true
+      },
+      "loudness": {
+        "targetDbfs": -19,
+        "gainDb": -0.29,
+        "peakDbfs": -3.84,
+        "speechDbfs": -18.71
+      },
+      "words": [
+        {
+          "word": "The",
+          "start": 0.04,
+          "end": 0.0938,
+          "score": 0.9762
+        },
+        {
+          "word": "dragon",
+          "start": 0.0938,
+          "end": 0.4344,
+          "score": 0.9902
+        },
+        {
+          "word": "sneezed",
+          "start": 0.4344,
+          "end": 0.8152,
+          "score": 0.686
+        },
+        {
+          "word": "sparkles",
+          "start": 0.8152,
+          "end": 1.256,
+          "score": 0.9579
+        },
+        {
+          "word": "all",
+          "start": 1.2813,
+          "end": 1.5566,
+          "score": 0.9179
+        },
+        {
+          "word": "over",
+          "start": 1.5566,
+          "end": 1.7971,
+          "score": 0.8895
+        },
+        {
+          "word": "Pip!",
+          "start": 1.7971,
+          "end": 2.04,
+          "score": 0.9996
+        }
+      ]
+    },
+    "book_pip_moon_4": {
+      "provider": "firefly",
+      "batch": "storybook",
+      "indexInBatch": 3,
+      "speaker": "seraphina",
+      "profile": "storybook",
+      "voice": "Vinita",
+      "spoken": "Now Pip and the dragon are best friends!",
+      "spokenHash": "3b5fc1c9e66135f5",
+      "audio": "book_pip_moon_4.mp3",
+      "bytes": 17592,
+      "seconds": 1.9796,
+      "ingested": "2026-08-15",
+      "align": {
+        "model": "wav2vec2_base",
+        "latency": 0.115,
+        "minScore": 0.52,
+        "medianScore": 0.99,
+        "review": []
+      },
+      "cut": {
+        "startSeconds": 6.6175,
+        "endSeconds": 10.2,
+        "trimmedHead": 0.16,
+        "trimmedTail": 1.4429,
+        "usableGap": true
+      },
+      "loudness": {
+        "targetDbfs": -19,
+        "gainDb": 0.3,
+        "peakDbfs": -5.05,
+        "speechDbfs": -19.3
+      },
+      "words": [
+        {
+          "word": "Now",
+          "start": 0.0425,
+          "end": 0.1561,
+          "score": 0.9994
+        },
+        {
+          "word": "Pip",
+          "start": 0.1613,
+          "end": 0.4366,
+          "score": 0.9993
+        },
+        {
+          "word": "and",
+          "start": 0.4366,
+          "end": 0.5368,
+          "score": 0.8954
+        },
+        {
+          "word": "the",
+          "start": 0.5368,
+          "end": 0.637,
+          "score": 0.9854
+        },
+        {
+          "word": "dragon",
+          "start": 0.637,
+          "end": 0.9577,
+          "score": 0.9739
+        },
+        {
+          "word": "are",
+          "start": 0.9629,
+          "end": 1.1981,
+          "score": 0.5249
+        },
+        {
+          "word": "best",
+          "start": 1.1981,
+          "end": 1.4586,
+          "score": 0.9936
+        },
+        {
+          "word": "friends!",
+          "start": 1.4586,
+          "end": 1.9396,
+          "score": 0.994
+        }
+      ]
+    },
+    "dad_bedtime": {
+      "provider": "firefly",
+      "batch": "dad",
+      "indexInBatch": 0,
+      "speaker": "dad",
+      "profile": "dad",
+      "voice": "John",
+      "spoken": "Seraphina, time for bed!",
+      "spokenHash": "854090a242c6f708",
+      "audio": "dad_bedtime.mp3",
+      "bytes": 12072,
+      "seconds": 1.53,
+      "ingested": "2026-08-15",
+      "align": {
+        "model": "wav2vec2_base",
+        "latency": 0.115,
+        "minScore": 0.92,
+        "medianScore": 1,
+        "review": []
+      },
+      "cut": {
+        "startSeconds": 0,
+        "endSeconds": 1.8525,
+        "trimmedHead": 0,
+        "trimmedTail": 0.3225,
+        "usableGap": true
+      },
+      "loudness": {
+        "targetDbfs": -19,
+        "gainDb": 5.1,
+        "peakDbfs": -5.07,
+        "speechDbfs": -24.1
+      },
+      "words": [
+        {
+          "word": "Seraphina,",
+          "start": 0,
+          "end": 0.5604,
+          "score": 0.9162
+        },
+        {
+          "word": "time",
+          "start": 0.7856,
+          "end": 1.0808,
+          "score": 0.9998
+        },
+        {
+          "word": "for",
+          "start": 1.0808,
+          "end": 1.2209,
+          "score": 0.9996
+        },
+        {
+          "word": "bed!",
+          "start": 1.2209,
+          "end": 1.461,
+          "score": 0.9982
+        }
+      ]
+    },
+    "dad_bunnies_home": {
+      "provider": "firefly",
+      "batch": "dad",
+      "indexInBatch": 10,
+      "speaker": "dad",
+      "profile": "dad",
+      "voice": "John",
+      "spoken": "All three bunnies are home!",
+      "spokenHash": "9ee48ddd02da7245",
+      "audio": "dad_bunnies_home.mp3",
+      "bytes": 10224,
+      "seconds": 1.2325,
+      "ingested": "2026-08-15",
+      "align": {
+        "model": "wav2vec2_base",
+        "latency": 0.115,
+        "minScore": 0.4,
+        "medianScore": 0.79,
+        "review": [
+          {
+            "word": "All",
+            "score": 0.4
+          }
+        ]
+      },
+      "cut": {
+        "startSeconds": 22.2875,
+        "endSeconds": 24.255,
+        "trimmedHead": 0.3725,
+        "trimmedTail": 0.3625,
+        "usableGap": true
+      },
+      "loudness": {
+        "targetDbfs": -19,
+        "gainDb": 1.58,
+        "peakDbfs": -4.74,
+        "speechDbfs": -20.58
+      },
+      "words": [
+        {
+          "word": "All",
+          "start": 0.04,
+          "end": 0.2161,
+          "score": 0.4
+        },
+        {
+          "word": "three",
+          "start": 0.2161,
+          "end": 0.4563,
+          "score": 0.9984
+        },
+        {
+          "word": "bunnies",
+          "start": 0.4563,
+          "end": 0.7565,
+          "score": 0.8537
+        },
+        {
+          "word": "are",
+          "start": 0.7565,
+          "end": 0.8966,
+          "score": 0.7888
+        },
+        {
+          "word": "home!",
+          "start": 0.8966,
+          "end": 1.19,
+          "score": 0.5988
+        }
+      ]
+    },
+    "dad_bunny_coin": {
+      "provider": "firefly",
+      "batch": "dad",
+      "indexInBatch": 11,
+      "speaker": "dad",
+      "profile": "dad",
+      "voice": "John",
+      "spoken": "The bunnies want you to have this shiny gold coin!",
+      "spokenHash": "528a9d58a2271400",
+      "audio": "dad_bunny_coin.mp3",
+      "bytes": 18480,
+      "seconds": 2.285,
+      "ingested": "2026-08-15",
+      "align": {
+        "model": "wav2vec2_base",
+        "latency": 0.115,
+        "minScore": 0.5,
+        "medianScore": 0.91,
+        "review": []
+      },
+      "cut": {
+        "startSeconds": 24.255,
+        "endSeconds": 28.4,
+        "trimmedHead": 0.365,
+        "trimmedTail": 1.495,
+        "usableGap": true
+      },
+      "loudness": {
+        "targetDbfs": -19,
+        "gainDb": 3.07,
+        "peakDbfs": -1,
+        "speechDbfs": -23.39
+      },
+      "words": [
+        {
+          "word": "The",
+          "start": 0.04,
+          "end": 0.1374,
+          "score": 0.8115
+        },
+        {
+          "word": "bunnies",
+          "start": 0.1374,
+          "end": 0.4376,
+          "score": 0.7977
+        },
+        {
+          "word": "want",
+          "start": 0.4376,
+          "end": 0.5978,
+          "score": 0.972
+        },
+        {
+          "word": "you",
+          "start": 0.5978,
+          "end": 0.6778,
+          "score": 0.7499
+        },
+        {
+          "word": "to",
+          "start": 0.6778,
+          "end": 0.8179,
+          "score": 0.4996
+        },
+        {
+          "word": "have",
+          "start": 0.8179,
+          "end": 0.998,
+          "score": 0.7781
+        },
+        {
+          "word": "this",
+          "start": 0.998,
+          "end": 1.1181,
+          "score": 0.9054
+        },
+        {
+          "word": "shiny",
+          "start": 1.1181,
+          "end": 1.4984,
+          "score": 0.9544
+        },
+        {
+          "word": "gold",
+          "start": 1.4984,
+          "end": 1.7586,
+          "score": 0.9403
+        },
+        {
+          "word": "coin!",
+          "start": 1.7637,
+          "end": 2.1589,
+          "score": 0.9921
+        }
+      ]
+    },
+    "dad_helper": {
+      "provider": "firefly",
+      "batch": "dad",
+      "indexInBatch": 1,
+      "speaker": "dad",
+      "profile": "dad",
+      "voice": "John",
+      "spoken": "Hello, my little helper!",
+      "spokenHash": "47d6ebfe490cdc84",
+      "audio": "dad_helper.mp3",
+      "bytes": 8904,
+      "seconds": 0.9975,
+      "ingested": "2026-08-15",
+      "align": {
+        "model": "wav2vec2_base",
+        "latency": 0.115,
+        "minScore": 0.96,
+        "medianScore": 0.99,
+        "review": []
+      },
+      "cut": {
+        "startSeconds": 1.8525,
+        "endSeconds": 3.4525,
+        "trimmedHead": 0.32,
+        "trimmedTail": 0.2825,
+        "usableGap": true
+      },
+      "loudness": {
+        "targetDbfs": -19,
+        "gainDb": 3.1,
+        "peakDbfs": -6.76,
+        "speechDbfs": -22.1
+      },
+      "words": [
+        {
+          "word": "Hello,",
+          "start": 0.0425,
+          "end": 0.2492,
+          "score": 0.9715
+        },
+        {
+          "word": "my",
+          "start": 0.2543,
+          "end": 0.4293,
+          "score": 0.9998
+        },
+        {
+          "word": "little",
+          "start": 0.4293,
+          "end": 0.6695,
+          "score": 0.9887
+        },
+        {
+          "word": "helper!",
+          "start": 0.6695,
+          "end": 0.9575,
+          "score": 0.9611
+        }
+      ]
+    },
+    "dad_one_more": {
+      "provider": "firefly",
+      "batch": "dad",
+      "indexInBatch": 9,
+      "speaker": "dad",
+      "profile": "dad",
+      "voice": "John",
+      "spoken": "One more bunny to go!",
+      "spokenHash": "83e0c6e58a502750",
+      "audio": "dad_one_more.mp3",
+      "bytes": 8424,
+      "seconds": 0.975,
+      "ingested": "2026-08-15",
+      "align": {
+        "model": "wav2vec2_base",
+        "latency": 0.115,
+        "minScore": 0.88,
+        "medianScore": 0.99,
+        "review": []
+      },
+      "cut": {
+        "startSeconds": 20.545,
+        "endSeconds": 22.2875,
+        "trimmedHead": 0.395,
+        "trimmedTail": 0.3725,
+        "usableGap": true
+      },
+      "loudness": {
+        "targetDbfs": -19,
+        "gainDb": 0.91,
+        "peakDbfs": -5.74,
+        "speechDbfs": -19.91
+      },
+      "words": [
+        {
+          "word": "One",
+          "start": 0.04,
+          "end": 0.1949,
+          "score": 0.9084
+        },
+        {
+          "word": "more",
+          "start": 0.1949,
+          "end": 0.355,
+          "score": 0.993
+        },
+        {
+          "word": "bunny",
+          "start": 0.355,
+          "end": 0.5551,
+          "score": 0.878
+        },
+        {
+          "word": "to",
+          "start": 0.5551,
+          "end": 0.6552,
+          "score": 0.9999
+        },
+        {
+          "word": "go!",
+          "start": 0.6552,
+          "end": 0.8553,
+          "score": 0.9865
+        }
+      ]
+    },
+    "dad_quest_carrots": {
+      "provider": "firefly",
+      "batch": "dad",
+      "indexInBatch": 6,
+      "speaker": "dad",
+      "profile": "dad",
+      "voice": "John",
+      "spoken": "Bunnies love carrots, find three in the woods.",
+      "spokenHash": "ca278ea9907bd2fa",
+      "audio": "dad_quest_carrots.mp3",
+      "bytes": 19224,
+      "seconds": 2.195,
+      "ingested": "2026-08-15",
+      "align": {
+        "model": "wav2vec2_base",
+        "latency": 0.115,
+        "minScore": 0.6,
+        "medianScore": 0.95,
+        "review": []
+      },
+      "cut": {
+        "startSeconds": 13.4125,
+        "endSeconds": 16.2875,
+        "trimmedHead": 0.4,
+        "trimmedTail": 0.28,
+        "usableGap": true
+      },
+      "loudness": {
+        "targetDbfs": -19,
+        "gainDb": 3.53,
+        "peakDbfs": -2.92,
+        "speechDbfs": -22.53
+      },
+      "words": [
+        {
+          "word": "Bunnies",
+          "start": 0.0425,
+          "end": 0.2774,
+          "score": 0.9754
+        },
+        {
+          "word": "love",
+          "start": 0.2774,
+          "end": 0.4776,
+          "score": 0.9493
+        },
+        {
+          "word": "carrots,",
+          "start": 0.4776,
+          "end": 0.8979,
+          "score": 0.8873
+        },
+        {
+          "word": "find",
+          "start": 1.023,
+          "end": 1.2981,
+          "score": 0.9993
+        },
+        {
+          "word": "three",
+          "start": 1.2981,
+          "end": 1.5783,
+          "score": 0.9174
+        },
+        {
+          "word": "in",
+          "start": 1.5783,
+          "end": 1.6784,
+          "score": 0.6664
+        },
+        {
+          "word": "the",
+          "start": 1.6784,
+          "end": 1.7785,
+          "score": 0.6009
+        },
+        {
+          "word": "woods.",
+          "start": 1.7785,
+          "end": 2.0787,
+          "score": 0.9774
+        }
+      ]
+    },
+    "dad_quest_chop": {
+      "provider": "firefly",
+      "batch": "dad",
+      "indexInBatch": 5,
+      "speaker": "dad",
+      "profile": "dad",
+      "voice": "John",
+      "spoken": "Chop the little trees with your axe!",
+      "spokenHash": "00816acb0113c274",
+      "audio": "dad_quest_chop.mp3",
+      "bytes": 12864,
+      "seconds": 1.485,
+      "ingested": "2026-08-15",
+      "align": {
+        "model": "wav2vec2_base",
+        "latency": 0.115,
+        "minScore": 0.8,
+        "medianScore": 0.87,
+        "review": []
+      },
+      "cut": {
+        "startSeconds": 11.1675,
+        "endSeconds": 13.4125,
+        "trimmedHead": 0.36,
+        "trimmedTail": 0.4,
+        "usableGap": true
+      },
+      "loudness": {
+        "targetDbfs": -19,
+        "gainDb": 4.67,
+        "peakDbfs": -1.91,
+        "speechDbfs": -23.67
+      },
+      "words": [
+        {
+          "word": "Chop",
+          "start": 0.0425,
+          "end": 0.2008,
+          "score": 0.9999
+        },
+        {
+          "word": "the",
+          "start": 0.2008,
+          "end": 0.3609,
+          "score": 0.7959
+        },
+        {
+          "word": "little",
+          "start": 0.3609,
+          "end": 0.541,
+          "score": 0.9931
+        },
+        {
+          "word": "trees",
+          "start": 0.541,
+          "end": 0.8212,
+          "score": 0.8483
+        },
+        {
+          "word": "with",
+          "start": 0.8212,
+          "end": 0.9413,
+          "score": 0.8288
+        },
+        {
+          "word": "your",
+          "start": 0.9413,
+          "end": 1.0814,
+          "score": 0.8673
+        },
+        {
+          "word": "axe!",
+          "start": 1.1065,
+          "end": 1.3816,
+          "score": 0.9133
+        }
+      ]
+    },
+    "dad_quest_lure": {
+      "provider": "firefly",
+      "batch": "dad",
+      "indexInBatch": 7,
+      "speaker": "dad",
+      "profile": "dad",
+      "voice": "John",
+      "spoken": "Give a bunny a carrot and walk it home to me!",
+      "spokenHash": "46f838dd1cb5ff18",
+      "audio": "dad_quest_lure.mp3",
+      "bytes": 17232,
+      "seconds": 1.86,
+      "ingested": "2026-08-15",
+      "align": {
+        "model": "wav2vec2_base",
+        "latency": 0.115,
+        "minScore": 0.53,
+        "medianScore": 0.98,
+        "review": []
+      },
+      "cut": {
+        "startSeconds": 16.2875,
+        "endSeconds": 18.7775,
+        "trimmedHead": 0.28,
+        "trimmedTail": 0.35,
+        "usableGap": true
+      },
+      "loudness": {
+        "targetDbfs": -19,
+        "gainDb": 3.33,
+        "peakDbfs": -2.02,
+        "speechDbfs": -22.33
+      },
+      "words": [
+        {
+          "word": "Give",
+          "start": 0.0425,
+          "end": 0.1443,
+          "score": 0.9999
+        },
+        {
+          "word": "a",
+          "start": 0.1443,
+          "end": 0.2243,
+          "score": 0.9027
+        },
+        {
+          "word": "bunny",
+          "start": 0.2243,
+          "end": 0.4445,
+          "score": 0.9914
+        },
+        {
+          "word": "a",
+          "start": 0.4445,
+          "end": 0.5245,
+          "score": 0.9942
+        },
+        {
+          "word": "carrot",
+          "start": 0.5245,
+          "end": 0.8448,
+          "score": 0.9722
+        },
+        {
+          "word": "and",
+          "start": 0.8448,
+          "end": 0.9648,
+          "score": 0.9984
+        },
+        {
+          "word": "walk",
+          "start": 0.9648,
+          "end": 1.165,
+          "score": 0.9996
+        },
+        {
+          "word": "it",
+          "start": 1.165,
+          "end": 1.2851,
+          "score": 0.5326
+        },
+        {
+          "word": "home",
+          "start": 1.2851,
+          "end": 1.5052,
+          "score": 0.8887
+        },
+        {
+          "word": "to",
+          "start": 1.5052,
+          "end": 1.6253,
+          "score": 0.9719
+        },
+        {
+          "word": "me!",
+          "start": 1.6253,
+          "end": 1.7854,
+          "score": 0.9805
+        }
+      ]
+    },
+    "dad_quest_offer": {
+      "provider": "firefly",
+      "batch": "dad",
+      "indexInBatch": 3,
+      "speaker": "dad",
+      "profile": "dad",
+      "voice": "John",
+      "spoken": "Three little bunnies are stuck in the woods!",
+      "spokenHash": "4ee3e343028be799",
+      "audio": "dad_quest_offer.mp3",
+      "bytes": 14016,
+      "seconds": 1.5775,
+      "ingested": "2026-08-15",
+      "align": {
+        "model": "wav2vec2_base",
+        "latency": 0.115,
+        "minScore": 0.86,
+        "medianScore": 0.96,
+        "review": []
+      },
+      "cut": {
+        "startSeconds": 5.6475,
+        "endSeconds": 7.95,
+        "trimmedHead": 0.4725,
+        "trimmedTail": 0.2525,
+        "usableGap": true
+      },
+      "loudness": {
+        "targetDbfs": -19,
+        "gainDb": 4.38,
+        "peakDbfs": -4.1,
+        "speechDbfs": -23.38
+      },
+      "words": [
+        {
+          "word": "Three",
+          "start": 0.04,
+          "end": 0.1644,
+          "score": 0.8657
+        },
+        {
+          "word": "little",
+          "start": 0.1644,
+          "end": 0.4046,
+          "score": 0.8871
+        },
+        {
+          "word": "bunnies",
+          "start": 0.4046,
+          "end": 0.6848,
+          "score": 0.8623
+        },
+        {
+          "word": "are",
+          "start": 0.6848,
+          "end": 0.7849,
+          "score": 0.9993
+        },
+        {
+          "word": "stuck",
+          "start": 0.7849,
+          "end": 0.985,
+          "score": 0.9283
+        },
+        {
+          "word": "in",
+          "start": 0.985,
+          "end": 1.0851,
+          "score": 0.9824
+        },
+        {
+          "word": "the",
+          "start": 1.0851,
+          "end": 1.1851,
+          "score": 0.9628
+        },
+        {
+          "word": "woods!",
+          "start": 1.1851,
+          "end": 1.4653,
+          "score": 0.9943
+        }
+      ]
+    },
+    "dad_quest_pen": {
+      "provider": "firefly",
+      "batch": "dad",
+      "indexInBatch": 4,
+      "speaker": "dad",
+      "profile": "dad",
+      "voice": "John",
+      "spoken": "Little trees are all around the bunnies, find them in the woods.",
+      "spokenHash": "47550c668c84f2df",
+      "audio": "dad_quest_pen.mp3",
+      "bytes": 22032,
+      "seconds": 2.6,
+      "ingested": "2026-08-15",
+      "align": {
+        "model": "wav2vec2_base",
+        "latency": 0.115,
+        "minScore": 0.61,
+        "medianScore": 0.87,
+        "review": []
+      },
+      "cut": {
+        "startSeconds": 7.95,
+        "endSeconds": 11.1675,
+        "trimmedHead": 0.255,
+        "trimmedTail": 0.3625,
+        "usableGap": true
+      },
+      "loudness": {
+        "targetDbfs": -19,
+        "gainDb": 4.75,
+        "peakDbfs": -4.5,
+        "speechDbfs": -23.75
+      },
+      "words": [
+        {
+          "word": "Little",
+          "start": 0.04,
+          "end": 0.2409,
+          "score": 0.8652
+        },
+        {
+          "word": "trees",
+          "start": 0.2409,
+          "end": 0.5211,
+          "score": 0.8589
+        },
+        {
+          "word": "are",
+          "start": 0.5211,
+          "end": 0.6412,
+          "score": 0.7521
+        },
+        {
+          "word": "all",
+          "start": 0.6412,
+          "end": 0.7613,
+          "score": 0.9742
+        },
+        {
+          "word": "around",
+          "start": 0.7613,
+          "end": 0.9815,
+          "score": 0.9388
+        },
+        {
+          "word": "the",
+          "start": 0.9815,
+          "end": 1.1016,
+          "score": 0.7746
+        },
+        {
+          "word": "bunnies,",
+          "start": 1.1016,
+          "end": 1.4218,
+          "score": 0.9949
+        },
+        {
+          "word": "find",
+          "start": 1.647,
+          "end": 1.9021,
+          "score": 0.9703
+        },
+        {
+          "word": "them",
+          "start": 1.9021,
+          "end": 2.0422,
+          "score": 0.6975
+        },
+        {
+          "word": "in",
+          "start": 2.0422,
+          "end": 2.1023,
+          "score": 0.6664
+        },
+        {
+          "word": "the",
+          "start": 2.1023,
+          "end": 2.2023,
+          "score": 0.6094
+        },
+        {
+          "word": "woods.",
+          "start": 2.2023,
+          "end": 2.4825,
+          "score": 0.9888
+        }
+      ]
+    },
+    "dad_shed": {
+      "provider": "firefly",
+      "batch": "dad",
+      "indexInBatch": 2,
+      "speaker": "dad",
+      "profile": "dad",
+      "voice": "John",
+      "spoken": "I keep all my tools in this shed.",
+      "spokenHash": "7573d91f886351a2",
+      "audio": "dad_shed.mp3",
+      "bytes": 12480,
+      "seconds": 1.4475,
+      "ingested": "2026-08-15",
+      "align": {
+        "model": "wav2vec2_base",
+        "latency": 0.115,
+        "minScore": 0.57,
+        "medianScore": 0.99,
+        "review": []
+      },
+      "cut": {
+        "startSeconds": 3.4525,
+        "endSeconds": 5.6475,
+        "trimmedHead": 0.2825,
+        "trimmedTail": 0.465,
+        "usableGap": true
+      },
+      "loudness": {
+        "targetDbfs": -19,
+        "gainDb": 4.42,
+        "peakDbfs": -5.26,
+        "speechDbfs": -23.42
+      },
+      "words": [
+        {
+          "word": "I",
+          "start": 0.04,
+          "end": 0.0877,
+          "score": 0.9886
+        },
+        {
+          "word": "keep",
+          "start": 0.0877,
+          "end": 0.2878,
+          "score": 0.9399
+        },
+        {
+          "word": "all",
+          "start": 0.2878,
+          "end": 0.468,
+          "score": 0.9972
+        },
+        {
+          "word": "my",
+          "start": 0.468,
+          "end": 0.568,
+          "score": 0.9999
+        },
+        {
+          "word": "tools",
+          "start": 0.568,
+          "end": 0.9083,
+          "score": 0.8278
+        },
+        {
+          "word": "in",
+          "start": 0.9083,
+          "end": 0.9883,
+          "score": 0.9927
+        },
+        {
+          "word": "this",
+          "start": 0.9883,
+          "end": 1.1484,
+          "score": 0.568
+        },
+        {
+          "word": "shed.",
+          "start": 1.1484,
+          "end": 1.4,
+          "score": 0.9989
+        }
+      ]
+    },
+    "dad_two_more": {
+      "provider": "firefly",
+      "batch": "dad",
+      "indexInBatch": 8,
+      "speaker": "dad",
+      "profile": "dad",
+      "voice": "John",
+      "spoken": "Two more bunnies to go!",
+      "spokenHash": "4d3c833dd0042a1c",
+      "audio": "dad_two_more.mp3",
+      "bytes": 8592,
+      "seconds": 1.035,
+      "ingested": "2026-08-15",
+      "align": {
+        "model": "wav2vec2_base",
+        "latency": 0.115,
+        "minScore": 0.2,
+        "medianScore": 0.93,
+        "review": [
+          {
+            "word": "go!",
+            "score": 0.2
+          }
+        ]
+      },
+      "cut": {
+        "startSeconds": 18.7775,
+        "endSeconds": 20.545,
+        "trimmedHead": 0.35,
+        "trimmedTail": 0.3825,
+        "usableGap": true
+      },
+      "loudness": {
+        "targetDbfs": -19,
+        "gainDb": 1.76,
+        "peakDbfs": -4.5,
+        "speechDbfs": -20.76
+      },
+      "words": [
+        {
+          "word": "Two",
+          "start": 0.0425,
+          "end": 0.1661,
+          "score": 0.9982
+        },
+        {
+          "word": "more",
+          "start": 0.1661,
+          "end": 0.3462,
+          "score": 0.9336
+        },
+        {
+          "word": "bunnies",
+          "start": 0.3462,
+          "end": 0.6064,
+          "score": 0.8824
+        },
+        {
+          "word": "to",
+          "start": 0.6064,
+          "end": 0.6865,
+          "score": 0.9999
+        },
+        {
+          "word": "go!",
+          "start": 0.6865,
+          "end": 0.9825,
+          "score": 0.2
+        }
+      ]
+    },
+    "morgana_book_best": {
+      "provider": "firefly",
+      "batch": "morgana",
+      "indexInBatch": 10,
+      "speaker": "morgana",
+      "profile": "morgana",
+      "voice": "Anish",
+      "spoken": "That was the best story ever, thank you Seraphina.",
+      "spokenHash": "4b164fd517b7f555",
+      "audio": "morgana_book_best.mp3",
+      "bytes": 19416,
+      "seconds": 2.415,
+      "ingested": "2026-08-15",
+      "align": {
+        "model": "wav2vec2_base",
+        "latency": 0.115,
+        "minScore": 0.61,
+        "medianScore": 0.98,
+        "review": []
+      },
+      "cut": {
+        "startSeconds": 15.8125,
+        "endSeconds": 18.7975,
+        "trimmedHead": 0.3375,
+        "trimmedTail": 0.2325,
+        "usableGap": true
+      },
+      "loudness": {
+        "targetDbfs": -19,
+        "gainDb": 2.89,
+        "peakDbfs": -1,
+        "speechDbfs": -22.72
+      },
+      "words": [
+        {
+          "word": "That",
+          "start": 0.04,
+          "end": 0.1365,
+          "score": 0.9582
+        },
+        {
+          "word": "was",
+          "start": 0.1365,
+          "end": 0.2765,
+          "score": 0.9859
+        },
+        {
+          "word": "the",
+          "start": 0.2765,
+          "end": 0.3966,
+          "score": 0.9814
+        },
+        {
+          "word": "best",
+          "start": 0.3966,
+          "end": 0.5966,
+          "score": 0.9753
+        },
+        {
+          "word": "story",
+          "start": 0.5966,
+          "end": 0.8968,
+          "score": 0.9401
+        },
+        {
+          "word": "ever,",
+          "start": 0.8968,
+          "end": 1.2369,
+          "score": 0.6071
+        },
+        {
+          "word": "thank",
+          "start": 1.2819,
+          "end": 1.557,
+          "score": 0.9998
+        },
+        {
+          "word": "you",
+          "start": 1.557,
+          "end": 1.6971,
+          "score": 0.999
+        },
+        {
+          "word": "Seraphina.",
+          "start": 1.6971,
+          "end": 2.375,
+          "score": 0.6344
+        }
+      ]
+    },
+    "morgana_book_dragon": {
+      "provider": "firefly",
+      "batch": "morgana",
+      "indexInBatch": 8,
+      "speaker": "morgana",
+      "profile": "morgana",
+      "voice": "Anish",
+      "spoken": "A baby dragon!",
+      "spokenHash": "67f1ffcd967b15fe",
+      "audio": "morgana_book_dragon.mp3",
+      "bytes": 8880,
+      "seconds": 0.985,
+      "ingested": "2026-08-15",
+      "align": {
+        "model": "wav2vec2_base",
+        "latency": 0.115,
+        "minScore": 0.99,
+        "medianScore": 1,
+        "review": []
+      },
+      "cut": {
+        "startSeconds": 13.0525,
+        "endSeconds": 14.19,
+        "trimmedHead": 0.06,
+        "trimmedTail": 0.0925,
+        "usableGap": true
+      },
+      "loudness": {
+        "targetDbfs": -19,
+        "gainDb": 1.21,
+        "peakDbfs": -3.47,
+        "speechDbfs": -20.21
+      },
+      "words": [
+        {
+          "word": "A",
+          "start": 0.0425,
+          "end": 0.1327,
+          "score": 0.997
+        },
+        {
+          "word": "baby",
+          "start": 0.1327,
+          "end": 0.4129,
+          "score": 0.9865
+        },
+        {
+          "word": "dragon!",
+          "start": 0.4129,
+          "end": 0.873,
+          "score": 0.9995
+        }
+      ]
+    },
+    "morgana_book_moon": {
+      "provider": "firefly",
+      "batch": "morgana",
+      "indexInBatch": 7,
+      "speaker": "morgana",
+      "profile": "morgana",
+      "voice": "Anish",
+      "spoken": "All the way to the moon!",
+      "spokenHash": "44ce657325bf24e3",
+      "audio": "morgana_book_moon.mp3",
+      "bytes": 9816,
+      "seconds": 1.14,
+      "ingested": "2026-08-15",
+      "align": {
+        "model": "wav2vec2_base",
+        "latency": 0.115,
+        "minScore": 0.65,
+        "medianScore": 0.96,
+        "review": []
+      },
+      "cut": {
+        "startSeconds": 11.54,
+        "endSeconds": 13.0525,
+        "trimmedHead": 0.31,
+        "trimmedTail": 0.0625,
+        "usableGap": true
+      },
+      "loudness": {
+        "targetDbfs": -19,
+        "gainDb": 1.66,
+        "peakDbfs": -5.7,
+        "speechDbfs": -20.66
+      },
+      "words": [
+        {
+          "word": "All",
+          "start": 0.04,
+          "end": 0.2148,
+          "score": 0.75
+        },
+        {
+          "word": "the",
+          "start": 0.2148,
+          "end": 0.2948,
+          "score": 0.7499
+        },
+        {
+          "word": "way",
+          "start": 0.2948,
+          "end": 0.4349,
+          "score": 0.9989
+        },
+        {
+          "word": "to",
+          "start": 0.4349,
+          "end": 0.5549,
+          "score": 0.9999
+        },
+        {
+          "word": "the",
+          "start": 0.5549,
+          "end": 0.715,
+          "score": 0.6499
+        },
+        {
+          "word": "moon!",
+          "start": 0.715,
+          "end": 0.9951,
+          "score": 0.9573
+        }
+      ]
+    },
+    "morgana_book_sparkles": {
+      "provider": "firefly",
+      "batch": "morgana",
+      "indexInBatch": 9,
+      "speaker": "morgana",
+      "profile": "morgana",
+      "voice": "Anish",
+      "spoken": "Sparkles everywhere!",
+      "spokenHash": "ef0137696ed2b421",
+      "audio": "morgana_book_sparkles.mp3",
+      "bytes": 10680,
+      "seconds": 1.19,
+      "ingested": "2026-08-15",
+      "align": {
+        "model": "wav2vec2_base",
+        "latency": 0.115,
+        "minScore": 0.75,
+        "medianScore": 0.77,
+        "review": []
+      },
+      "cut": {
+        "startSeconds": 14.19,
+        "endSeconds": 15.8125,
+        "trimmedHead": 0.095,
+        "trimmedTail": 0.3375,
+        "usableGap": true
+      },
+      "loudness": {
+        "targetDbfs": -19,
+        "gainDb": 1.01,
+        "peakDbfs": -1.78,
+        "speechDbfs": -20.01
+      },
+      "words": [
+        {
+          "word": "Sparkles",
+          "start": 0.04,
+          "end": 0.5809,
+          "score": 0.7513
+        },
+        {
+          "word": "everywhere!",
+          "start": 0.5809,
+          "end": 1.1411,
+          "score": 0.7723
+        }
+      ]
+    },
+    "morgana_pebble": {
+      "provider": "firefly",
+      "batch": "morgana",
+      "indexInBatch": 1,
+      "speaker": "morgana",
+      "profile": "morgana",
+      "voice": "Anish",
+      "spoken": "I found a shiny pebble!",
+      "spokenHash": "4c48e2398671a4e5",
+      "audio": "morgana_pebble.mp3",
+      "bytes": 15840,
+      "seconds": 2.2,
+      "ingested": "2026-08-15",
+      "align": {
+        "model": "wav2vec2_base",
+        "latency": 0.115,
+        "minScore": 0,
+        "medianScore": 0.98,
+        "review": [
+          {
+            "word": "I",
+            "score": 0
+          }
+        ]
+      },
+      "cut": {
+        "startSeconds": 1.25,
+        "endSeconds": 3.5,
+        "trimmedHead": 0.03,
+        "trimmedTail": 0.02,
+        "usableGap": true
+      },
+      "loudness": {
+        "targetDbfs": -19,
+        "gainDb": 3.44,
+        "peakDbfs": -4.21,
+        "speechDbfs": -22.44
+      },
+      "words": [
+        {
+          "word": "I",
+          "start": 0.2406,
+          "end": 0.3606,
+          "score": 0
+        },
+        {
+          "word": "found",
+          "start": 0.8859,
+          "end": 1.181,
+          "score": 0.9999
+        },
+        {
+          "word": "a",
+          "start": 1.181,
+          "end": 1.281,
+          "score": 0.7336
+        },
+        {
+          "word": "shiny",
+          "start": 1.281,
+          "end": 1.6412,
+          "score": 0.9818
+        },
+        {
+          "word": "pebble!",
+          "start": 1.6412,
+          "end": 2.0613,
+          "score": 0.9999
+        }
+      ]
+    },
+    "morgana_play": {
+      "provider": "firefly",
+      "batch": "morgana",
+      "indexInBatch": 0,
+      "speaker": "morgana",
+      "profile": "morgana",
+      "voice": "Anish",
+      "spoken": "Hi Seraphina, wanna play?",
+      "spokenHash": "0f4060bd4ad282a9",
+      "audio": "morgana_play.mp3",
+      "bytes": 10008,
+      "seconds": 1.2205,
+      "ingested": "2026-08-15",
+      "align": {
+        "model": "wav2vec2_base",
+        "latency": 0.115,
+        "minScore": 0.63,
+        "medianScore": 0.79,
+        "review": []
+      },
+      "cut": {
+        "startSeconds": 0,
+        "endSeconds": 1.25,
+        "trimmedHead": 0,
+        "trimmedTail": 0.0295,
+        "usableGap": true
+      },
+      "loudness": {
+        "targetDbfs": -19,
+        "gainDb": 2.33,
+        "peakDbfs": -5.09,
+        "speechDbfs": -21.33
+      },
+      "words": [
+        {
+          "word": "Hi",
+          "start": 0,
+          "end": 0.2201,
+          "score": 0.7857
+        },
+        {
+          "word": "Seraphina,",
+          "start": 0.2451,
+          "end": 0.8803,
+          "score": 0.8598
+        },
+        {
+          "word": "wanna",
+          "start": 0.8803,
+          "end": 1.1805,
+          "score": 0.6299
+        },
+        {
+          "word": "play?",
+          "start": 1.1805,
+          "end": 1.1805,
+          "score": 0.9999
+        }
+      ]
+    },
+    "morgana_pretty": {
+      "provider": "firefly",
+      "batch": "morgana",
+      "indexInBatch": 2,
+      "speaker": "morgana",
+      "profile": "morgana",
+      "voice": "Anish",
+      "spoken": "So pretty!",
+      "spokenHash": "2b905caf6a0187a9",
+      "audio": "morgana_pretty.mp3",
+      "bytes": 6288,
+      "seconds": 0.69,
+      "ingested": "2026-08-15",
+      "align": {
+        "model": "wav2vec2_base",
+        "latency": 0.115,
+        "minScore": 0.97,
+        "medianScore": 1,
+        "review": []
+      },
+      "cut": {
+        "startSeconds": 3.5,
+        "endSeconds": 4.3075,
+        "trimmedHead": 0.02,
+        "trimmedTail": 0.0975,
+        "usableGap": true
+      },
+      "loudness": {
+        "targetDbfs": -19,
+        "gainDb": 3.93,
+        "peakDbfs": -6.79,
+        "speechDbfs": -22.93
+      },
+      "words": [
+        {
+          "word": "So",
+          "start": 0.04,
+          "end": 0.2215,
+          "score": 0.9746
+        },
+        {
+          "word": "pretty!",
+          "start": 0.2265,
+          "end": 0.6016,
+          "score": 0.9995
+        }
+      ]
+    },
+    "morgana_story_book": {
+      "provider": "firefly",
+      "batch": "morgana",
+      "indexInBatch": 4,
+      "speaker": "morgana",
+      "profile": "morgana",
+      "voice": "Anish",
+      "spoken": "There is a storybook on the bookshelf!",
+      "spokenHash": "adb339f13d3d185f",
+      "audio": "morgana_story_book.mp3",
+      "bytes": 13536,
+      "seconds": 1.565,
+      "ingested": "2026-08-15",
+      "align": {
+        "model": "wav2vec2_base",
+        "latency": 0.115,
+        "minScore": 0.35,
+        "medianScore": 0.98,
+        "review": [
+          {
+            "word": "a",
+            "score": 0.3475
+          }
+        ]
+      },
+      "cut": {
+        "startSeconds": 5.7625,
+        "endSeconds": 7.6925,
+        "trimmedHead": 0.21,
+        "trimmedTail": 0.155,
+        "usableGap": true
+      },
+      "loudness": {
+        "targetDbfs": -19,
+        "gainDb": 4.75,
+        "peakDbfs": -5.18,
+        "speechDbfs": -23.75
+      },
+      "words": [
+        {
+          "word": "There",
+          "start": 0.0425,
+          "end": 0.1499,
+          "score": 0.9989
+        },
+        {
+          "word": "is",
+          "start": 0.1499,
+          "end": 0.29,
+          "score": 0.5973
+        },
+        {
+          "word": "a",
+          "start": 0.29,
+          "end": 0.37,
+          "score": 0.3475
+        },
+        {
+          "word": "storybook",
+          "start": 0.37,
+          "end": 0.8502,
+          "score": 0.9999
+        },
+        {
+          "word": "on",
+          "start": 0.8502,
+          "end": 0.9702,
+          "score": 0.9993
+        },
+        {
+          "word": "the",
+          "start": 0.9702,
+          "end": 1.1103,
+          "score": 0.5318
+        },
+        {
+          "word": "bookshelf!",
+          "start": 1.1103,
+          "end": 1.5225,
+          "score": 0.9794
+        }
+      ]
+    },
+    "morgana_story_coin": {
+      "provider": "firefly",
+      "batch": "morgana",
+      "indexInBatch": 12,
+      "speaker": "morgana",
+      "profile": "morgana",
+      "voice": "Anish",
+      "spoken": "Here is a shiny gold coin for the best reader!",
+      "spokenHash": "2ca51d6cc67e8743",
+      "audio": "morgana_story_coin.mp3",
+      "bytes": 19656,
+      "seconds": 2.34,
+      "ingested": "2026-08-15",
+      "align": {
+        "model": "wav2vec2_base",
+        "latency": 0.115,
+        "minScore": 0.49,
+        "medianScore": 0.94,
+        "review": []
+      },
+      "cut": {
+        "startSeconds": 21.06,
+        "endSeconds": 25.25,
+        "trimmedHead": 0.215,
+        "trimmedTail": 1.635,
+        "usableGap": true
+      },
+      "loudness": {
+        "targetDbfs": -19,
+        "gainDb": 2.77,
+        "peakDbfs": -3.72,
+        "speechDbfs": -21.77
+      },
+      "words": [
+        {
+          "word": "Here",
+          "start": 0.04,
+          "end": 0.1535,
+          "score": 0.9335
+        },
+        {
+          "word": "is",
+          "start": 0.1535,
+          "end": 0.3336,
+          "score": 0.4951
+        },
+        {
+          "word": "a",
+          "start": 0.3336,
+          "end": 0.4136,
+          "score": 0.4864
+        },
+        {
+          "word": "shiny",
+          "start": 0.4136,
+          "end": 0.7537,
+          "score": 0.9653
+        },
+        {
+          "word": "gold",
+          "start": 0.7537,
+          "end": 1.0138,
+          "score": 0.9445
+        },
+        {
+          "word": "coin",
+          "start": 1.0138,
+          "end": 1.3139,
+          "score": 0.9289
+        },
+        {
+          "word": "for",
+          "start": 1.3139,
+          "end": 1.494,
+          "score": 0.9999
+        },
+        {
+          "word": "the",
+          "start": 1.494,
+          "end": 1.6141,
+          "score": 0.9999
+        },
+        {
+          "word": "best",
+          "start": 1.6141,
+          "end": 1.8742,
+          "score": 0.9803
+        },
+        {
+          "word": "reader!",
+          "start": 1.8742,
+          "end": 2.2943,
+          "score": 0.6915
+        }
+      ]
+    },
+    "morgana_story_come": {
+      "provider": "firefly",
+      "batch": "morgana",
+      "indexInBatch": 5,
+      "speaker": "morgana",
+      "profile": "morgana",
+      "voice": "Anish",
+      "spoken": "Come and sit on the rug with me!",
+      "spokenHash": "766ad75a8d91378d",
+      "audio": "morgana_story_come.mp3",
+      "bytes": 11208,
+      "seconds": 1.38,
+      "ingested": "2026-08-15",
+      "align": {
+        "model": "wav2vec2_base",
+        "latency": 0.115,
+        "minScore": 0.59,
+        "medianScore": 0.99,
+        "review": []
+      },
+      "cut": {
+        "startSeconds": 7.6925,
+        "endSeconds": 9.3825,
+        "trimmedHead": 0.155,
+        "trimmedTail": 0.155,
+        "usableGap": true
+      },
+      "loudness": {
+        "targetDbfs": -19,
+        "gainDb": 3.71,
+        "peakDbfs": -5.61,
+        "speechDbfs": -22.71
+      },
+      "words": [
+        {
+          "word": "Come",
+          "start": 0.0425,
+          "end": 0.1757,
+          "score": 0.8864
+        },
+        {
+          "word": "and",
+          "start": 0.1757,
+          "end": 0.2757,
+          "score": 0.9254
+        },
+        {
+          "word": "sit",
+          "start": 0.2757,
+          "end": 0.4158,
+          "score": 0.9948
+        },
+        {
+          "word": "on",
+          "start": 0.4158,
+          "end": 0.5158,
+          "score": 0.9995
+        },
+        {
+          "word": "the",
+          "start": 0.5158,
+          "end": 0.6559,
+          "score": 0.6
+        },
+        {
+          "word": "rug",
+          "start": 0.6559,
+          "end": 0.8359,
+          "score": 0.5894
+        },
+        {
+          "word": "with",
+          "start": 0.8359,
+          "end": 1.036,
+          "score": 0.9978
+        },
+        {
+          "word": "me!",
+          "start": 1.036,
+          "end": 1.1961,
+          "score": 1
+        }
+      ]
+    },
+    "morgana_story_hug": {
+      "provider": "firefly",
+      "batch": "morgana",
+      "indexInBatch": 11,
+      "speaker": "morgana",
+      "profile": "morgana",
+      "voice": "Anish",
+      "spoken": "Big hug, I love story time.",
+      "spokenHash": "f574a1ece0fb6831",
+      "audio": "morgana_story_hug.mp3",
+      "bytes": 14952,
+      "seconds": 1.8175,
+      "ingested": "2026-08-15",
+      "align": {
+        "model": "wav2vec2_base",
+        "latency": 0.115,
+        "minScore": 0.53,
+        "medianScore": 1,
+        "review": []
+      },
+      "cut": {
+        "startSeconds": 18.7975,
+        "endSeconds": 21.06,
+        "trimmedHead": 0.2325,
+        "trimmedTail": 0.2125,
+        "usableGap": true
+      },
+      "loudness": {
+        "targetDbfs": -19,
+        "gainDb": 3.77,
+        "peakDbfs": -3.37,
+        "speechDbfs": -22.77
+      },
+      "words": [
+        {
+          "word": "Big",
+          "start": 0.04,
+          "end": 0.1776,
+          "score": 0.9999
+        },
+        {
+          "word": "hug,",
+          "start": 0.1776,
+          "end": 0.4777,
+          "score": 0.8816
+        },
+        {
+          "word": "I",
+          "start": 0.6228,
+          "end": 0.7578,
+          "score": 0.9999
+        },
+        {
+          "word": "love",
+          "start": 0.7629,
+          "end": 1.058,
+          "score": 0.9362
+        },
+        {
+          "word": "story",
+          "start": 1.058,
+          "end": 1.3781,
+          "score": 0.9984
+        },
+        {
+          "word": "time.",
+          "start": 1.3781,
+          "end": 1.775,
+          "score": 0.5268
+        }
+      ]
+    },
+    "morgana_story_offer": {
+      "provider": "firefly",
+      "batch": "morgana",
+      "indexInBatch": 3,
+      "speaker": "morgana",
+      "profile": "morgana",
+      "voice": "Anish",
+      "spoken": "Will you read me a story?",
+      "spokenHash": "f66ad5f33be9da7d",
+      "audio": "morgana_story_offer.mp3",
+      "bytes": 9480,
+      "seconds": 1.1425,
+      "ingested": "2026-08-15",
+      "align": {
+        "model": "wav2vec2_base",
+        "latency": 0.115,
+        "minScore": 0.61,
+        "medianScore": 0.92,
+        "review": []
+      },
+      "cut": {
+        "startSeconds": 4.3075,
+        "endSeconds": 5.7625,
+        "trimmedHead": 0.0975,
+        "trimmedTail": 0.215,
+        "usableGap": true
+      },
+      "loudness": {
+        "targetDbfs": -19,
+        "gainDb": 5.05,
+        "peakDbfs": -6.94,
+        "speechDbfs": -24.05
+      },
+      "words": [
+        {
+          "word": "Will",
+          "start": 0.04,
+          "end": 0.1568,
+          "score": 0.9204
+        },
+        {
+          "word": "you",
+          "start": 0.1568,
+          "end": 0.2969,
+          "score": 0.7892
+        },
+        {
+          "word": "read",
+          "start": 0.2969,
+          "end": 0.4569,
+          "score": 0.9106
+        },
+        {
+          "word": "me",
+          "start": 0.4569,
+          "end": 0.577,
+          "score": 0.9999
+        },
+        {
+          "word": "a",
+          "start": 0.577,
+          "end": 0.677,
+          "score": 0.9975
+        },
+        {
+          "word": "story?",
+          "start": 0.677,
+          "end": 1.0972,
+          "score": 0.6073
+        }
+      ]
+    },
+    "morgana_story_read": {
+      "provider": "firefly",
+      "batch": "morgana",
+      "indexInBatch": 6,
+      "speaker": "morgana",
+      "profile": "morgana",
+      "voice": "Anish",
+      "spoken": "Press the green button to open the book!",
+      "spokenHash": "a10229800b43b4e1",
+      "audio": "morgana_story_read.mp3",
+      "bytes": 15384,
+      "seconds": 1.6925,
+      "ingested": "2026-08-15",
+      "align": {
+        "model": "wav2vec2_base",
+        "latency": 0.115,
+        "minScore": 0.75,
+        "medianScore": 0.98,
+        "review": []
+      },
+      "cut": {
+        "startSeconds": 9.3825,
+        "endSeconds": 11.54,
+        "trimmedHead": 0.1575,
+        "trimmedTail": 0.3075,
+        "usableGap": true
+      },
+      "loudness": {
+        "targetDbfs": -19,
+        "gainDb": 4.64,
+        "peakDbfs": -2.82,
+        "speechDbfs": -23.64
+      },
+      "words": [
+        {
+          "word": "Press",
+          "start": 0.04,
+          "end": 0.1638,
+          "score": 0.999
+        },
+        {
+          "word": "the",
+          "start": 0.1638,
+          "end": 0.3439,
+          "score": 0.9702
+        },
+        {
+          "word": "green",
+          "start": 0.3439,
+          "end": 0.584,
+          "score": 0.9591
+        },
+        {
+          "word": "button",
+          "start": 0.584,
+          "end": 0.9241,
+          "score": 0.9296
+        },
+        {
+          "word": "to",
+          "start": 0.9241,
+          "end": 1.0642,
+          "score": 0.983
+        },
+        {
+          "word": "open",
+          "start": 1.0692,
+          "end": 1.3243,
+          "score": 0.9755
+        },
+        {
+          "word": "the",
+          "start": 1.3243,
+          "end": 1.4644,
+          "score": 0.7499
+        },
+        {
+          "word": "book!",
+          "start": 1.4644,
+          "end": 1.65,
+          "score": 0.9894
+        }
+      ]
+    },
+    "seraphina_again": {
+      "provider": "firefly",
+      "batch": "seraphina",
+      "indexInBatch": 7,
+      "speaker": "seraphina",
+      "profile": "seraphina",
+      "voice": "Vinita",
+      "spoken": "Again, again!",
+      "spokenHash": "6e939cd9f795ae8b",
+      "audio": "seraphina_again.mp3",
+      "bytes": 7104,
+      "seconds": 0.7625,
+      "ingested": "2026-08-15",
+      "align": {
+        "model": "wav2vec2_base",
+        "latency": 0.115,
+        "minScore": 0.99,
+        "medianScore": 1,
+        "review": []
+      },
+      "cut": {
+        "startSeconds": 12.4075,
+        "endSeconds": 13.58,
+        "trimmedHead": 0.1825,
+        "trimmedTail": 0.2275,
+        "usableGap": true
+      },
+      "loudness": {
+        "targetDbfs": -19,
+        "gainDb": 1.75,
+        "peakDbfs": -5.32,
+        "speechDbfs": -20.75
+      },
+      "words": [
+        {
+          "word": "Again,",
+          "start": 0.04,
+          "end": 0.335,
+          "score": 0.9867
+        },
+        {
+          "word": "again!",
+          "start": 0.3401,
+          "end": 0.7152,
+          "score": 0.9978
+        }
+      ]
+    },
+    "seraphina_apple": {
+      "provider": "firefly",
+      "batch": "seraphina",
+      "indexInBatch": 5,
+      "speaker": "seraphina",
+      "profile": "seraphina",
+      "voice": "Vinita",
+      "spoken": "I want to pick an apple!",
+      "spokenHash": "829575febaaf29d8",
+      "audio": "seraphina_apple.mp3",
+      "bytes": 9264,
+      "seconds": 1.04,
+      "ingested": "2026-08-15",
+      "align": {
+        "model": "wav2vec2_base",
+        "latency": 0.115,
+        "minScore": 0.58,
+        "medianScore": 0.98,
+        "review": []
+      },
+      "cut": {
+        "startSeconds": 9.61,
+        "endSeconds": 11.0425,
+        "trimmedHead": 0.2,
+        "trimmedTail": 0.1925,
+        "usableGap": true
+      },
+      "loudness": {
+        "targetDbfs": -19,
+        "gainDb": 1.41,
+        "peakDbfs": -5.1,
+        "speechDbfs": -20.41
+      },
+      "words": [
+        {
+          "word": "I",
+          "start": 0.04,
+          "end": 0.0739,
+          "score": 0.9995
+        },
+        {
+          "word": "want",
+          "start": 0.0739,
+          "end": 0.2139,
+          "score": 0.7499
+        },
+        {
+          "word": "to",
+          "start": 0.2139,
+          "end": 0.2739,
+          "score": 0.5837
+        },
+        {
+          "word": "pick",
+          "start": 0.2739,
+          "end": 0.434,
+          "score": 0.9991
+        },
+        {
+          "word": "an",
+          "start": 0.434,
+          "end": 0.514,
+          "score": 0.9849
+        },
+        {
+          "word": "apple!",
+          "start": 0.5391,
+          "end": 0.9542,
+          "score": 0.9458
+        }
+      ]
+    },
+    "seraphina_axe": {
+      "provider": "firefly",
+      "batch": "seraphina",
+      "indexInBatch": 10,
+      "speaker": "seraphina",
+      "profile": "seraphina",
+      "voice": "Vinita",
+      "spoken": "Axe!",
+      "spokenHash": "02868a07b3d52d68",
+      "audio": "seraphina_axe.mp3",
+      "bytes": 4800,
+      "seconds": 0.515,
+      "ingested": "2026-08-15",
+      "align": {
+        "model": "wav2vec2_base",
+        "latency": 0.115,
+        "minScore": 0.91,
+        "medianScore": 0.91,
+        "review": []
+      },
+      "cut": {
+        "startSeconds": 18.0975,
+        "endSeconds": 18.955,
+        "trimmedHead": 0.225,
+        "trimmedTail": 0.1175,
+        "usableGap": true
+      },
+      "loudness": {
+        "targetDbfs": -19,
+        "gainDb": -0.26,
+        "peakDbfs": -4.31,
+        "speechDbfs": -18.74
+      },
+      "words": [
+        {
+          "word": "Axe!",
+          "start": 0.0897,
+          "end": 0.3848,
+          "score": 0.9051
+        }
+      ]
+    },
+    "seraphina_bed": {
+      "provider": "firefly",
+      "batch": "seraphina",
+      "indexInBatch": 9,
+      "speaker": "seraphina",
+      "profile": "seraphina",
+      "voice": "Vinita",
+      "spoken": "My cozy bed, time to sleep!",
+      "spokenHash": "5add4fcc2444954f",
+      "audio": "seraphina_bed.mp3",
+      "bytes": 13680,
+      "seconds": 1.7,
+      "ingested": "2026-08-15",
+      "align": {
+        "model": "wav2vec2_base",
+        "latency": 0.115,
+        "minScore": 0.8,
+        "medianScore": 1,
+        "review": []
+      },
+      "cut": {
+        "startSeconds": 16.0675,
+        "endSeconds": 18.0975,
+        "trimmedHead": 0.135,
+        "trimmedTail": 0.195,
+        "usableGap": true
+      },
+      "loudness": {
+        "targetDbfs": -19,
+        "gainDb": 8.71,
+        "peakDbfs": -4.69,
+        "speechDbfs": -27.71
+      },
+      "words": [
+        {
+          "word": "My",
+          "start": 0.0475,
+          "end": 0.1239,
+          "score": 0.9931
+        },
+        {
+          "word": "cozy",
+          "start": 0.1289,
+          "end": 0.5841,
+          "score": 0.7973
+        },
+        {
+          "word": "bed,",
+          "start": 0.5841,
+          "end": 0.8442,
+          "score": 0.9999
+        },
+        {
+          "word": "time",
+          "start": 0.8692,
+          "end": 1.2243,
+          "score": 0.9992
+        },
+        {
+          "word": "to",
+          "start": 1.2243,
+          "end": 1.3444,
+          "score": 1
+        },
+        {
+          "word": "sleep!",
+          "start": 1.3444,
+          "end": 1.6325,
+          "score": 0.9998
+        }
+      ]
+    },
+    "seraphina_book": {
+      "provider": "firefly",
+      "batch": "seraphina",
+      "indexInBatch": 6,
+      "speaker": "seraphina",
+      "profile": "seraphina",
+      "voice": "Vinita",
+      "spoken": "I want to read a book!",
+      "spokenHash": "876aac062a0d7a8d",
+      "audio": "seraphina_book.mp3",
+      "bytes": 8208,
+      "seconds": 0.99,
+      "ingested": "2026-08-15",
+      "align": {
+        "model": "wav2vec2_base",
+        "latency": 0.115,
+        "minScore": 0.87,
+        "medianScore": 0.99,
+        "review": []
+      },
+      "cut": {
+        "startSeconds": 11.0425,
+        "endSeconds": 12.4075,
+        "trimmedHead": 0.19,
+        "trimmedTail": 0.185,
+        "usableGap": true
+      },
+      "loudness": {
+        "targetDbfs": -19,
+        "gainDb": -2.99,
+        "peakDbfs": -5.59,
+        "speechDbfs": -16.01
+      },
+      "words": [
+        {
+          "word": "I",
+          "start": 0.0425,
+          "end": 0.1119,
+          "score": 0.9997
+        },
+        {
+          "word": "want",
+          "start": 0.1119,
+          "end": 0.332,
+          "score": 0.956
+        },
+        {
+          "word": "to",
+          "start": 0.332,
+          "end": 0.392,
+          "score": 0.8734
+        },
+        {
+          "word": "read",
+          "start": 0.392,
+          "end": 0.5521,
+          "score": 0.9919
+        },
+        {
+          "word": "a",
+          "start": 0.5521,
+          "end": 0.6121,
+          "score": 0.9984
+        },
+        {
+          "word": "book!",
+          "start": 0.6121,
+          "end": 0.8922,
+          "score": 0.9301
+        }
+      ]
+    },
+    "seraphina_bunny": {
+      "provider": "firefly",
+      "batch": "seraphina",
+      "indexInBatch": 17,
+      "speaker": "seraphina",
+      "profile": "seraphina",
+      "voice": "Vinita",
+      "spoken": "Bunny!",
+      "spokenHash": "c82e8d96e58f62b0",
+      "audio": "seraphina_bunny.mp3",
+      "bytes": 3792,
+      "seconds": 0.405,
+      "ingested": "2026-08-15",
+      "align": {
+        "model": "wav2vec2_base",
+        "latency": 0.115,
+        "minScore": 1,
+        "medianScore": 1,
+        "review": []
+      },
+      "cut": {
+        "startSeconds": 23.685,
+        "endSeconds": 24.335,
+        "trimmedHead": 0.115,
+        "trimmedTail": 0.13,
+        "usableGap": true
+      },
+      "loudness": {
+        "targetDbfs": -19,
+        "gainDb": 1.85,
+        "peakDbfs": -5.84,
+        "speechDbfs": -20.85
+      },
+      "words": [
+        {
+          "word": "Bunny!",
+          "start": 0.04,
+          "end": 0.3094,
+          "score": 0.9974
+        }
+      ]
+    },
+    "seraphina_campfire": {
+      "provider": "firefly",
+      "batch": "seraphina",
+      "indexInBatch": 2,
+      "speaker": "seraphina",
+      "profile": "seraphina",
+      "voice": "Vinita",
+      "spoken": "Ooh, a warm crackly fire!",
+      "spokenHash": "ee59f3c2935a4d8b",
+      "audio": "seraphina_campfire.mp3",
+      "bytes": 11112,
+      "seconds": 1.33,
+      "ingested": "2026-08-15",
+      "align": {
+        "model": "wav2vec2_base",
+        "latency": 0.115,
+        "minScore": 0.79,
+        "medianScore": 0.99,
+        "review": []
+      },
+      "cut": {
+        "startSeconds": 3.76,
+        "endSeconds": 5.3375,
+        "trimmedHead": 0.23,
+        "trimmedTail": 0.0175,
+        "usableGap": true
+      },
+      "loudness": {
+        "targetDbfs": -19,
+        "gainDb": -2.02,
+        "peakDbfs": -6.8,
+        "speechDbfs": -16.98
+      },
+      "words": [
+        {
+          "word": "Ooh,",
+          "start": 0.04,
+          "end": 0.2316,
+          "score": 0.7918
+        },
+        {
+          "word": "a",
+          "start": 0.4168,
+          "end": 0.5518,
+          "score": 0.9978
+        },
+        {
+          "word": "warm",
+          "start": 0.5518,
+          "end": 0.8119,
+          "score": 0.9975
+        },
+        {
+          "word": "crackly",
+          "start": 0.8119,
+          "end": 1.2721,
+          "score": 0.9944
+        },
+        {
+          "word": "fire!",
+          "start": 1.2721,
+          "end": 1.29,
+          "score": 0.9894
+        }
+      ]
+    },
+    "seraphina_carrot": {
+      "provider": "firefly",
+      "batch": "seraphina",
+      "indexInBatch": 18,
+      "speaker": "seraphina",
+      "profile": "seraphina",
+      "voice": "Vinita",
+      "spoken": "Carrot!",
+      "spokenHash": "96b7306c25a3c164",
+      "audio": "seraphina_carrot.mp3",
+      "bytes": 4872,
+      "seconds": 0.455,
+      "ingested": "2026-08-15",
+      "align": {
+        "model": "wav2vec2_base",
+        "latency": 0.115,
+        "minScore": 0.87,
+        "medianScore": 0.87,
+        "review": []
+      },
+      "cut": {
+        "startSeconds": 24.335,
+        "endSeconds": 25.0475,
+        "trimmedHead": 0.13,
+        "trimmedTail": 0.1275,
+        "usableGap": true
+      },
+      "loudness": {
+        "targetDbfs": -19,
+        "gainDb": 7.09,
+        "peakDbfs": -6,
+        "speechDbfs": -26.09
+      },
+      "words": [
+        {
+          "word": "Carrot!",
+          "start": 0.04,
+          "end": 0.3647,
+          "score": 0.8715
+        }
+      ]
+    },
+    "seraphina_goodnight": {
+      "provider": "firefly",
+      "batch": "seraphina",
+      "indexInBatch": 29,
+      "speaker": "seraphina",
+      "profile": "seraphina",
+      "voice": "Vinita",
+      "spoken": "Goodnight world, see you in the morning.",
+      "spokenHash": "9793fc83a2af8ee0",
+      "audio": "seraphina_goodnight.mp3",
+      "bytes": 16176,
+      "seconds": 1.86,
+      "ingested": "2026-08-15",
+      "align": {
+        "model": "wav2vec2_base",
+        "latency": 0.115,
+        "minScore": 0.95,
+        "medianScore": 1,
+        "review": []
+      },
+      "cut": {
+        "startSeconds": 47.4125,
+        "endSeconds": 51.2,
+        "trimmedHead": 0.365,
+        "trimmedTail": 1.5625,
+        "usableGap": true
+      },
+      "loudness": {
+        "targetDbfs": -19,
+        "gainDb": 4.9,
+        "peakDbfs": -2.27,
+        "speechDbfs": -23.9
+      },
+      "words": [
+        {
+          "word": "Goodnight",
+          "start": 0.0425,
+          "end": 0.4413,
+          "score": 0.9714
+        },
+        {
+          "word": "world,",
+          "start": 0.4413,
+          "end": 0.8015,
+          "score": 0.9873
+        },
+        {
+          "word": "see",
+          "start": 0.9666,
+          "end": 1.2016,
+          "score": 0.9997
+        },
+        {
+          "word": "you",
+          "start": 1.2016,
+          "end": 1.3017,
+          "score": 0.9979
+        },
+        {
+          "word": "in",
+          "start": 1.3017,
+          "end": 1.3817,
+          "score": 0.9986
+        },
+        {
+          "word": "the",
+          "start": 1.3817,
+          "end": 1.4817,
+          "score": 0.9999
+        },
+        {
+          "word": "morning.",
+          "start": 1.4817,
+          "end": 1.7819,
+          "score": 0.9526
+        }
+      ]
+    },
+    "seraphina_hammer": {
+      "provider": "firefly",
+      "batch": "seraphina",
+      "indexInBatch": 11,
+      "speaker": "seraphina",
+      "profile": "seraphina",
+      "voice": "Vinita",
+      "spoken": "Hammer!",
+      "spokenHash": "e45e05e8d7a99161",
+      "audio": "seraphina_hammer.mp3",
+      "bytes": 4464,
+      "seconds": 0.435,
+      "ingested": "2026-08-15",
+      "align": {
+        "model": "wav2vec2_base",
+        "latency": 0.115,
+        "minScore": 1,
+        "medianScore": 1,
+        "review": []
+      },
+      "cut": {
+        "startSeconds": 18.955,
+        "endSeconds": 19.6525,
+        "trimmedHead": 0.155,
+        "trimmedTail": 0.1075,
+        "usableGap": true
+      },
+      "loudness": {
+        "targetDbfs": -19,
+        "gainDb": 4.3,
+        "peakDbfs": -5.05,
+        "speechDbfs": -23.3
+      },
+      "words": [
+        {
+          "word": "Hammer!",
+          "start": 0.04,
+          "end": 0.3776,
+          "score": 0.9985
+        }
+      ]
+    },
+    "seraphina_hello": {
+      "provider": "firefly",
+      "batch": "seraphina",
+      "indexInBatch": 0,
+      "speaker": "seraphina",
+      "profile": "seraphina",
+      "voice": "Vinita",
+      "spoken": "Hi, let's play!",
+      "spokenHash": "fbc64556dcd38c86",
+      "audio": "seraphina_hello.mp3",
+      "bytes": 9168,
+      "seconds": 1.095,
+      "ingested": "2026-08-15",
+      "align": {
+        "model": "wav2vec2_base",
+        "latency": 0.115,
+        "minScore": 0.73,
+        "medianScore": 0.95,
+        "review": []
+      },
+      "cut": {
+        "startSeconds": 0,
+        "endSeconds": 1.2875,
+        "trimmedHead": 0,
+        "trimmedTail": 0.1925,
+        "usableGap": true
+      },
+      "loudness": {
+        "targetDbfs": -19,
+        "gainDb": 0.82,
+        "peakDbfs": -6.45,
+        "speechDbfs": -19.82
+      },
+      "words": [
+        {
+          "word": "Hi,",
+          "start": 0,
+          "end": 0.2801,
+          "score": 0.7325
+        },
+        {
+          "word": "let's",
+          "start": 0.2852,
+          "end": 0.5802,
+          "score": 0.9538
+        },
+        {
+          "word": "play!",
+          "start": 0.5802,
+          "end": 0.9604,
+          "score": 0.9831
+        }
+      ]
+    },
+    "seraphina_malachite": {
+      "provider": "firefly",
+      "batch": "seraphina",
+      "indexInBatch": 12,
+      "speaker": "seraphina",
+      "profile": "seraphina",
+      "voice": "Vinita",
+      "spoken": "Malachite!",
+      "spokenHash": "19c4d3beebf91236",
+      "audio": "seraphina_malachite.mp3",
+      "bytes": 6336,
+      "seconds": 0.67,
+      "ingested": "2026-08-15",
+      "align": {
+        "model": "wav2vec2_base",
+        "latency": 0.115,
+        "minScore": 0.7,
+        "medianScore": 0.7,
+        "review": []
+      },
+      "cut": {
+        "startSeconds": 19.6525,
+        "endSeconds": 20.4375,
+        "trimmedHead": 0.1075,
+        "trimmedTail": 0.0075,
+        "usableGap": true
+      },
+      "loudness": {
+        "targetDbfs": -19,
+        "gainDb": 3.91,
+        "peakDbfs": -4.59,
+        "speechDbfs": -22.91
+      },
+      "words": [
+        {
+          "word": "Malachite!",
+          "start": 0.04,
+          "end": 0.63,
+          "score": 0.6965
+        }
+      ]
+    },
+    "seraphina_morning": {
+      "provider": "firefly",
+      "batch": "seraphina",
+      "indexInBatch": 28,
+      "speaker": "seraphina",
+      "profile": "seraphina",
+      "voice": "Vinita",
+      "spoken": "Good morning, a brand new day!",
+      "spokenHash": "db477a7c961885e4",
+      "audio": "seraphina_morning.mp3",
+      "bytes": 13008,
+      "seconds": 1.6,
+      "ingested": "2026-08-15",
+      "align": {
+        "model": "wav2vec2_base",
+        "latency": 0.115,
+        "minScore": 0.93,
+        "medianScore": 1,
+        "review": []
+      },
+      "cut": {
+        "startSeconds": 45.155,
+        "endSeconds": 47.4125,
+        "trimmedHead": 0.29,
+        "trimmedTail": 0.3675,
+        "usableGap": true
+      },
+      "loudness": {
+        "targetDbfs": -19,
+        "gainDb": 0.93,
+        "peakDbfs": -5.16,
+        "speechDbfs": -19.93
+      },
+      "words": [
+        {
+          "word": "Good",
+          "start": 0.04,
+          "end": 0.1728,
+          "score": 0.9278
+        },
+        {
+          "word": "morning,",
+          "start": 0.1728,
+          "end": 0.533,
+          "score": 0.996
+        },
+        {
+          "word": "a",
+          "start": 0.618,
+          "end": 0.753,
+          "score": 0.9992
+        },
+        {
+          "word": "brand",
+          "start": 0.753,
+          "end": 1.0332,
+          "score": 0.9522
+        },
+        {
+          "word": "new",
+          "start": 1.0332,
+          "end": 1.1932,
+          "score": 0.9967
+        },
+        {
+          "word": "day!",
+          "start": 1.1932,
+          "end": 1.5133,
+          "score": 0.9992
+        }
+      ]
+    },
+    "seraphina_need_axe": {
+      "provider": "firefly",
+      "batch": "seraphina",
+      "indexInBatch": 15,
+      "speaker": "seraphina",
+      "profile": "seraphina",
+      "voice": "Vinita",
+      "spoken": "I need my axe!",
+      "spokenHash": "529a7c6ea75b7d0a",
+      "audio": "seraphina_need_axe.mp3",
+      "bytes": 9408,
+      "seconds": 0.81,
+      "ingested": "2026-08-15",
+      "align": {
+        "model": "wav2vec2_base",
+        "latency": 0.115,
+        "minScore": 0.94,
+        "medianScore": 1,
+        "review": []
+      },
+      "cut": {
+        "startSeconds": 21.72,
+        "endSeconds": 22.6775,
+        "trimmedHead": 0.11,
+        "trimmedTail": 0.0375,
+        "usableGap": true
+      },
+      "loudness": {
+        "targetDbfs": -19,
+        "gainDb": 3.42,
+        "peakDbfs": -1,
+        "speechDbfs": -22.84
+      },
+      "words": [
+        {
+          "word": "I",
+          "start": 0.04,
+          "end": 0.0586,
+          "score": 0.9942
+        },
+        {
+          "word": "need",
+          "start": 0.0586,
+          "end": 0.2786,
+          "score": 0.9989
+        },
+        {
+          "word": "my",
+          "start": 0.2786,
+          "end": 0.3987,
+          "score": 0.9998
+        },
+        {
+          "word": "axe!",
+          "start": 0.4838,
+          "end": 0.77,
+          "score": 0.9413
+        }
+      ]
+    },
+    "seraphina_need_carrot": {
+      "provider": "firefly",
+      "batch": "seraphina",
+      "indexInBatch": 20,
+      "speaker": "seraphina",
+      "profile": "seraphina",
+      "voice": "Vinita",
+      "spoken": "The bunny wants a carrot!",
+      "spokenHash": "fcb41a7472a2405e",
+      "audio": "seraphina_need_carrot.mp3",
+      "bytes": 11208,
+      "seconds": 1.275,
+      "ingested": "2026-08-15",
+      "align": {
+        "model": "wav2vec2_base",
+        "latency": 0.115,
+        "minScore": 0.77,
+        "medianScore": 0.92,
+        "review": []
+      },
+      "cut": {
+        "startSeconds": 26.875,
+        "endSeconds": 28.4775,
+        "trimmedHead": 0.18,
+        "trimmedTail": 0.1475,
+        "usableGap": true
+      },
+      "loudness": {
+        "targetDbfs": -19,
+        "gainDb": 2.29,
+        "peakDbfs": -1.5,
+        "speechDbfs": -21.29
+      },
+      "words": [
+        {
+          "word": "The",
+          "start": 0.04,
+          "end": 0.1156,
+          "score": 0.9182
+        },
+        {
+          "word": "bunny",
+          "start": 0.1156,
+          "end": 0.3757,
+          "score": 0.9995
+        },
+        {
+          "word": "wants",
+          "start": 0.3757,
+          "end": 0.6558,
+          "score": 0.7917
+        },
+        {
+          "word": "a",
+          "start": 0.6558,
+          "end": 0.7158,
+          "score": 0.9981
+        },
+        {
+          "word": "carrot!",
+          "start": 0.7409,
+          "end": 1.235,
+          "score": 0.7652
+        }
+      ]
+    },
+    "seraphina_need_hammer": {
+      "provider": "firefly",
+      "batch": "seraphina",
+      "indexInBatch": 16,
+      "speaker": "seraphina",
+      "profile": "seraphina",
+      "voice": "Vinita",
+      "spoken": "I need my hammer!",
+      "spokenHash": "2ca2487c7b50d4de",
+      "audio": "seraphina_need_hammer.mp3",
+      "bytes": 7680,
+      "seconds": 0.845,
+      "ingested": "2026-08-15",
+      "align": {
+        "model": "wav2vec2_base",
+        "latency": 0.115,
+        "minScore": 0.96,
+        "medianScore": 1,
+        "review": []
+      },
+      "cut": {
+        "startSeconds": 22.6775,
+        "endSeconds": 23.685,
+        "trimmedHead": 0.035,
+        "trimmedTail": 0.1275,
+        "usableGap": true
+      },
+      "loudness": {
+        "targetDbfs": -19,
+        "gainDb": 5.62,
+        "peakDbfs": -1,
+        "speechDbfs": -25.27
+      },
+      "words": [
+        {
+          "word": "I",
+          "start": 0.0425,
+          "end": 0.0964,
+          "score": 0.9961
+        },
+        {
+          "word": "need",
+          "start": 0.0964,
+          "end": 0.2965,
+          "score": 0.9717
+        },
+        {
+          "word": "my",
+          "start": 0.2965,
+          "end": 0.4165,
+          "score": 0.9998
+        },
+        {
+          "word": "hammer!",
+          "start": 0.4165,
+          "end": 0.7967,
+          "score": 0.9581
+        }
+      ]
+    },
+    "seraphina_one_bunny": {
+      "provider": "firefly",
+      "batch": "seraphina",
+      "indexInBatch": 19,
+      "speaker": "seraphina",
+      "profile": "seraphina",
+      "voice": "Vinita",
+      "spoken": "One bunny at a time, silly!",
+      "spokenHash": "5d6af64eaabd287f",
+      "audio": "seraphina_one_bunny.mp3",
+      "bytes": 13464,
+      "seconds": 1.4975,
+      "ingested": "2026-08-15",
+      "align": {
+        "model": "wav2vec2_base",
+        "latency": 0.115,
+        "minScore": 0.92,
+        "medianScore": 1,
+        "review": []
+      },
+      "cut": {
+        "startSeconds": 25.0475,
+        "endSeconds": 26.875,
+        "trimmedHead": 0.1275,
+        "trimmedTail": 0.2025,
+        "usableGap": true
+      },
+      "loudness": {
+        "targetDbfs": -19,
+        "gainDb": 4.98,
+        "peakDbfs": -1.19,
+        "speechDbfs": -23.98
+      },
+      "words": [
+        {
+          "word": "One",
+          "start": 0.04,
+          "end": 0.2549,
+          "score": 0.9199
+        },
+        {
+          "word": "bunny",
+          "start": 0.2549,
+          "end": 0.495,
+          "score": 0.9973
+        },
+        {
+          "word": "at",
+          "start": 0.495,
+          "end": 0.5951,
+          "score": 0.9975
+        },
+        {
+          "word": "a",
+          "start": 0.5951,
+          "end": 0.6751,
+          "score": 0.9975
+        },
+        {
+          "word": "time,",
+          "start": 0.6751,
+          "end": 0.9152,
+          "score": 0.9977
+        },
+        {
+          "word": "silly!",
+          "start": 0.9603,
+          "end": 1.4154,
+          "score": 0.9759
+        }
+      ]
+    },
+    "seraphina_recap_bunnies": {
+      "provider": "firefly",
+      "batch": "seraphina",
+      "indexInBatch": 23,
+      "speaker": "seraphina",
+      "profile": "seraphina",
+      "voice": "Vinita",
+      "spoken": "I took three little bunnies home to their den.",
+      "spokenHash": "99b6885a1949b6b2",
+      "audio": "seraphina_recap_bunnies.mp3",
+      "bytes": 15216,
+      "seconds": 1.82,
+      "ingested": "2026-08-15",
+      "align": {
+        "model": "wav2vec2_base",
+        "latency": 0.115,
+        "minScore": 0.88,
+        "medianScore": 1,
+        "review": []
+      },
+      "cut": {
+        "startSeconds": 31.435,
+        "endSeconds": 33.77,
+        "trimmedHead": 0.195,
+        "trimmedTail": 0.32,
+        "usableGap": true
+      },
+      "loudness": {
+        "targetDbfs": -19,
+        "gainDb": 6.06,
+        "peakDbfs": -1,
+        "speechDbfs": -27.93
+      },
+      "words": [
+        {
+          "word": "I",
+          "start": 0.04,
+          "end": 0.1024,
+          "score": 0.9995
+        },
+        {
+          "word": "took",
+          "start": 0.1024,
+          "end": 0.3425,
+          "score": 0.9976
+        },
+        {
+          "word": "three",
+          "start": 0.3425,
+          "end": 0.6026,
+          "score": 0.9999
+        },
+        {
+          "word": "little",
+          "start": 0.6026,
+          "end": 0.8227,
+          "score": 0.9984
+        },
+        {
+          "word": "bunnies",
+          "start": 0.8227,
+          "end": 1.1228,
+          "score": 0.8823
+        },
+        {
+          "word": "home",
+          "start": 1.1228,
+          "end": 1.3229,
+          "score": 0.9985
+        },
+        {
+          "word": "to",
+          "start": 1.3229,
+          "end": 1.4029,
+          "score": 0.9999
+        },
+        {
+          "word": "their",
+          "start": 1.4029,
+          "end": 1.603,
+          "score": 0.9884
+        },
+        {
+          "word": "den.",
+          "start": 1.603,
+          "end": 1.78,
+          "score": 0.8789
+        }
+      ]
+    },
+    "seraphina_recap_errand": {
+      "provider": "firefly",
+      "batch": "seraphina",
+      "indexInBatch": 25,
+      "speaker": "seraphina",
+      "profile": "seraphina",
+      "voice": "Vinita",
+      "spoken": "I helped my friend look for magic stones.",
+      "spokenHash": "fcd039b980dffaef",
+      "audio": "seraphina_recap_errand.mp3",
+      "bytes": 19152,
+      "seconds": 2.205,
+      "ingested": "2026-08-15",
+      "align": {
+        "model": "wav2vec2_base",
+        "latency": 0.115,
+        "minScore": 0.95,
+        "medianScore": 0.99,
+        "review": []
+      },
+      "cut": {
+        "startSeconds": 36.8975,
+        "endSeconds": 39.7225,
+        "trimmedHead": 0.31,
+        "trimmedTail": 0.31,
+        "usableGap": true
+      },
+      "loudness": {
+        "targetDbfs": -19,
+        "gainDb": 4.18,
+        "peakDbfs": -1,
+        "speechDbfs": -23.39
+      },
+      "words": [
+        {
+          "word": "I",
+          "start": 0.0475,
+          "end": 0.0871,
+          "score": 0.9998
+        },
+        {
+          "word": "helped",
+          "start": 0.0871,
+          "end": 0.3872,
+          "score": 0.9451
+        },
+        {
+          "word": "my",
+          "start": 0.3872,
+          "end": 0.5472,
+          "score": 0.98
+        },
+        {
+          "word": "friend",
+          "start": 0.5472,
+          "end": 0.8874,
+          "score": 0.9936
+        },
+        {
+          "word": "look",
+          "start": 0.8874,
+          "end": 1.1475,
+          "score": 0.9999
+        },
+        {
+          "word": "for",
+          "start": 1.1475,
+          "end": 1.3276,
+          "score": 0.9999
+        },
+        {
+          "word": "magic",
+          "start": 1.3276,
+          "end": 1.7077,
+          "score": 0.9535
+        },
+        {
+          "word": "stones.",
+          "start": 1.7077,
+          "end": 2.1479,
+          "score": 0.9587
+        }
+      ]
+    },
+    "seraphina_recap_faeries": {
+      "provider": "firefly",
+      "batch": "seraphina",
+      "indexInBatch": 24,
+      "speaker": "seraphina",
+      "profile": "seraphina",
+      "voice": "Vinita",
+      "spoken": "We called real faeries out of the fire.",
+      "spokenHash": "f0a7276e95640b21",
+      "audio": "seraphina_recap_faeries.mp3",
+      "bytes": 20928,
+      "seconds": 2.49,
+      "ingested": "2026-08-15",
+      "align": {
+        "model": "wav2vec2_base",
+        "latency": 0.115,
+        "minScore": 0.85,
+        "medianScore": 1,
+        "review": []
+      },
+      "cut": {
+        "startSeconds": 33.77,
+        "endSeconds": 36.8975,
+        "trimmedHead": 0.32,
+        "trimmedTail": 0.3175,
+        "usableGap": true
+      },
+      "loudness": {
+        "targetDbfs": -19,
+        "gainDb": 4.27,
+        "peakDbfs": -2.07,
+        "speechDbfs": -23.27
+      },
+      "words": [
+        {
+          "word": "We",
+          "start": 0.04,
+          "end": 0.1234,
+          "score": 0.8627
+        },
+        {
+          "word": "called",
+          "start": 0.1234,
+          "end": 0.4835,
+          "score": 0.9564
+        },
+        {
+          "word": "real",
+          "start": 0.6486,
+          "end": 0.9637,
+          "score": 0.9991
+        },
+        {
+          "word": "faeries",
+          "start": 0.9887,
+          "end": 1.4839,
+          "score": 0.8519
+        },
+        {
+          "word": "out",
+          "start": 1.549,
+          "end": 1.764,
+          "score": 0.9966
+        },
+        {
+          "word": "of",
+          "start": 1.764,
+          "end": 1.844,
+          "score": 0.9982
+        },
+        {
+          "word": "the",
+          "start": 1.844,
+          "end": 1.9641,
+          "score": 0.9989
+        },
+        {
+          "word": "fire.",
+          "start": 1.9641,
+          "end": 2.3842,
+          "score": 0.9224
+        }
+      ]
+    },
+    "seraphina_recap_stones": {
+      "provider": "firefly",
+      "batch": "seraphina",
+      "indexInBatch": 26,
+      "speaker": "seraphina",
+      "profile": "seraphina",
+      "voice": "Vinita",
+      "spoken": "I cracked a magic stone right open.",
+      "spokenHash": "99161d76e84d8a94",
+      "audio": "seraphina_recap_stones.mp3",
+      "bytes": 17664,
+      "seconds": 2.185,
+      "ingested": "2026-08-15",
+      "align": {
+        "model": "wav2vec2_base",
+        "latency": 0.115,
+        "minScore": 0.71,
+        "medianScore": 0.99,
+        "review": []
+      },
+      "cut": {
+        "startSeconds": 39.7225,
+        "endSeconds": 42.4725,
+        "trimmedHead": 0.31,
+        "trimmedTail": 0.255,
+        "usableGap": true
+      },
+      "loudness": {
+        "targetDbfs": -19,
+        "gainDb": 2.7,
+        "peakDbfs": -1.81,
+        "speechDbfs": -21.7
+      },
+      "words": [
+        {
+          "word": "I",
+          "start": 0.0425,
+          "end": 0.1032,
+          "score": 0.9997
+        },
+        {
+          "word": "cracked",
+          "start": 0.1032,
+          "end": 0.4833,
+          "score": 0.7118
+        },
+        {
+          "word": "a",
+          "start": 0.4833,
+          "end": 0.5233,
+          "score": 0.9987
+        },
+        {
+          "word": "magic",
+          "start": 0.5233,
+          "end": 0.8435,
+          "score": 0.9999
+        },
+        {
+          "word": "stone",
+          "start": 0.8435,
+          "end": 1.1636,
+          "score": 0.9896
+        },
+        {
+          "word": "right",
+          "start": 1.1686,
+          "end": 1.5037,
+          "score": 0.914
+        },
+        {
+          "word": "open.",
+          "start": 1.6488,
+          "end": 2.0239,
+          "score": 0.9928
+        }
+      ]
+    },
+    "seraphina_recap_story": {
+      "provider": "firefly",
+      "batch": "seraphina",
+      "indexInBatch": 22,
+      "speaker": "seraphina",
+      "profile": "seraphina",
+      "voice": "Vinita",
+      "spoken": "I read my little sister a whole story.",
+      "spokenHash": "135db0fe4bab8761",
+      "audio": "seraphina_recap_story.mp3",
+      "bytes": 17112,
+      "seconds": 1.925,
+      "ingested": "2026-08-15",
+      "align": {
+        "model": "wav2vec2_base",
+        "latency": 0.115,
+        "minScore": 0.25,
+        "medianScore": 0.99,
+        "review": [
+          {
+            "word": "a",
+            "score": 0.2496
+          }
+        ]
+      },
+      "cut": {
+        "startSeconds": 29.23,
+        "endSeconds": 31.435,
+        "trimmedHead": 0.085,
+        "trimmedTail": 0.195,
+        "usableGap": true
+      },
+      "loudness": {
+        "targetDbfs": -19,
+        "gainDb": 7.22,
+        "peakDbfs": -1,
+        "speechDbfs": -26.33
+      },
+      "words": [
+        {
+          "word": "I",
+          "start": 0.04,
+          "end": 0.0965,
+          "score": 0.9999
+        },
+        {
+          "word": "read",
+          "start": 0.0965,
+          "end": 0.2966,
+          "score": 0.931
+        },
+        {
+          "word": "my",
+          "start": 0.2966,
+          "end": 0.4166,
+          "score": 0.9688
+        },
+        {
+          "word": "little",
+          "start": 0.4166,
+          "end": 0.6567,
+          "score": 0.9986
+        },
+        {
+          "word": "sister",
+          "start": 0.6567,
+          "end": 0.9568,
+          "score": 0.9625
+        },
+        {
+          "word": "a",
+          "start": 0.9568,
+          "end": 1.0769,
+          "score": 0.2496
+        },
+        {
+          "word": "whole",
+          "start": 1.0769,
+          "end": 1.417,
+          "score": 0.9968
+        },
+        {
+          "word": "story.",
+          "start": 1.417,
+          "end": 1.8372,
+          "score": 0.9918
+        }
+      ]
+    },
+    "seraphina_recap_trees": {
+      "provider": "firefly",
+      "batch": "seraphina",
+      "indexInBatch": 27,
+      "speaker": "seraphina",
+      "profile": "seraphina",
+      "voice": "Vinita",
+      "spoken": "I chopped a whole tree down with my axe.",
+      "spokenHash": "41996f348500fe35",
+      "audio": "seraphina_recap_trees.mp3",
+      "bytes": 19896,
+      "seconds": 2.1375,
+      "ingested": "2026-08-15",
+      "align": {
+        "model": "wav2vec2_base",
+        "latency": 0.115,
+        "minScore": 0.81,
+        "medianScore": 0.98,
+        "review": []
+      },
+      "cut": {
+        "startSeconds": 42.4725,
+        "endSeconds": 45.155,
+        "trimmedHead": 0.2575,
+        "trimmedTail": 0.2875,
+        "usableGap": true
+      },
+      "loudness": {
+        "targetDbfs": -19,
+        "gainDb": 3.15,
+        "peakDbfs": -2.71,
+        "speechDbfs": -22.15
+      },
+      "words": [
+        {
+          "word": "I",
+          "start": 0.04,
+          "end": 0.1067,
+          "score": 0.9998
+        },
+        {
+          "word": "chopped",
+          "start": 0.1118,
+          "end": 0.4469,
+          "score": 0.9824
+        },
+        {
+          "word": "a",
+          "start": 0.4469,
+          "end": 0.5069,
+          "score": 0.9963
+        },
+        {
+          "word": "whole",
+          "start": 0.5069,
+          "end": 0.727,
+          "score": 0.9916
+        },
+        {
+          "word": "tree",
+          "start": 0.727,
+          "end": 0.9871,
+          "score": 0.9603
+        },
+        {
+          "word": "down",
+          "start": 0.9871,
+          "end": 1.2472,
+          "score": 0.9999
+        },
+        {
+          "word": "with",
+          "start": 1.2472,
+          "end": 1.4272,
+          "score": 0.8054
+        },
+        {
+          "word": "my",
+          "start": 1.4272,
+          "end": 1.5473,
+          "score": 0.8345
+        },
+        {
+          "word": "axe.",
+          "start": 1.6924,
+          "end": 2.0075,
+          "score": 0.9056
+        }
+      ]
+    },
+    "seraphina_ruby": {
+      "provider": "firefly",
+      "batch": "seraphina",
+      "indexInBatch": 13,
+      "speaker": "seraphina",
+      "profile": "seraphina",
+      "voice": "Vinita",
+      "spoken": "Ruby!",
+      "spokenHash": "e578d54101f9a774",
+      "audio": "seraphina_ruby.mp3",
+      "bytes": 5304,
+      "seconds": 0.555,
+      "ingested": "2026-08-15",
+      "align": {
+        "model": "wav2vec2_base",
+        "latency": 0.115,
+        "minScore": 0.99,
+        "medianScore": 0.99,
+        "review": []
+      },
+      "cut": {
+        "startSeconds": 20.4375,
+        "endSeconds": 20.995,
+        "trimmedHead": 0,
+        "trimmedTail": 0.0025,
+        "usableGap": true
+      },
+      "loudness": {
+        "targetDbfs": -19,
+        "gainDb": 6.98,
+        "peakDbfs": -7.31,
+        "speechDbfs": -25.98
+      },
+      "words": [
+        {
+          "word": "Ruby!",
+          "start": 0.0475,
+          "end": 0.4307,
+          "score": 0.9872
+        }
+      ]
+    },
+    "seraphina_sapphire": {
+      "provider": "firefly",
+      "batch": "seraphina",
+      "indexInBatch": 14,
+      "speaker": "seraphina",
+      "profile": "seraphina",
+      "voice": "Vinita",
+      "spoken": "Sapphire!",
+      "spokenHash": "df394bc45b6ffe03",
+      "audio": "seraphina_sapphire.mp3",
+      "bytes": 5760,
+      "seconds": 0.61,
+      "ingested": "2026-08-15",
+      "align": {
+        "model": "wav2vec2_base",
+        "latency": 0.115,
+        "minScore": 1,
+        "medianScore": 1,
+        "review": []
+      },
+      "cut": {
+        "startSeconds": 20.995,
+        "endSeconds": 21.72,
+        "trimmedHead": 0.005,
+        "trimmedTail": 0.11,
+        "usableGap": true
+      },
+      "loudness": {
+        "targetDbfs": -19,
+        "gainDb": 2.83,
+        "peakDbfs": -3.78,
+        "speechDbfs": -21.83
+      },
+      "words": [
+        {
+          "word": "Sapphire!",
+          "start": 0.04,
+          "end": 0.5284,
+          "score": 0.998
+        }
+      ]
+    },
+    "seraphina_secret": {
+      "provider": "firefly",
+      "batch": "seraphina",
+      "indexInBatch": 1,
+      "speaker": "seraphina",
+      "profile": "seraphina",
+      "voice": "Vinita",
+      "spoken": "I need your help making sure Dad never finds this!",
+      "spokenHash": "67b425695f135730",
+      "audio": "seraphina_secret.mp3",
+      "bytes": 17664,
+      "seconds": 2.05,
+      "ingested": "2026-08-15",
+      "align": {
+        "model": "wav2vec2_base",
+        "latency": 0.115,
+        "minScore": 0.84,
+        "medianScore": 0.94,
+        "review": []
+      },
+      "cut": {
+        "startSeconds": 1.2875,
+        "endSeconds": 3.76,
+        "trimmedHead": 0.1925,
+        "trimmedTail": 0.23,
+        "usableGap": true
+      },
+      "loudness": {
+        "targetDbfs": -19,
+        "gainDb": 6.13,
+        "peakDbfs": -3.69,
+        "speechDbfs": -25.13
+      },
+      "words": [
+        {
+          "word": "I",
+          "start": 0.04,
+          "end": 0.1006,
+          "score": 0.996
+        },
+        {
+          "word": "need",
+          "start": 0.1006,
+          "end": 0.3007,
+          "score": 0.9381
+        },
+        {
+          "word": "your",
+          "start": 0.3007,
+          "end": 0.4207,
+          "score": 0.9959
+        },
+        {
+          "word": "help",
+          "start": 0.4207,
+          "end": 0.5808,
+          "score": 0.8559
+        },
+        {
+          "word": "making",
+          "start": 0.5808,
+          "end": 0.8609,
+          "score": 0.9997
+        },
+        {
+          "word": "sure",
+          "start": 0.8609,
+          "end": 1.041,
+          "score": 0.9108
+        },
+        {
+          "word": "Dad",
+          "start": 1.041,
+          "end": 1.2611,
+          "score": 0.835
+        },
+        {
+          "word": "never",
+          "start": 1.2611,
+          "end": 1.4611,
+          "score": 0.8799
+        },
+        {
+          "word": "finds",
+          "start": 1.4611,
+          "end": 1.7813,
+          "score": 0.9966
+        },
+        {
+          "word": "this!",
+          "start": 1.7813,
+          "end": 2.01,
+          "score": 0.9221
+        }
+      ]
+    },
+    "seraphina_storybook": {
+      "provider": "firefly",
+      "batch": "seraphina",
+      "indexInBatch": 21,
+      "speaker": "seraphina",
+      "profile": "seraphina",
+      "voice": "Vinita",
+      "spoken": "Storybook!",
+      "spokenHash": "0564ebf5ff00b923",
+      "audio": "seraphina_storybook.mp3",
+      "bytes": 5208,
+      "seconds": 0.52,
+      "ingested": "2026-08-15",
+      "align": {
+        "model": "wav2vec2_base",
+        "latency": 0.115,
+        "minScore": 0.99,
+        "medianScore": 0.99,
+        "review": []
+      },
+      "cut": {
+        "startSeconds": 28.4775,
+        "endSeconds": 29.23,
+        "trimmedHead": 0.1475,
+        "trimmedTail": 0.085,
+        "usableGap": true
+      },
+      "loudness": {
+        "targetDbfs": -19,
+        "gainDb": 4.36,
+        "peakDbfs": -7.02,
+        "speechDbfs": -23.36
+      },
+      "words": [
+        {
+          "word": "Storybook!",
+          "start": 0.04,
+          "end": 0.48,
+          "score": 0.991
+        }
+      ]
+    },
+    "seraphina_toadstool": {
+      "provider": "firefly",
+      "batch": "seraphina",
+      "indexInBatch": 3,
+      "speaker": "seraphina",
+      "profile": "seraphina",
+      "voice": "Vinita",
+      "spoken": "A funny little toadstool!",
+      "spokenHash": "e6af214ecb3980cf",
+      "audio": "seraphina_toadstool.mp3",
+      "bytes": 16776,
+      "seconds": 2.49,
+      "ingested": "2026-08-15",
+      "align": {
+        "model": "wav2vec2_base",
+        "latency": 0.115,
+        "minScore": 0,
+        "medianScore": 0.96,
+        "review": [
+          {
+            "word": "A",
+            "score": 0
+          }
+        ]
+      },
+      "cut": {
+        "startSeconds": 5.3375,
+        "endSeconds": 8.0725,
+        "trimmedHead": 0.015,
+        "trimmedTail": 0.23,
+        "usableGap": true
+      },
+      "loudness": {
+        "targetDbfs": -19,
+        "gainDb": 2.33,
+        "peakDbfs": -4.32,
+        "speechDbfs": -21.33
+      },
+      "words": [
+        {
+          "word": "A",
+          "start": 0.3497,
+          "end": 0.4498,
+          "score": 0
+        },
+        {
+          "word": "funny",
+          "start": 1.1151,
+          "end": 1.4702,
+          "score": 0.9648
+        },
+        {
+          "word": "little",
+          "start": 1.4702,
+          "end": 1.7303,
+          "score": 0.9982
+        },
+        {
+          "word": "toadstool!",
+          "start": 1.7303,
+          "end": 2.3905,
+          "score": 0.9329
+        }
+      ]
+    },
+    "seraphina_wardrobe": {
+      "provider": "firefly",
+      "batch": "seraphina",
+      "indexInBatch": 8,
+      "speaker": "seraphina",
+      "profile": "seraphina",
+      "voice": "Vinita",
+      "spoken": "My wardrobe, full of pretty clothes!",
+      "spokenHash": "c75517bcf9b2fb0c",
+      "audio": "seraphina_wardrobe.mp3",
+      "bytes": 16632,
+      "seconds": 2.115,
+      "ingested": "2026-08-15",
+      "align": {
+        "model": "wav2vec2_base",
+        "latency": 0.115,
+        "minScore": 0.67,
+        "medianScore": 1,
+        "review": []
+      },
+      "cut": {
+        "startSeconds": 13.58,
+        "endSeconds": 16.0675,
+        "trimmedHead": 0.23,
+        "trimmedTail": 0.1425,
+        "usableGap": true
+      },
+      "loudness": {
+        "targetDbfs": -19,
+        "gainDb": 3.01,
+        "peakDbfs": -3.54,
+        "speechDbfs": -22.01
+      },
+      "words": [
+        {
+          "word": "My",
+          "start": 0.04,
+          "end": 0.1354,
+          "score": 0.9999
+        },
+        {
+          "word": "wardrobe,",
+          "start": 0.1354,
+          "end": 0.6156,
+          "score": 0.9996
+        },
+        {
+          "word": "full",
+          "start": 0.6156,
+          "end": 0.8157,
+          "score": 0.9996
+        },
+        {
+          "word": "of",
+          "start": 0.8157,
+          "end": 0.9358,
+          "score": 0.6666
+        },
+        {
+          "word": "pretty",
+          "start": 0.9358,
+          "end": 1.2559,
+          "score": 0.9551
+        },
+        {
+          "word": "clothes!",
+          "start": 1.541,
+          "end": 2.075,
+          "score": 0.9365
+        }
+      ]
+    },
+    "seraphina_well": {
+      "provider": "firefly",
+      "batch": "seraphina",
+      "indexInBatch": 4,
+      "speaker": "seraphina",
+      "profile": "seraphina",
+      "voice": "Vinita",
+      "spoken": "Ooh, did something sparkle?",
+      "spokenHash": "c47d65fae6a0e237",
+      "audio": "seraphina_well.mp3",
+      "bytes": 9624,
+      "seconds": 1.11,
+      "ingested": "2026-08-15",
+      "align": {
+        "model": "wav2vec2_base",
+        "latency": 0.115,
+        "minScore": 0.85,
+        "medianScore": 0.89,
+        "review": []
+      },
+      "cut": {
+        "startSeconds": 8.0725,
+        "endSeconds": 9.61,
+        "trimmedHead": 0.225,
+        "trimmedTail": 0.2025,
+        "usableGap": true
+      },
+      "loudness": {
+        "targetDbfs": -19,
+        "gainDb": 1.02,
+        "peakDbfs": -5.69,
+        "speechDbfs": -20.02
+      },
+      "words": [
+        {
+          "word": "Ooh,",
+          "start": 0.0425,
+          "end": 0.1858,
+          "score": 0.8474
+        },
+        {
+          "word": "did",
+          "start": 0.1858,
+          "end": 0.3259,
+          "score": 0.8877
+        },
+        {
+          "word": "something",
+          "start": 0.3259,
+          "end": 0.586,
+          "score": 0.8662
+        },
+        {
+          "word": "sparkle?",
+          "start": 0.586,
+          "end": 1.0461,
+          "score": 0.9168
+        }
+      ]
+    },
+    "sneak_cave_greet": {
+      "provider": "firefly",
+      "batch": "sneak",
+      "indexInBatch": 7,
+      "speaker": "sneak",
+      "profile": "sneak",
+      "voice": "Erin",
+      "spoken": "You made it, stand by the fire.",
+      "spokenHash": "d6abaeb96815006b",
+      "audio": "sneak_cave_greet.mp3",
+      "bytes": 17952,
+      "seconds": 2.4225,
+      "ingested": "2026-08-15",
+      "align": {
+        "model": "wav2vec2_base",
+        "latency": 0.115,
+        "minScore": 0.51,
+        "medianScore": 0.96,
+        "review": []
+      },
+      "cut": {
+        "startSeconds": 22.6125,
+        "endSeconds": 25.3825,
+        "trimmedHead": 0.2075,
+        "trimmedTail": 0.14,
+        "usableGap": true
+      },
+      "loudness": {
+        "targetDbfs": -19,
+        "gainDb": 1.28,
+        "peakDbfs": -5.11,
+        "speechDbfs": -20.28
+      },
+      "words": [
+        {
+          "word": "You",
+          "start": 0.04,
+          "end": 0.1114,
+          "score": 0.9998
+        },
+        {
+          "word": "made",
+          "start": 0.1114,
+          "end": 0.4116,
+          "score": 0.8972
+        },
+        {
+          "word": "it,",
+          "start": 0.4116,
+          "end": 0.5717,
+          "score": 0.5087
+        },
+        {
+          "word": "stand",
+          "start": 0.6968,
+          "end": 1.1119,
+          "score": 0.9923
+        },
+        {
+          "word": "by",
+          "start": 1.1119,
+          "end": 1.4121,
+          "score": 0.9998
+        },
+        {
+          "word": "the",
+          "start": 1.6373,
+          "end": 1.8523,
+          "score": 0.9619
+        },
+        {
+          "word": "fire.",
+          "start": 1.8574,
+          "end": 2.3125,
+          "score": 0.9447
+        }
+      ]
+    },
+    "sneak_coin": {
+      "provider": "firefly",
+      "batch": "sneak",
+      "indexInBatch": 16,
+      "speaker": "sneak",
+      "profile": "sneak",
+      "voice": "Erin",
+      "spoken": "This shiny gold coin is for you!",
+      "spokenHash": "66a94a8c2d62620e",
+      "audio": "sneak_coin.mp3",
+      "bytes": 17808,
+      "seconds": 2.17,
+      "ingested": "2026-08-15",
+      "align": {
+        "model": "wav2vec2_base",
+        "latency": 0.115,
+        "minScore": 0.9,
+        "medianScore": 0.95,
+        "review": []
+      },
+      "cut": {
+        "startSeconds": 36.5725,
+        "endSeconds": 40.1,
+        "trimmedHead": 0.105,
+        "trimmedTail": 1.2525,
+        "usableGap": true
+      },
+      "loudness": {
+        "targetDbfs": -19,
+        "gainDb": 3.86,
+        "peakDbfs": -5.42,
+        "speechDbfs": -22.86
+      },
+      "words": [
+        {
+          "word": "This",
+          "start": 0.0425,
+          "end": 0.2009,
+          "score": 0.9454
+        },
+        {
+          "word": "shiny",
+          "start": 0.226,
+          "end": 0.6611,
+          "score": 0.9004
+        },
+        {
+          "word": "gold",
+          "start": 0.6611,
+          "end": 0.9012,
+          "score": 0.9937
+        },
+        {
+          "word": "coin",
+          "start": 0.9012,
+          "end": 1.1814,
+          "score": 0.9436
+        },
+        {
+          "word": "is",
+          "start": 1.1814,
+          "end": 1.3215,
+          "score": 0.9798
+        },
+        {
+          "word": "for",
+          "start": 1.3215,
+          "end": 1.6016,
+          "score": 0.9967
+        },
+        {
+          "word": "you!",
+          "start": 1.6067,
+          "end": 1.9218,
+          "score": 0.913
+        }
+      ]
+    },
+    "sneak_faeries": {
+      "provider": "firefly",
+      "batch": "sneak",
+      "indexInBatch": 0,
+      "speaker": "sneak",
+      "profile": "sneak",
+      "voice": "Erin",
+      "spoken": "My spell book says faeries are real, I'm going to prove it!",
+      "spokenHash": "df40c7b2930a3bec",
+      "audio": "sneak_faeries.mp3",
+      "bytes": 23688,
+      "seconds": 2.88,
+      "ingested": "2026-08-15",
+      "align": {
+        "model": "wav2vec2_base",
+        "latency": 0.115,
+        "minScore": 0.5,
+        "medianScore": 0.97,
+        "review": []
+      },
+      "cut": {
+        "startSeconds": 0,
+        "endSeconds": 3.26,
+        "trimmedHead": 0,
+        "trimmedTail": 0.38,
+        "usableGap": true
+      },
+      "loudness": {
+        "targetDbfs": -19,
+        "gainDb": -1.16,
+        "peakDbfs": -6.6,
+        "speechDbfs": -17.84
+      },
+      "words": [
+        {
+          "word": "My",
+          "start": 0,
+          "end": 0.1801,
+          "score": 0.9972
+        },
+        {
+          "word": "spell",
+          "start": 0.1801,
+          "end": 0.4602,
+          "score": 0.9284
+        },
+        {
+          "word": "book",
+          "start": 0.4602,
+          "end": 0.6203,
+          "score": 0.9999
+        },
+        {
+          "word": "says",
+          "start": 0.6203,
+          "end": 0.8804,
+          "score": 0.5012
+        },
+        {
+          "word": "faeries",
+          "start": 0.8804,
+          "end": 1.2206,
+          "score": 0.8358
+        },
+        {
+          "word": "are",
+          "start": 1.2206,
+          "end": 1.3807,
+          "score": 0.8606
+        },
+        {
+          "word": "real,",
+          "start": 1.3807,
+          "end": 1.6608,
+          "score": 0.9841
+        },
+        {
+          "word": "I'm",
+          "start": 1.6859,
+          "end": 1.9009,
+          "score": 0.9692
+        },
+        {
+          "word": "going",
+          "start": 1.9009,
+          "end": 2.1611,
+          "score": 0.9273
+        },
+        {
+          "word": "to",
+          "start": 2.1611,
+          "end": 2.2811,
+          "score": 0.9999
+        },
+        {
+          "word": "prove",
+          "start": 2.2811,
+          "end": 2.6613,
+          "score": 0.9997
+        },
+        {
+          "word": "it!",
+          "start": 2.6664,
+          "end": 2.84,
+          "score": 0.8938
+        }
+      ]
+    },
+    "sneak_faeries_real": {
+      "provider": "firefly",
+      "batch": "sneak",
+      "indexInBatch": 14,
+      "speaker": "sneak",
+      "profile": "sneak",
+      "voice": "Erin",
+      "spoken": "Faeries, real faeries!",
+      "spokenHash": "24b1151058fa3bbf",
+      "audio": "sneak_faeries_real.mp3",
+      "bytes": 11424,
+      "seconds": 1.455,
+      "ingested": "2026-08-15",
+      "align": {
+        "model": "wav2vec2_base",
+        "latency": 0.115,
+        "minScore": 0.86,
+        "medianScore": 0.89,
+        "review": []
+      },
+      "cut": {
+        "startSeconds": 32.7075,
+        "endSeconds": 34.35,
+        "trimmedHead": 0.045,
+        "trimmedTail": 0.1425,
+        "usableGap": true
+      },
+      "loudness": {
+        "targetDbfs": -19,
+        "gainDb": 0.23,
+        "peakDbfs": -5.21,
+        "speechDbfs": -19.23
+      },
+      "words": [
+        {
+          "word": "Faeries,",
+          "start": 0.0425,
+          "end": 0.404,
+          "score": 0.8562
+        },
+        {
+          "word": "real",
+          "start": 0.4091,
+          "end": 0.7442,
+          "score": 0.9726
+        },
+        {
+          "word": "faeries!",
+          "start": 0.7442,
+          "end": 1.3245,
+          "score": 0.8892
+        }
+      ]
+    },
+    "sneak_press_blue": {
+      "provider": "firefly",
+      "batch": "sneak",
+      "indexInBatch": 10,
+      "speaker": "sneak",
+      "profile": "sneak",
+      "voice": "Erin",
+      "spoken": "Now the blue button!",
+      "spokenHash": "1bc350ddfb8f7814",
+      "audio": "sneak_press_blue.mp3",
+      "bytes": 8376,
+      "seconds": 1.03,
+      "ingested": "2026-08-15",
+      "align": {
+        "model": "wav2vec2_base",
+        "latency": 0.115,
+        "minScore": 1,
+        "medianScore": 1,
+        "review": []
+      },
+      "cut": {
+        "startSeconds": 28.0625,
+        "endSeconds": 29.21,
+        "trimmedHead": 0.08,
+        "trimmedTail": 0.0375,
+        "usableGap": true
+      },
+      "loudness": {
+        "targetDbfs": -19,
+        "gainDb": -1.18,
+        "peakDbfs": -6.85,
+        "speechDbfs": -17.82
+      },
+      "words": [
+        {
+          "word": "Now",
+          "start": 0.0425,
+          "end": 0.1916,
+          "score": 0.9976
+        },
+        {
+          "word": "the",
+          "start": 0.1916,
+          "end": 0.3317,
+          "score": 0.9997
+        },
+        {
+          "word": "blue",
+          "start": 0.3317,
+          "end": 0.5918,
+          "score": 0.9995
+        },
+        {
+          "word": "button!",
+          "start": 0.5918,
+          "end": 0.912,
+          "score": 0.9998
+        }
+      ]
+    },
+    "sneak_press_green": {
+      "provider": "firefly",
+      "batch": "sneak",
+      "indexInBatch": 9,
+      "speaker": "sneak",
+      "profile": "sneak",
+      "voice": "Erin",
+      "spoken": "Now the green button!",
+      "spokenHash": "bc2e4348531a630c",
+      "audio": "sneak_press_green.mp3",
+      "bytes": 9216,
+      "seconds": 1.0975,
+      "ingested": "2026-08-15",
+      "align": {
+        "model": "wav2vec2_base",
+        "latency": 0.115,
+        "minScore": 0.94,
+        "medianScore": 1,
+        "review": []
+      },
+      "cut": {
+        "startSeconds": 26.8275,
+        "endSeconds": 28.0625,
+        "trimmedHead": 0.0575,
+        "trimmedTail": 0.08,
+        "usableGap": true
+      },
+      "loudness": {
+        "targetDbfs": -19,
+        "gainDb": 2.77,
+        "peakDbfs": -3.31,
+        "speechDbfs": -21.77
+      },
+      "words": [
+        {
+          "word": "Now",
+          "start": 0.04,
+          "end": 0.2085,
+          "score": 0.9542
+        },
+        {
+          "word": "the",
+          "start": 0.2085,
+          "end": 0.3686,
+          "score": 0.9997
+        },
+        {
+          "word": "green",
+          "start": 0.3686,
+          "end": 0.6888,
+          "score": 0.9441
+        },
+        {
+          "word": "button!",
+          "start": 0.6888,
+          "end": 1.0089,
+          "score": 0.9995
+        }
+      ]
+    },
+    "sneak_press_red": {
+      "provider": "firefly",
+      "batch": "sneak",
+      "indexInBatch": 8,
+      "speaker": "sneak",
+      "profile": "sneak",
+      "voice": "Erin",
+      "spoken": "Press the red button!",
+      "spokenHash": "b357ed981dbd1d23",
+      "audio": "sneak_press_red.mp3",
+      "bytes": 10080,
+      "seconds": 1.2475,
+      "ingested": "2026-08-15",
+      "align": {
+        "model": "wav2vec2_base",
+        "latency": 0.115,
+        "minScore": 0.98,
+        "medianScore": 0.99,
+        "review": []
+      },
+      "cut": {
+        "startSeconds": 25.3825,
+        "endSeconds": 26.8275,
+        "trimmedHead": 0.1375,
+        "trimmedTail": 0.06,
+        "usableGap": true
+      },
+      "loudness": {
+        "targetDbfs": -19,
+        "gainDb": -1.64,
+        "peakDbfs": -3.79,
+        "speechDbfs": -17.36
+      },
+      "words": [
+        {
+          "word": "Press",
+          "start": 0.04,
+          "end": 0.2128,
+          "score": 0.9917
+        },
+        {
+          "word": "the",
+          "start": 0.2128,
+          "end": 0.3929,
+          "score": 0.9844
+        },
+        {
+          "word": "red",
+          "start": 0.3929,
+          "end": 0.6731,
+          "score": 0.9866
+        },
+        {
+          "word": "button!",
+          "start": 0.6731,
+          "end": 1.0933,
+          "score": 0.9998
+        }
+      ]
+    },
+    "sneak_quest_cave": {
+      "provider": "firefly",
+      "batch": "sneak",
+      "indexInBatch": 6,
+      "speaker": "sneak",
+      "profile": "sneak",
+      "voice": "Erin",
+      "spoken": "We have them all, meet me at the Secret Cave.",
+      "spokenHash": "5904889373f13ae3",
+      "audio": "sneak_quest_cave.mp3",
+      "bytes": 21600,
+      "seconds": 2.91,
+      "ingested": "2026-08-15",
+      "align": {
+        "model": "wav2vec2_base",
+        "latency": 0.115,
+        "minScore": 0.67,
+        "medianScore": 1,
+        "review": []
+      },
+      "cut": {
+        "startSeconds": 19.235,
+        "endSeconds": 22.6125,
+        "trimmedHead": 0.26,
+        "trimmedTail": 0.2075,
+        "usableGap": true
+      },
+      "loudness": {
+        "targetDbfs": -19,
+        "gainDb": 0.53,
+        "peakDbfs": -4.65,
+        "speechDbfs": -19.53
+      },
+      "words": [
+        {
+          "word": "We",
+          "start": 0.04,
+          "end": 0.1148,
+          "score": 0.9998
+        },
+        {
+          "word": "have",
+          "start": 0.1399,
+          "end": 0.475,
+          "score": 0.9781
+        },
+        {
+          "word": "them",
+          "start": 0.475,
+          "end": 0.655,
+          "score": 0.9769
+        },
+        {
+          "word": "all,",
+          "start": 0.9002,
+          "end": 1.1553,
+          "score": 0.9959
+        },
+        {
+          "word": "meet",
+          "start": 1.4605,
+          "end": 1.7356,
+          "score": 0.9993
+        },
+        {
+          "word": "me",
+          "start": 1.7356,
+          "end": 1.8356,
+          "score": 0.9995
+        },
+        {
+          "word": "at",
+          "start": 1.8356,
+          "end": 1.9757,
+          "score": 0.6669
+        },
+        {
+          "word": "the",
+          "start": 1.9757,
+          "end": 2.0557,
+          "score": 0.9984
+        },
+        {
+          "word": "Secret",
+          "start": 2.0557,
+          "end": 2.4559,
+          "score": 0.9658
+        },
+        {
+          "word": "Cave.",
+          "start": 2.4559,
+          "end": 2.87,
+          "score": 0.9177
+        }
+      ]
+    },
+    "sneak_quest_crack": {
+      "provider": "firefly",
+      "batch": "sneak",
+      "indexInBatch": 5,
+      "speaker": "sneak",
+      "profile": "sneak",
+      "voice": "Erin",
+      "spoken": "Crack the stones with your hammer.",
+      "spokenHash": "25489d0bfae6b29e",
+      "audio": "sneak_quest_crack.mp3",
+      "bytes": 13440,
+      "seconds": 1.56,
+      "ingested": "2026-08-15",
+      "align": {
+        "model": "wav2vec2_base",
+        "latency": 0.115,
+        "minScore": 0.89,
+        "medianScore": 1,
+        "review": []
+      },
+      "cut": {
+        "startSeconds": 17.33,
+        "endSeconds": 19.235,
+        "trimmedHead": 0.085,
+        "trimmedTail": 0.26,
+        "usableGap": true
+      },
+      "loudness": {
+        "targetDbfs": -19,
+        "gainDb": 1.86,
+        "peakDbfs": -2.9,
+        "speechDbfs": -20.86
+      },
+      "words": [
+        {
+          "word": "Crack",
+          "start": 0.04,
+          "end": 0.2538,
+          "score": 0.9407
+        },
+        {
+          "word": "the",
+          "start": 0.2538,
+          "end": 0.4139,
+          "score": 0.8935
+        },
+        {
+          "word": "stones",
+          "start": 0.4139,
+          "end": 0.7341,
+          "score": 0.994
+        },
+        {
+          "word": "with",
+          "start": 0.7341,
+          "end": 0.8941,
+          "score": 0.9998
+        },
+        {
+          "word": "your",
+          "start": 0.8941,
+          "end": 1.0542,
+          "score": 0.9993
+        },
+        {
+          "word": "hammer.",
+          "start": 1.0542,
+          "end": 1.4544,
+          "score": 0.9968
+        }
+      ]
+    },
+    "sneak_quest_hammer": {
+      "provider": "firefly",
+      "batch": "sneak",
+      "indexInBatch": 4,
+      "speaker": "sneak",
+      "profile": "sneak",
+      "voice": "Erin",
+      "spoken": "I saw a hammer near the well!",
+      "spokenHash": "b0477d6bd1653d31",
+      "audio": "sneak_quest_hammer.mp3",
+      "bytes": 11928,
+      "seconds": 1.4275,
+      "ingested": "2026-08-15",
+      "align": {
+        "model": "wav2vec2_base",
+        "latency": 0.115,
+        "minScore": 0.33,
+        "medianScore": 0.93,
+        "review": [
+          {
+            "word": "a",
+            "score": 0.3278
+          }
+        ]
+      },
+      "cut": {
+        "startSeconds": 15.5825,
+        "endSeconds": 17.33,
+        "trimmedHead": 0.2375,
+        "trimmedTail": 0.0825,
+        "usableGap": true
+      },
+      "loudness": {
+        "targetDbfs": -19,
+        "gainDb": -1.37,
+        "peakDbfs": -5.62,
+        "speechDbfs": -17.63
+      },
+      "words": [
+        {
+          "word": "I",
+          "start": 0.04,
+          "end": 0.1079,
+          "score": 0.9999
+        },
+        {
+          "word": "saw",
+          "start": 0.1079,
+          "end": 0.3481,
+          "score": 0.8736
+        },
+        {
+          "word": "a",
+          "start": 0.3481,
+          "end": 0.4681,
+          "score": 0.3278
+        },
+        {
+          "word": "hammer",
+          "start": 0.4681,
+          "end": 0.7683,
+          "score": 0.9517
+        },
+        {
+          "word": "near",
+          "start": 0.7683,
+          "end": 0.9284,
+          "score": 0.9988
+        },
+        {
+          "word": "the",
+          "start": 0.9284,
+          "end": 1.0684,
+          "score": 0.7995
+        },
+        {
+          "word": "well!",
+          "start": 1.0684,
+          "end": 1.3486,
+          "score": 0.9278
+        }
+      ]
+    },
+    "sneak_quest_offer": {
+      "provider": "firefly",
+      "batch": "sneak",
+      "indexInBatch": 2,
+      "speaker": "sneak",
+      "profile": "sneak",
+      "voice": "Erin",
+      "spoken": "My spell book has a faerie spell, we need three magic stones.",
+      "spokenHash": "7c55fbc56947e442",
+      "audio": "sneak_quest_offer.mp3",
+      "bytes": 28656,
+      "seconds": 3.335,
+      "ingested": "2026-08-15",
+      "align": {
+        "model": "wav2vec2_base",
+        "latency": 0.115,
+        "minScore": 0.57,
+        "medianScore": 0.97,
+        "review": []
+      },
+      "cut": {
+        "startSeconds": 6.14,
+        "endSeconds": 10.2075,
+        "trimmedHead": 0.47,
+        "trimmedTail": 0.2625,
+        "usableGap": true
+      },
+      "loudness": {
+        "targetDbfs": -19,
+        "gainDb": -0.69,
+        "peakDbfs": -5.52,
+        "speechDbfs": -18.31
+      },
+      "words": [
+        {
+          "word": "My",
+          "start": 0.04,
+          "end": 0.1534,
+          "score": 0.9999
+        },
+        {
+          "word": "spell",
+          "start": 0.1534,
+          "end": 0.4535,
+          "score": 0.9967
+        },
+        {
+          "word": "book",
+          "start": 0.4535,
+          "end": 0.6336,
+          "score": 0.8907
+        },
+        {
+          "word": "has",
+          "start": 0.6336,
+          "end": 0.8137,
+          "score": 0.959
+        },
+        {
+          "word": "a",
+          "start": 0.8137,
+          "end": 0.9138,
+          "score": 0.9818
+        },
+        {
+          "word": "faerie",
+          "start": 0.9138,
+          "end": 1.2739,
+          "score": 0.5743
+        },
+        {
+          "word": "spell,",
+          "start": 1.2739,
+          "end": 1.6341,
+          "score": 0.9784
+        },
+        {
+          "word": "we",
+          "start": 1.6792,
+          "end": 1.8742,
+          "score": 0.9594
+        },
+        {
+          "word": "need",
+          "start": 1.8742,
+          "end": 2.0943,
+          "score": 0.9652
+        },
+        {
+          "word": "three",
+          "start": 2.0943,
+          "end": 2.4145,
+          "score": 0.9239
+        },
+        {
+          "word": "magic",
+          "start": 2.4145,
+          "end": 2.7547,
+          "score": 0.9999
+        },
+        {
+          "word": "stones.",
+          "start": 2.7547,
+          "end": 3.2149,
+          "score": 0.9567
+        }
+      ]
+    },
+    "sneak_quest_stones": {
+      "provider": "firefly",
+      "batch": "sneak",
+      "indexInBatch": 3,
+      "speaker": "sneak",
+      "profile": "sneak",
+      "voice": "Erin",
+      "spoken": "A ruby, a sapphire, and a malachite, you'll need a hammer to crack them.",
+      "spokenHash": "28b5472c320b80c7",
+      "audio": "sneak_quest_stones.mp3",
+      "bytes": 35520,
+      "seconds": 4.875,
+      "ingested": "2026-08-15",
+      "align": {
+        "model": "wav2vec2_base",
+        "latency": 0.115,
+        "minScore": 0,
+        "medianScore": 0.98,
+        "review": [
+          {
+            "word": "a",
+            "score": 0
+          }
+        ]
+      },
+      "cut": {
+        "startSeconds": 10.2075,
+        "endSeconds": 15.5825,
+        "trimmedHead": 0.26,
+        "trimmedTail": 0.24,
+        "usableGap": true
+      },
+      "loudness": {
+        "targetDbfs": -19,
+        "gainDb": 1.34,
+        "peakDbfs": -3.44,
+        "speechDbfs": -20.34
+      },
+      "words": [
+        {
+          "word": "A",
+          "start": 0.0425,
+          "end": 0.0978,
+          "score": 0.9991
+        },
+        {
+          "word": "ruby,",
+          "start": 0.0978,
+          "end": 0.478,
+          "score": 0.9975
+        },
+        {
+          "word": "a",
+          "start": 0.7031,
+          "end": 0.8381,
+          "score": 0.9993
+        },
+        {
+          "word": "sapphire,",
+          "start": 0.8381,
+          "end": 1.4785,
+          "score": 0.9294
+        },
+        {
+          "word": "and",
+          "start": 1.6836,
+          "end": 1.9187,
+          "score": 0.9993
+        },
+        {
+          "word": "a",
+          "start": 1.9187,
+          "end": 1.9987,
+          "score": 0
+        },
+        {
+          "word": "malachite,",
+          "start": 2.2039,
+          "end": 2.8992,
+          "score": 0.6837
+        },
+        {
+          "word": "you'll",
+          "start": 3.2644,
+          "end": 3.5795,
+          "score": 0.8437
+        },
+        {
+          "word": "need",
+          "start": 3.5795,
+          "end": 3.6996,
+          "score": 0.9774
+        },
+        {
+          "word": "a",
+          "start": 3.6996,
+          "end": 3.7796,
+          "score": 0.997
+        },
+        {
+          "word": "hammer",
+          "start": 3.7796,
+          "end": 4.0998,
+          "score": 0.9722
+        },
+        {
+          "word": "to",
+          "start": 4.0998,
+          "end": 4.2198,
+          "score": 0.9996
+        },
+        {
+          "word": "crack",
+          "start": 4.2198,
+          "end": 4.54,
+          "score": 0.9269
+        },
+        {
+          "word": "them.",
+          "start": 4.54,
+          "end": 4.7601,
+          "score": 0.953
+        }
+      ]
+    },
+    "sneak_secrets": {
+      "provider": "firefly",
+      "batch": "sneak",
+      "indexInBatch": 1,
+      "speaker": "sneak",
+      "profile": "sneak",
+      "voice": "Erin",
+      "spoken": "Shhh, this book is full of secrets.",
+      "spokenHash": "f75fba1552013abc",
+      "audio": "sneak_secrets.mp3",
+      "bytes": 15888,
+      "seconds": 2.03,
+      "ingested": "2026-08-15",
+      "align": {
+        "model": "wav2vec2_base",
+        "latency": 0.115,
+        "minScore": 0,
+        "medianScore": 0.93,
+        "review": [
+          {
+            "word": "Shhh,",
+            "score": 0.0001
+          }
+        ]
+      },
+      "cut": {
+        "startSeconds": 3.26,
+        "endSeconds": 6.14,
+        "trimmedHead": 0.38,
+        "trimmedTail": 0.47,
+        "usableGap": true
+      },
+      "loudness": {
+        "targetDbfs": -19,
+        "gainDb": -1.85,
+        "peakDbfs": -6.65,
+        "speechDbfs": -17.15
+      },
+      "words": [
+        {
+          "word": "Shhh,",
+          "start": 0.04,
+          "end": 0.0418,
+          "score": 0.0001
+        },
+        {
+          "word": "this",
+          "start": 0.1469,
+          "end": 0.402,
+          "score": 0.9977
+        },
+        {
+          "word": "book",
+          "start": 0.402,
+          "end": 0.6621,
+          "score": 0.9975
+        },
+        {
+          "word": "is",
+          "start": 0.6672,
+          "end": 0.8622,
+          "score": 0.9328
+        },
+        {
+          "word": "full",
+          "start": 0.8873,
+          "end": 1.1824,
+          "score": 0.933
+        },
+        {
+          "word": "of",
+          "start": 1.1824,
+          "end": 1.3425,
+          "score": 0.4999
+        },
+        {
+          "word": "secrets.",
+          "start": 1.3425,
+          "end": 1.8828,
+          "score": 0.9802
+        }
+      ]
+    },
+    "sneak_thanks": {
+      "provider": "firefly",
+      "batch": "sneak",
+      "indexInBatch": 15,
+      "speaker": "sneak",
+      "profile": "sneak",
+      "voice": "Erin",
+      "spoken": "We did it, thank you Seraphina.",
+      "spokenHash": "db8ddc7d1808f8f4",
+      "audio": "sneak_thanks.mp3",
+      "bytes": 15720,
+      "seconds": 1.975,
+      "ingested": "2026-08-15",
+      "align": {
+        "model": "wav2vec2_base",
+        "latency": 0.115,
+        "minScore": 0.7,
+        "medianScore": 1,
+        "review": []
+      },
+      "cut": {
+        "startSeconds": 34.35,
+        "endSeconds": 36.5725,
+        "trimmedHead": 0.14,
+        "trimmedTail": 0.1075,
+        "usableGap": true
+      },
+      "loudness": {
+        "targetDbfs": -19,
+        "gainDb": 4.24,
+        "peakDbfs": -6,
+        "speechDbfs": -23.24
+      },
+      "words": [
+        {
+          "word": "We",
+          "start": 0.04,
+          "end": 0.1873,
+          "score": 0.9984
+        },
+        {
+          "word": "did",
+          "start": 0.1873,
+          "end": 0.4274,
+          "score": 0.9994
+        },
+        {
+          "word": "it,",
+          "start": 0.4274,
+          "end": 0.5875,
+          "score": 0.7015
+        },
+        {
+          "word": "thank",
+          "start": 0.5926,
+          "end": 0.9077,
+          "score": 0.9275
+        },
+        {
+          "word": "you",
+          "start": 0.9077,
+          "end": 1.1078,
+          "score": 0.999
+        },
+        {
+          "word": "Seraphina.",
+          "start": 1.1078,
+          "end": 1.8481,
+          "score": 0.8779
+        }
+      ]
+    },
+    "sneak_try_blue": {
+      "provider": "firefly",
+      "batch": "sneak",
+      "indexInBatch": 13,
+      "speaker": "sneak",
+      "profile": "sneak",
+      "voice": "Erin",
+      "spoken": "Try the blue one!",
+      "spokenHash": "b0635f718f9ff0d6",
+      "audio": "sneak_try_blue.mp3",
+      "bytes": 7752,
+      "seconds": 0.92,
+      "ingested": "2026-08-15",
+      "align": {
+        "model": "wav2vec2_base",
+        "latency": 0.115,
+        "minScore": 0.87,
+        "medianScore": 1,
+        "review": []
+      },
+      "cut": {
+        "startSeconds": 31.645,
+        "endSeconds": 32.7075,
+        "trimmedHead": 0.095,
+        "trimmedTail": 0.0475,
+        "usableGap": true
+      },
+      "loudness": {
+        "targetDbfs": -19,
+        "gainDb": 2.19,
+        "peakDbfs": -5.45,
+        "speechDbfs": -21.19
+      },
+      "words": [
+        {
+          "word": "Try",
+          "start": 0.04,
+          "end": 0.1559,
+          "score": 0.999
+        },
+        {
+          "word": "the",
+          "start": 0.1559,
+          "end": 0.296,
+          "score": 0.9996
+        },
+        {
+          "word": "blue",
+          "start": 0.296,
+          "end": 0.5361,
+          "score": 0.9955
+        },
+        {
+          "word": "one!",
+          "start": 0.5612,
+          "end": 0.7962,
+          "score": 0.865
+        }
+      ]
+    },
+    "sneak_try_green": {
+      "provider": "firefly",
+      "batch": "sneak",
+      "indexInBatch": 12,
+      "speaker": "sneak",
+      "profile": "sneak",
+      "voice": "Erin",
+      "spoken": "Try the green one!",
+      "spokenHash": "207fc7533a87ebb7",
+      "audio": "sneak_try_green.mp3",
+      "bytes": 9432,
+      "seconds": 1.0625,
+      "ingested": "2026-08-15",
+      "align": {
+        "model": "wav2vec2_base",
+        "latency": 0.115,
+        "minScore": 0.9,
+        "medianScore": 1,
+        "review": []
+      },
+      "cut": {
+        "startSeconds": 30.3675,
+        "endSeconds": 31.645,
+        "trimmedHead": 0.1175,
+        "trimmedTail": 0.0975,
+        "usableGap": true
+      },
+      "loudness": {
+        "targetDbfs": -19,
+        "gainDb": 1.46,
+        "peakDbfs": -6.66,
+        "speechDbfs": -20.46
+      },
+      "words": [
+        {
+          "word": "Try",
+          "start": 0.04,
+          "end": 0.1503,
+          "score": 0.9997
+        },
+        {
+          "word": "the",
+          "start": 0.1503,
+          "end": 0.2903,
+          "score": 0.9995
+        },
+        {
+          "word": "green",
+          "start": 0.2903,
+          "end": 0.5905,
+          "score": 0.8976
+        },
+        {
+          "word": "one!",
+          "start": 0.6956,
+          "end": 0.9307,
+          "score": 0.9509
+        }
+      ]
+    },
+    "sneak_try_red": {
+      "provider": "firefly",
+      "batch": "sneak",
+      "indexInBatch": 11,
+      "speaker": "sneak",
+      "profile": "sneak",
+      "voice": "Erin",
+      "spoken": "Try the red one!",
+      "spokenHash": "2fbc7b126452a2c3",
+      "audio": "sneak_try_red.mp3",
+      "bytes": 8688,
+      "seconds": 1,
+      "ingested": "2026-08-15",
+      "align": {
+        "model": "wav2vec2_base",
+        "latency": 0.115,
+        "minScore": 0.66,
+        "medianScore": 0.99,
+        "review": []
+      },
+      "cut": {
+        "startSeconds": 29.21,
+        "endSeconds": 30.3675,
+        "trimmedHead": 0.04,
+        "trimmedTail": 0.1175,
+        "usableGap": true
+      },
+      "loudness": {
+        "targetDbfs": -19,
+        "gainDb": -1.1,
+        "peakDbfs": -5.17,
+        "speechDbfs": -17.9
+      },
+      "words": [
+        {
+          "word": "Try",
+          "start": 0.04,
+          "end": 0.1847,
+          "score": 0.9999
+        },
+        {
+          "word": "the",
+          "start": 0.1847,
+          "end": 0.3648,
+          "score": 0.6554
+        },
+        {
+          "word": "red",
+          "start": 0.3648,
+          "end": 0.5649,
+          "score": 0.9862
+        },
+        {
+          "word": "one!",
+          "start": 0.65,
+          "end": 0.885,
+          "score": 0.9892
+        }
+      ]
+    }
+  },
+  "batches": {
+    "dad": {
+      "ingested": "2026-08-15",
+      "audio": "dad.wav",
+      "audioBytes": 2740018,
+      "audioMtimeMs": 1786836920424,
+      "sourceRate": 48000,
+      "lineIds": [
+        "dad_bedtime",
+        "dad_helper",
+        "dad_shed",
+        "dad_quest_offer",
+        "dad_quest_pen",
+        "dad_quest_chop",
+        "dad_quest_carrots",
+        "dad_quest_lure",
+        "dad_two_more",
+        "dad_one_more",
+        "dad_bunnies_home",
+        "dad_bunny_coin"
+      ]
+    },
+    "morgana": {
+      "ingested": "2026-08-15",
+      "audio": "morgana.wav",
+      "audioBytes": 2437618,
+      "audioMtimeMs": 1786837055867,
+      "sourceRate": 48000,
+      "lineIds": [
+        "morgana_play",
+        "morgana_pebble",
+        "morgana_pretty",
+        "morgana_story_offer",
+        "morgana_story_book",
+        "morgana_story_come",
+        "morgana_story_read",
+        "morgana_book_moon",
+        "morgana_book_dragon",
+        "morgana_book_sparkles",
+        "morgana_book_best",
+        "morgana_story_hug",
+        "morgana_story_coin"
+      ]
+    },
+    "seraphina": {
+      "ingested": "2026-08-15",
+      "audio": "seraphina.wav",
+      "audioBytes": 4928818,
+      "audioMtimeMs": 1786837371084,
+      "sourceRate": 48000,
+      "lineIds": [
+        "seraphina_hello",
+        "seraphina_secret",
+        "seraphina_campfire",
+        "seraphina_toadstool",
+        "seraphina_well",
+        "seraphina_apple",
+        "seraphina_book",
+        "seraphina_again",
+        "seraphina_wardrobe",
+        "seraphina_bed",
+        "seraphina_axe",
+        "seraphina_hammer",
+        "seraphina_malachite",
+        "seraphina_ruby",
+        "seraphina_sapphire",
+        "seraphina_need_axe",
+        "seraphina_need_hammer",
+        "seraphina_bunny",
+        "seraphina_carrot",
+        "seraphina_one_bunny",
+        "seraphina_need_carrot",
+        "seraphina_storybook",
+        "seraphina_recap_story",
+        "seraphina_recap_bunnies",
+        "seraphina_recap_faeries",
+        "seraphina_recap_errand",
+        "seraphina_recap_stones",
+        "seraphina_recap_trees",
+        "seraphina_morning",
+        "seraphina_goodnight"
+      ]
+    },
+    "sneak": {
+      "ingested": "2026-08-15",
+      "audio": "sneak.wav",
+      "audioBytes": 3863218,
+      "audioMtimeMs": 1786837456455,
+      "sourceRate": 48000,
+      "lineIds": [
+        "sneak_faeries",
+        "sneak_secrets",
+        "sneak_quest_offer",
+        "sneak_quest_stones",
+        "sneak_quest_hammer",
+        "sneak_quest_crack",
+        "sneak_quest_cave",
+        "sneak_cave_greet",
+        "sneak_press_red",
+        "sneak_press_green",
+        "sneak_press_blue",
+        "sneak_try_red",
+        "sneak_try_green",
+        "sneak_try_blue",
+        "sneak_faeries_real",
+        "sneak_thanks",
+        "sneak_coin"
+      ]
+    },
+    "storybook": {
+      "ingested": "2026-08-15",
+      "audio": "storybook.wav",
+      "audioBytes": 992818,
+      "audioMtimeMs": 1786837511538,
+      "sourceRate": 48000,
+      "lineIds": [
+        "book_pip_moon_1",
+        "book_pip_moon_2",
+        "book_pip_moon_3",
+        "book_pip_moon_4"
+      ]
+    }
+  }
 }

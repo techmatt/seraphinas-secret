@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "provider": "edge-tts",
+  "provider": "firefly",
   "lines": [
     {
       "id": "seraphina_hello",
@@ -10,21 +10,21 @@
       "words": [
         {
           "word": "Hi!",
-          "start": 0.104,
-          "end": 0.458
+          "start": 0,
+          "end": 0.2801
         },
         {
           "word": "Let's",
-          "start": 0.716,
-          "end": 1.015
+          "start": 0.2852,
+          "end": 0.5802
         },
         {
           "word": "play!",
-          "start": 1.028,
-          "end": 1.504
+          "start": 0.5802,
+          "end": 0.9604
         }
       ],
-      "duration": 1.504
+      "duration": 0.9604
     },
     {
       "id": "seraphina_secret",
@@ -34,56 +34,56 @@
       "words": [
         {
           "word": "I",
-          "start": 0.104,
-          "end": 0.24
+          "start": 0.04,
+          "end": 0.1006
         },
         {
           "word": "need",
-          "start": 0.254,
-          "end": 0.593
+          "start": 0.1006,
+          "end": 0.3007
         },
         {
           "word": "your",
-          "start": 0.607,
-          "end": 0.77
+          "start": 0.3007,
+          "end": 0.4207
         },
         {
           "word": "help",
-          "start": 0.784,
-          "end": 1.083
+          "start": 0.4207,
+          "end": 0.5808
         },
         {
           "word": "making",
-          "start": 1.096,
-          "end": 1.517
+          "start": 0.5808,
+          "end": 0.8609
         },
         {
           "word": "sure",
-          "start": 1.531,
-          "end": 1.911
+          "start": 0.8609,
+          "end": 1.041
         },
         {
           "word": "Dad",
-          "start": 1.925,
-          "end": 2.333
+          "start": 1.041,
+          "end": 1.2611
         },
         {
           "word": "never",
-          "start": 2.346,
-          "end": 2.754
+          "start": 1.2611,
+          "end": 1.4611
         },
         {
           "word": "finds",
-          "start": 2.767,
-          "end": 3.257
+          "start": 1.4611,
+          "end": 1.7813
         },
         {
           "word": "this!",
-          "start": 3.27,
-          "end": 3.732
+          "start": 1.7813,
+          "end": 2.01
         }
       ],
-      "duration": 3.732
+      "duration": 2.01
     },
     {
       "id": "seraphina_campfire",
@@ -93,31 +93,31 @@
       "words": [
         {
           "word": "Ooh,",
-          "start": 0.102,
-          "end": 0.415
+          "start": 0.04,
+          "end": 0.2316
         },
         {
           "word": "a",
-          "start": 0.754,
-          "end": 0.849
+          "start": 0.4168,
+          "end": 0.5518
         },
         {
           "word": "warm",
-          "start": 0.863,
-          "end": 1.298
+          "start": 0.5518,
+          "end": 0.8119
         },
         {
           "word": "crackly",
-          "start": 1.311,
-          "end": 1.923
+          "start": 0.8119,
+          "end": 1.2721
         },
         {
           "word": "fire!",
-          "start": 1.936,
-          "end": 2.534
+          "start": 1.2721,
+          "end": 1.29
         }
       ],
-      "duration": 2.534
+      "duration": 1.29
     },
     {
       "id": "seraphina_toadstool",
@@ -127,26 +127,26 @@
       "words": [
         {
           "word": "A",
-          "start": 0.103,
-          "end": 0.239
+          "start": 0.3497,
+          "end": 0.4498
         },
         {
           "word": "funny",
-          "start": 0.253,
-          "end": 0.701
+          "start": 1.1151,
+          "end": 1.4702
         },
         {
           "word": "little",
-          "start": 0.715,
-          "end": 1.109
+          "start": 1.4702,
+          "end": 1.7303
         },
         {
           "word": "toadstool!",
-          "start": 1.122,
-          "end": 2.005
+          "start": 1.7303,
+          "end": 2.3905
         }
       ],
-      "duration": 2.005
+      "duration": 2.3905
     },
     {
       "id": "seraphina_well",
@@ -156,26 +156,26 @@
       "words": [
         {
           "word": "Ooh,",
-          "start": 0.102,
-          "end": 0.428
+          "start": 0.0425,
+          "end": 0.1858
         },
         {
           "word": "did",
-          "start": 0.754,
-          "end": 0.958
+          "start": 0.1858,
+          "end": 0.3259
         },
         {
           "word": "something",
-          "start": 0.972,
-          "end": 1.447
+          "start": 0.3259,
+          "end": 0.586
         },
         {
           "word": "sparkle?",
-          "start": 1.461,
-          "end": 2.14
+          "start": 0.586,
+          "end": 1.0461
         }
       ],
-      "duration": 2.14
+      "duration": 1.0461
     },
     {
       "id": "dad_bedtime",
@@ -185,26 +185,26 @@
       "words": [
         {
           "word": "Seraphina,",
-          "start": 0.106,
-          "end": 0.911
+          "start": 0,
+          "end": 0.5604
         },
         {
           "word": "time",
-          "start": 1.147,
-          "end": 1.397
+          "start": 0.7856,
+          "end": 1.0808
         },
         {
           "word": "for",
-          "start": 1.411,
-          "end": 1.564
+          "start": 1.0808,
+          "end": 1.2209
         },
         {
           "word": "bed!",
-          "start": 1.578,
-          "end": 1.994
+          "start": 1.2209,
+          "end": 1.461
         }
       ],
-      "duration": 1.994
+      "duration": 1.461
     },
     {
       "id": "seraphina_apple",
@@ -214,36 +214,36 @@
       "words": [
         {
           "word": "I",
-          "start": 0.104,
-          "end": 0.267
+          "start": 0.04,
+          "end": 0.0739
         },
         {
           "word": "want",
-          "start": 0.281,
-          "end": 0.593
+          "start": 0.0739,
+          "end": 0.2139
         },
         {
           "word": "to",
-          "start": 0.607,
-          "end": 0.729
+          "start": 0.2139,
+          "end": 0.2739
         },
         {
           "word": "pick",
-          "start": 0.743,
-          "end": 1.015
+          "start": 0.2739,
+          "end": 0.434
         },
         {
           "word": "an",
-          "start": 1.028,
-          "end": 1.191
+          "start": 0.434,
+          "end": 0.514
         },
         {
           "word": "apple!",
-          "start": 1.205,
-          "end": 1.762
+          "start": 0.5391,
+          "end": 0.9542
         }
       ],
-      "duration": 1.762
+      "duration": 0.9542
     },
     {
       "id": "seraphina_book",
@@ -253,36 +253,36 @@
       "words": [
         {
           "word": "I",
-          "start": 0.104,
-          "end": 0.267
+          "start": 0.0425,
+          "end": 0.1119
         },
         {
           "word": "want",
-          "start": 0.281,
-          "end": 0.593
+          "start": 0.1119,
+          "end": 0.332
         },
         {
           "word": "to",
-          "start": 0.607,
-          "end": 0.729
+          "start": 0.332,
+          "end": 0.392
         },
         {
           "word": "read",
-          "start": 0.743,
-          "end": 1.001
+          "start": 0.392,
+          "end": 0.5521
         },
         {
           "word": "a",
-          "start": 1.015,
-          "end": 1.096
+          "start": 0.5521,
+          "end": 0.6121
         },
         {
           "word": "book!",
-          "start": 1.11,
-          "end": 1.531
+          "start": 0.6121,
+          "end": 0.8922
         }
       ],
-      "duration": 1.531
+      "duration": 0.8922
     },
     {
       "id": "seraphina_again",
@@ -292,16 +292,16 @@
       "words": [
         {
           "word": "Again!",
-          "start": 0.103,
-          "end": 0.647
+          "start": 0.04,
+          "end": 0.335
         },
         {
           "word": "Again!",
-          "start": 0.891,
-          "end": 1.408
+          "start": 0.3401,
+          "end": 0.7152
         }
       ],
-      "duration": 1.408
+      "duration": 0.7152
     },
     {
       "id": "seraphina_wardrobe",
@@ -311,36 +311,36 @@
       "words": [
         {
           "word": "My",
-          "start": 0.104,
-          "end": 0.362
+          "start": 0.04,
+          "end": 0.1354
         },
         {
           "word": "wardrobe,",
-          "start": 0.376,
-          "end": 1.137
+          "start": 0.1354,
+          "end": 0.6156
         },
         {
           "word": "full",
-          "start": 1.436,
-          "end": 1.748
+          "start": 0.6156,
+          "end": 0.8157
         },
         {
           "word": "of",
-          "start": 1.762,
-          "end": 1.939
+          "start": 0.8157,
+          "end": 0.9358
         },
         {
           "word": "pretty",
-          "start": 1.952,
-          "end": 2.319
+          "start": 0.9358,
+          "end": 1.2559
         },
         {
           "word": "clothes!",
-          "start": 2.333,
-          "end": 3.053
+          "start": 1.541,
+          "end": 2.075
         }
       ],
-      "duration": 3.053
+      "duration": 2.075
     },
     {
       "id": "seraphina_bed",
@@ -350,36 +350,36 @@
       "words": [
         {
           "word": "My",
-          "start": 0.104,
-          "end": 0.362
+          "start": 0.0475,
+          "end": 0.1239
         },
         {
           "word": "cozy",
-          "start": 0.376,
-          "end": 0.892
+          "start": 0.1289,
+          "end": 0.5841
         },
         {
           "word": "bed.",
-          "start": 0.906,
-          "end": 1.273
+          "start": 0.5841,
+          "end": 0.8442
         },
         {
           "word": "Time",
-          "start": 1.558,
-          "end": 1.911
+          "start": 0.8692,
+          "end": 1.2243
         },
         {
           "word": "to",
-          "start": 1.925,
-          "end": 2.047
+          "start": 1.2243,
+          "end": 1.3444
         },
         {
           "word": "sleep!",
-          "start": 2.061,
-          "end": 2.591
+          "start": 1.3444,
+          "end": 1.6325
         }
       ],
-      "duration": 2.591
+      "duration": 1.6325
     },
     {
       "id": "sneak_faeries",
@@ -389,66 +389,66 @@
       "words": [
         {
           "word": "My",
-          "start": 0.098,
-          "end": 0.326
+          "start": 0,
+          "end": 0.1801
         },
         {
           "word": "spell",
-          "start": 0.338,
-          "end": 0.723
+          "start": 0.1801,
+          "end": 0.4602
         },
         {
           "word": "book",
-          "start": 0.735,
-          "end": 0.975
+          "start": 0.4602,
+          "end": 0.6203
         },
         {
           "word": "says",
-          "start": 0.988,
-          "end": 1.312
+          "start": 0.6203,
+          "end": 0.8804
         },
         {
           "word": "faeries",
-          "start": 1.324,
-          "end": 1.829
+          "start": 0.8804,
+          "end": 1.2206
         },
         {
           "word": "are",
-          "start": 1.841,
-          "end": 2.045
+          "start": 1.2206,
+          "end": 1.3807
         },
         {
           "word": "REAL.",
-          "start": 2.057,
-          "end": 2.382
+          "start": 1.3807,
+          "end": 1.6608
         },
         {
           "word": "I'm",
-          "start": 2.658,
-          "end": 2.778
+          "start": 1.6859,
+          "end": 1.9009
         },
         {
           "word": "going",
-          "start": 2.79,
-          "end": 3.055
+          "start": 1.9009,
+          "end": 2.1611
         },
         {
           "word": "to",
-          "start": 3.067,
-          "end": 3.175
+          "start": 2.1611,
+          "end": 2.2811
         },
         {
           "word": "prove",
-          "start": 3.187,
-          "end": 3.5
+          "start": 2.2811,
+          "end": 2.6613
         },
         {
           "word": "it!",
-          "start": 3.512,
-          "end": 3.74
+          "start": 2.6664,
+          "end": 2.84
         }
       ],
-      "duration": 3.74
+      "duration": 2.84
     },
     {
       "id": "sneak_secrets",
@@ -458,41 +458,41 @@
       "words": [
         {
           "word": "Shhh!",
-          "start": 0.098,
-          "end": 0.411
+          "start": 0.04,
+          "end": 0.0418
         },
         {
           "word": "This",
-          "start": 0.663,
-          "end": 0.879
+          "start": 0.1469,
+          "end": 0.402
         },
         {
           "word": "book",
-          "start": 0.891,
-          "end": 1.168
+          "start": 0.402,
+          "end": 0.6621
         },
         {
           "word": "is",
-          "start": 1.18,
-          "end": 1.372
+          "start": 0.6672,
+          "end": 0.8622
         },
         {
           "word": "full",
-          "start": 1.384,
-          "end": 1.661
+          "start": 0.8873,
+          "end": 1.1824
         },
         {
           "word": "of",
-          "start": 1.673,
-          "end": 1.793
+          "start": 1.1824,
+          "end": 1.3425
         },
         {
           "word": "secrets.",
-          "start": 1.805,
-          "end": 2.514
+          "start": 1.3425,
+          "end": 1.8828
         }
       ],
-      "duration": 2.514
+      "duration": 1.8828
     },
     {
       "id": "morgana_play",
@@ -502,26 +502,26 @@
       "words": [
         {
           "word": "Hi",
-          "start": 0.097,
-          "end": 0.333
+          "start": 0,
+          "end": 0.2201
         },
         {
           "word": "Seraphina!",
-          "start": 0.345,
-          "end": 1.064
+          "start": 0.2451,
+          "end": 0.8803
         },
         {
           "word": "Wanna",
-          "start": 1.335,
-          "end": 1.571
+          "start": 0.8803,
+          "end": 1.1805
         },
         {
           "word": "play?",
-          "start": 1.583,
-          "end": 1.949
+          "start": 1.1805,
+          "end": 1.1805
         }
       ],
-      "duration": 1.949
+      "duration": 1.1805
     },
     {
       "id": "morgana_pebble",
@@ -531,31 +531,31 @@
       "words": [
         {
           "word": "I",
-          "start": 0.097,
-          "end": 0.25
+          "start": 0.2406,
+          "end": 0.3606
         },
         {
           "word": "found",
-          "start": 0.262,
-          "end": 0.581
+          "start": 0.8859,
+          "end": 1.181
         },
         {
           "word": "a",
-          "start": 0.592,
-          "end": 0.64
+          "start": 1.181,
+          "end": 1.281
         },
         {
           "word": "shiny",
-          "start": 0.651,
-          "end": 1.088
+          "start": 1.281,
+          "end": 1.6412
         },
         {
           "word": "pebble!",
-          "start": 1.1,
-          "end": 1.595
+          "start": 1.6412,
+          "end": 2.0613
         }
       ],
-      "duration": 1.595
+      "duration": 2.0613
     },
     {
       "id": "dad_helper",
@@ -565,26 +565,26 @@
       "words": [
         {
           "word": "Hello,",
-          "start": 0.106,
-          "end": 0.592
+          "start": 0.0425,
+          "end": 0.2492
         },
         {
           "word": "my",
-          "start": 0.828,
-          "end": 0.967
+          "start": 0.2543,
+          "end": 0.4293
         },
         {
           "word": "little",
-          "start": 0.994,
-          "end": 1.314
+          "start": 0.4293,
+          "end": 0.6695
         },
         {
           "word": "helper!",
-          "start": 1.342,
-          "end": 1.856
+          "start": 0.6695,
+          "end": 0.9575
         }
       ],
-      "duration": 1.856
+      "duration": 0.9575
     },
     {
       "id": "dad_shed",
@@ -594,46 +594,46 @@
       "words": [
         {
           "word": "I",
-          "start": 0.106,
-          "end": 0.272
+          "start": 0.04,
+          "end": 0.0877
         },
         {
           "word": "keep",
-          "start": 0.3,
-          "end": 0.55
+          "start": 0.0877,
+          "end": 0.2878
         },
         {
           "word": "all",
-          "start": 0.564,
-          "end": 0.731
+          "start": 0.2878,
+          "end": 0.468
         },
         {
           "word": "my",
-          "start": 0.744,
-          "end": 0.883
+          "start": 0.468,
+          "end": 0.568
         },
         {
           "word": "tools",
-          "start": 0.911,
-          "end": 1.328
+          "start": 0.568,
+          "end": 0.9083
         },
         {
           "word": "in",
-          "start": 1.356,
-          "end": 1.439
+          "start": 0.9083,
+          "end": 0.9883
         },
         {
           "word": "this",
-          "start": 1.467,
-          "end": 1.606
+          "start": 0.9883,
+          "end": 1.1484
         },
         {
           "word": "shed.",
-          "start": 1.633,
-          "end": 2.106
+          "start": 1.1484,
+          "end": 1.4
         }
       ],
-      "duration": 2.106
+      "duration": 1.4
     },
     {
       "id": "sneak_quest_offer",
@@ -643,66 +643,66 @@
       "words": [
         {
           "word": "My",
-          "start": 0.098,
-          "end": 0.314
+          "start": 0.04,
+          "end": 0.1534
         },
         {
           "word": "spell",
-          "start": 0.326,
-          "end": 0.723
+          "start": 0.1534,
+          "end": 0.4535
         },
         {
           "word": "book",
-          "start": 0.735,
-          "end": 0.999
+          "start": 0.4535,
+          "end": 0.6336
         },
         {
           "word": "has",
-          "start": 1.012,
-          "end": 1.228
+          "start": 0.6336,
+          "end": 0.8137
         },
         {
           "word": "a",
-          "start": 1.24,
-          "end": 1.312
+          "start": 0.8137,
+          "end": 0.9138
         },
         {
           "word": "faerie",
-          "start": 1.324,
-          "end": 1.709
+          "start": 0.9138,
+          "end": 1.2739
         },
         {
           "word": "spell!",
-          "start": 1.721,
-          "end": 2.165
+          "start": 1.2739,
+          "end": 1.6341
         },
         {
           "word": "We",
-          "start": 2.478,
-          "end": 2.598
+          "start": 1.6792,
+          "end": 1.8742
         },
         {
           "word": "need",
-          "start": 2.61,
-          "end": 2.911
+          "start": 1.8742,
+          "end": 2.0943
         },
         {
           "word": "three",
-          "start": 2.923,
-          "end": 3.247
+          "start": 2.0943,
+          "end": 2.4145
         },
         {
           "word": "magic",
-          "start": 3.259,
-          "end": 3.728
+          "start": 2.4145,
+          "end": 2.7547
         },
         {
           "word": "stones.",
-          "start": 3.74,
-          "end": 4.377
+          "start": 2.7547,
+          "end": 3.2149
         }
       ],
-      "duration": 4.377
+      "duration": 3.2149
     },
     {
       "id": "sneak_quest_stones",
@@ -712,76 +712,76 @@
       "words": [
         {
           "word": "A",
-          "start": 0.099,
-          "end": 0.207
+          "start": 0.0425,
+          "end": 0.0978
         },
         {
           "word": "ruby,",
-          "start": 0.219,
-          "end": 0.676
+          "start": 0.0978,
+          "end": 0.478
         },
         {
           "word": "a",
-          "start": 0.964,
-          "end": 1.012
+          "start": 0.7031,
+          "end": 0.8381
         },
         {
           "word": "sapphire,",
-          "start": 1.024,
-          "end": 1.745
+          "start": 0.8381,
+          "end": 1.4785
         },
         {
           "word": "and",
-          "start": 2.046,
-          "end": 2.166
+          "start": 1.6836,
+          "end": 1.9187
         },
         {
           "word": "a",
-          "start": 2.178,
-          "end": 2.226
+          "start": 1.9187,
+          "end": 1.9987
         },
         {
           "word": "malachite!",
-          "start": 2.238,
-          "end": 2.935
+          "start": 2.2039,
+          "end": 2.8992
         },
         {
           "word": "You'll",
-          "start": 3.248,
-          "end": 3.428
+          "start": 3.2644,
+          "end": 3.5795
         },
         {
           "word": "need",
-          "start": 3.44,
-          "end": 3.644
+          "start": 3.5795,
+          "end": 3.6996
         },
         {
           "word": "a",
-          "start": 3.656,
-          "end": 3.704
+          "start": 3.6996,
+          "end": 3.7796
         },
         {
           "word": "hammer",
-          "start": 3.716,
-          "end": 4.161
+          "start": 3.7796,
+          "end": 4.0998
         },
         {
           "word": "to",
-          "start": 4.173,
-          "end": 4.329
+          "start": 4.0998,
+          "end": 4.2198
         },
         {
           "word": "crack",
-          "start": 4.341,
-          "end": 4.726
+          "start": 4.2198,
+          "end": 4.54
         },
         {
           "word": "them.",
-          "start": 4.738,
-          "end": 5.039
+          "start": 4.54,
+          "end": 4.7601
         }
       ],
-      "duration": 5.039
+      "duration": 4.7601
     },
     {
       "id": "sneak_quest_hammer",
@@ -791,41 +791,41 @@
       "words": [
         {
           "word": "I",
-          "start": 0.098,
-          "end": 0.278
+          "start": 0.04,
+          "end": 0.1079
         },
         {
           "word": "saw",
-          "start": 0.29,
-          "end": 0.615
+          "start": 0.1079,
+          "end": 0.3481
         },
         {
           "word": "a",
-          "start": 0.627,
-          "end": 0.675
+          "start": 0.3481,
+          "end": 0.4681
         },
         {
           "word": "hammer",
-          "start": 0.687,
-          "end": 1.144
+          "start": 0.4681,
+          "end": 0.7683
         },
         {
           "word": "near",
-          "start": 1.156,
-          "end": 1.408
+          "start": 0.7683,
+          "end": 0.9284
         },
         {
           "word": "the",
-          "start": 1.42,
-          "end": 1.528
+          "start": 0.9284,
+          "end": 1.0684
         },
         {
           "word": "well!",
-          "start": 1.54,
-          "end": 1.925
+          "start": 1.0684,
+          "end": 1.3486
         }
       ],
-      "duration": 1.925
+      "duration": 1.3486
     },
     {
       "id": "sneak_quest_crack",
@@ -835,36 +835,36 @@
       "words": [
         {
           "word": "Crack",
-          "start": 0.098,
-          "end": 0.495
+          "start": 0.04,
+          "end": 0.2538
         },
         {
           "word": "the",
-          "start": 0.507,
-          "end": 0.615
+          "start": 0.2538,
+          "end": 0.4139
         },
         {
           "word": "stones",
-          "start": 0.627,
-          "end": 1.132
+          "start": 0.4139,
+          "end": 0.7341
         },
         {
           "word": "with",
-          "start": 1.144,
-          "end": 1.3
+          "start": 0.7341,
+          "end": 0.8941
         },
         {
           "word": "your",
-          "start": 1.312,
-          "end": 1.468
+          "start": 0.8941,
+          "end": 1.0542
         },
         {
           "word": "hammer!",
-          "start": 1.48,
-          "end": 1.985
+          "start": 1.0542,
+          "end": 1.4544
         }
       ],
-      "duration": 1.985
+      "duration": 1.4544
     },
     {
       "id": "sneak_quest_cave",
@@ -874,56 +874,56 @@
       "words": [
         {
           "word": "We",
-          "start": 0.098,
-          "end": 0.302
+          "start": 0.04,
+          "end": 0.1148
         },
         {
           "word": "have",
-          "start": 0.314,
-          "end": 0.591
+          "start": 0.1399,
+          "end": 0.475
         },
         {
           "word": "them",
-          "start": 0.603,
-          "end": 0.783
+          "start": 0.475,
+          "end": 0.655
         },
         {
           "word": "all!",
-          "start": 0.795,
-          "end": 1.108
+          "start": 0.9002,
+          "end": 1.1553
         },
         {
           "word": "Meet",
-          "start": 1.36,
-          "end": 1.588
+          "start": 1.4605,
+          "end": 1.7356
         },
         {
           "word": "me",
-          "start": 1.601,
-          "end": 1.829
+          "start": 1.7356,
+          "end": 1.8356
         },
         {
           "word": "at",
-          "start": 1.841,
-          "end": 1.985
+          "start": 1.8356,
+          "end": 1.9757
         },
         {
           "word": "the",
-          "start": 1.997,
-          "end": 2.093
+          "start": 1.9757,
+          "end": 2.0557
         },
         {
           "word": "Secret",
-          "start": 2.105,
-          "end": 2.562
+          "start": 2.0557,
+          "end": 2.4559
         },
         {
           "word": "Cave.",
-          "start": 2.574,
-          "end": 3.007
+          "start": 2.4559,
+          "end": 2.87
         }
       ],
-      "duration": 3.007
+      "duration": 2.87
     },
     {
       "id": "seraphina_axe",
@@ -933,11 +933,11 @@
       "words": [
         {
           "word": "Axe!",
-          "start": 0.104,
-          "end": 0.689
+          "start": 0.0897,
+          "end": 0.3848
         }
       ],
-      "duration": 0.689
+      "duration": 0.3848
     },
     {
       "id": "seraphina_hammer",
@@ -947,11 +947,11 @@
       "words": [
         {
           "word": "Hammer!",
-          "start": 0.104,
-          "end": 0.756
+          "start": 0.04,
+          "end": 0.3776
         }
       ],
-      "duration": 0.756
+      "duration": 0.3776
     },
     {
       "id": "seraphina_malachite",
@@ -961,11 +961,11 @@
       "words": [
         {
           "word": "Malachite!",
-          "start": 0.104,
-          "end": 1.001
+          "start": 0.04,
+          "end": 0.63
         }
       ],
-      "duration": 1.001
+      "duration": 0.63
     },
     {
       "id": "seraphina_ruby",
@@ -975,11 +975,11 @@
       "words": [
         {
           "word": "Ruby!",
-          "start": 0.104,
-          "end": 0.702
+          "start": 0.0475,
+          "end": 0.4307
         }
       ],
-      "duration": 0.702
+      "duration": 0.4307
     },
     {
       "id": "seraphina_sapphire",
@@ -989,11 +989,11 @@
       "words": [
         {
           "word": "Sapphire!",
-          "start": 0.104,
-          "end": 0.96
+          "start": 0.04,
+          "end": 0.5284
         }
       ],
-      "duration": 0.96
+      "duration": 0.5284
     },
     {
       "id": "seraphina_need_axe",
@@ -1003,26 +1003,26 @@
       "words": [
         {
           "word": "I",
-          "start": 0.104,
-          "end": 0.24
+          "start": 0.04,
+          "end": 0.0586
         },
         {
           "word": "need",
-          "start": 0.254,
-          "end": 0.621
+          "start": 0.0586,
+          "end": 0.2786
         },
         {
           "word": "my",
-          "start": 0.634,
-          "end": 0.838
+          "start": 0.2786,
+          "end": 0.3987
         },
         {
           "word": "axe!",
-          "start": 0.852,
-          "end": 1.436
+          "start": 0.4838,
+          "end": 0.77
         }
       ],
-      "duration": 1.436
+      "duration": 0.77
     },
     {
       "id": "seraphina_need_hammer",
@@ -1032,26 +1032,26 @@
       "words": [
         {
           "word": "I",
-          "start": 0.104,
-          "end": 0.24
+          "start": 0.0425,
+          "end": 0.0964
         },
         {
           "word": "need",
-          "start": 0.254,
-          "end": 0.621
+          "start": 0.0964,
+          "end": 0.2965
         },
         {
           "word": "my",
-          "start": 0.634,
-          "end": 0.824
+          "start": 0.2965,
+          "end": 0.4165
         },
         {
           "word": "hammer!",
-          "start": 0.838,
-          "end": 1.463
+          "start": 0.4165,
+          "end": 0.7967
         }
       ],
-      "duration": 1.463
+      "duration": 0.7967
     },
     {
       "id": "sneak_cave_greet",
@@ -1061,41 +1061,41 @@
       "words": [
         {
           "word": "You",
-          "start": 0.098,
-          "end": 0.278
+          "start": 0.04,
+          "end": 0.1114
         },
         {
           "word": "made",
-          "start": 0.29,
-          "end": 0.555
+          "start": 0.1114,
+          "end": 0.4116
         },
         {
           "word": "it!",
-          "start": 0.567,
-          "end": 0.759
+          "start": 0.4116,
+          "end": 0.5717
         },
         {
           "word": "Stand",
-          "start": 1.036,
-          "end": 1.54
+          "start": 0.6968,
+          "end": 1.1119
         },
         {
           "word": "by",
-          "start": 1.552,
-          "end": 1.709
+          "start": 1.1119,
+          "end": 1.4121
         },
         {
           "word": "the",
-          "start": 1.721,
-          "end": 1.829
+          "start": 1.6373,
+          "end": 1.8523
         },
         {
           "word": "fire.",
-          "start": 1.841,
-          "end": 2.358
+          "start": 1.8574,
+          "end": 2.3125
         }
       ],
-      "duration": 2.358
+      "duration": 2.3125
     },
     {
       "id": "sneak_press_red",
@@ -1105,26 +1105,26 @@
       "words": [
         {
           "word": "Press",
-          "start": 0.098,
-          "end": 0.447
+          "start": 0.04,
+          "end": 0.2128
         },
         {
           "word": "the",
-          "start": 0.459,
-          "end": 0.591
+          "start": 0.2128,
+          "end": 0.3929
         },
         {
           "word": "red",
-          "start": 0.603,
-          "end": 0.915
+          "start": 0.3929,
+          "end": 0.6731
         },
         {
           "word": "button!",
-          "start": 0.927,
-          "end": 1.384
+          "start": 0.6731,
+          "end": 1.0933
         }
       ],
-      "duration": 1.384
+      "duration": 1.0933
     },
     {
       "id": "sneak_press_green",
@@ -1134,26 +1134,26 @@
       "words": [
         {
           "word": "Now",
-          "start": 0.098,
-          "end": 0.447
+          "start": 0.04,
+          "end": 0.2085
         },
         {
           "word": "the",
-          "start": 0.459,
-          "end": 0.603
+          "start": 0.2085,
+          "end": 0.3686
         },
         {
           "word": "green",
-          "start": 0.615,
-          "end": 1.012
+          "start": 0.3686,
+          "end": 0.6888
         },
         {
           "word": "button!",
-          "start": 1.024,
-          "end": 1.492
+          "start": 0.6888,
+          "end": 1.0089
         }
       ],
-      "duration": 1.492
+      "duration": 1.0089
     },
     {
       "id": "sneak_press_blue",
@@ -1163,26 +1163,26 @@
       "words": [
         {
           "word": "Now",
-          "start": 0.098,
-          "end": 0.423
+          "start": 0.0425,
+          "end": 0.1916
         },
         {
           "word": "the",
-          "start": 0.435,
-          "end": 0.579
+          "start": 0.1916,
+          "end": 0.3317
         },
         {
           "word": "blue",
-          "start": 0.591,
-          "end": 0.891
+          "start": 0.3317,
+          "end": 0.5918
         },
         {
           "word": "button!",
-          "start": 0.903,
-          "end": 1.396
+          "start": 0.5918,
+          "end": 0.912
         }
       ],
-      "duration": 1.396
+      "duration": 0.912
     },
     {
       "id": "sneak_try_red",
@@ -1192,26 +1192,26 @@
       "words": [
         {
           "word": "Try",
-          "start": 0.098,
-          "end": 0.423
+          "start": 0.04,
+          "end": 0.1847
         },
         {
           "word": "the",
-          "start": 0.435,
-          "end": 0.567
+          "start": 0.1847,
+          "end": 0.3648
         },
         {
           "word": "red",
-          "start": 0.579,
-          "end": 0.879
+          "start": 0.3648,
+          "end": 0.5649
         },
         {
           "word": "one!",
-          "start": 0.891,
-          "end": 1.264
+          "start": 0.65,
+          "end": 0.885
         }
       ],
-      "duration": 1.264
+      "duration": 0.885
     },
     {
       "id": "sneak_try_green",
@@ -1221,26 +1221,26 @@
       "words": [
         {
           "word": "Try",
-          "start": 0.098,
-          "end": 0.423
+          "start": 0.04,
+          "end": 0.1503
         },
         {
           "word": "the",
-          "start": 0.435,
-          "end": 0.567
+          "start": 0.1503,
+          "end": 0.2903
         },
         {
           "word": "green",
-          "start": 0.579,
-          "end": 0.963
+          "start": 0.2903,
+          "end": 0.5905
         },
         {
           "word": "one!",
-          "start": 0.976,
-          "end": 1.336
+          "start": 0.6956,
+          "end": 0.9307
         }
       ],
-      "duration": 1.336
+      "duration": 0.9307
     },
     {
       "id": "sneak_try_blue",
@@ -1250,26 +1250,26 @@
       "words": [
         {
           "word": "Try",
-          "start": 0.098,
-          "end": 0.423
+          "start": 0.04,
+          "end": 0.1559
         },
         {
           "word": "the",
-          "start": 0.435,
-          "end": 0.555
+          "start": 0.1559,
+          "end": 0.296
         },
         {
           "word": "blue",
-          "start": 0.567,
-          "end": 0.867
+          "start": 0.296,
+          "end": 0.5361
         },
         {
           "word": "one!",
-          "start": 0.879,
-          "end": 1.252
+          "start": 0.5612,
+          "end": 0.7962
         }
       ],
-      "duration": 1.252
+      "duration": 0.7962
     },
     {
       "id": "sneak_faeries_real",
@@ -1279,21 +1279,21 @@
       "words": [
         {
           "word": "Faeries!",
-          "start": 0.099,
-          "end": 0.784
+          "start": 0.0425,
+          "end": 0.404
         },
         {
           "word": "Real",
-          "start": 1.036,
-          "end": 1.337
+          "start": 0.4091,
+          "end": 0.7442
         },
         {
           "word": "faeries!",
-          "start": 1.349,
-          "end": 2.07
+          "start": 0.7442,
+          "end": 1.3245
         }
       ],
-      "duration": 2.07
+      "duration": 1.3245
     },
     {
       "id": "morgana_pretty",
@@ -1303,16 +1303,16 @@
       "words": [
         {
           "word": "So",
-          "start": 0.097,
-          "end": 0.427
+          "start": 0.04,
+          "end": 0.2215
         },
         {
           "word": "pretty!",
-          "start": 0.439,
-          "end": 0.946
+          "start": 0.2265,
+          "end": 0.6016
         }
       ],
-      "duration": 0.946
+      "duration": 0.6016
     },
     {
       "id": "sneak_thanks",
@@ -1322,36 +1322,36 @@
       "words": [
         {
           "word": "We",
-          "start": 0.098,
-          "end": 0.314
+          "start": 0.04,
+          "end": 0.1873
         },
         {
           "word": "did",
-          "start": 0.326,
-          "end": 0.555
+          "start": 0.1873,
+          "end": 0.4274
         },
         {
           "word": "it!",
-          "start": 0.567,
-          "end": 0.759
+          "start": 0.4274,
+          "end": 0.5875
         },
         {
           "word": "Thank",
-          "start": 1.024,
-          "end": 1.288
+          "start": 0.5926,
+          "end": 0.9077
         },
         {
           "word": "you,",
-          "start": 1.3,
-          "end": 1.444
+          "start": 0.9077,
+          "end": 1.1078
         },
         {
           "word": "Seraphina.",
-          "start": 1.456,
-          "end": 2.238
+          "start": 1.1078,
+          "end": 1.8481
         }
       ],
-      "duration": 2.238
+      "duration": 1.8481
     },
     {
       "id": "sneak_coin",
@@ -1361,41 +1361,41 @@
       "words": [
         {
           "word": "This",
-          "start": 0.098,
-          "end": 0.338
+          "start": 0.0425,
+          "end": 0.2009
         },
         {
           "word": "shiny",
-          "start": 0.351,
-          "end": 0.807
+          "start": 0.226,
+          "end": 0.6611
         },
         {
           "word": "gold",
-          "start": 0.819,
-          "end": 1.192
+          "start": 0.6611,
+          "end": 0.9012
         },
         {
           "word": "coin",
-          "start": 1.204,
-          "end": 1.564
+          "start": 0.9012,
+          "end": 1.1814
         },
         {
           "word": "is",
-          "start": 1.576,
-          "end": 1.769
+          "start": 1.1814,
+          "end": 1.3215
         },
         {
           "word": "for",
-          "start": 1.781,
-          "end": 2.009
+          "start": 1.3215,
+          "end": 1.6016
         },
         {
           "word": "you!",
-          "start": 2.021,
-          "end": 2.31
+          "start": 1.6067,
+          "end": 1.9218
         }
       ],
-      "duration": 2.31
+      "duration": 1.9218
     },
     {
       "id": "dad_quest_offer",
@@ -1405,46 +1405,46 @@
       "words": [
         {
           "word": "Three",
-          "start": 0.106,
-          "end": 0.467
+          "start": 0.04,
+          "end": 0.1644
         },
         {
           "word": "little",
-          "start": 0.481,
-          "end": 0.758
+          "start": 0.1644,
+          "end": 0.4046
         },
         {
           "word": "bunnies",
-          "start": 0.786,
-          "end": 1.175
+          "start": 0.4046,
+          "end": 0.6848
         },
         {
           "word": "are",
-          "start": 1.203,
-          "end": 1.328
+          "start": 0.6848,
+          "end": 0.7849
         },
         {
           "word": "stuck",
-          "start": 1.356,
-          "end": 1.675
+          "start": 0.7849,
+          "end": 0.985
         },
         {
           "word": "in",
-          "start": 1.703,
-          "end": 1.786
+          "start": 0.985,
+          "end": 1.0851
         },
         {
           "word": "the",
-          "start": 1.814,
-          "end": 1.911
+          "start": 1.0851,
+          "end": 1.1851
         },
         {
           "word": "woods!",
-          "start": 1.925,
-          "end": 2.439
+          "start": 1.1851,
+          "end": 1.4653
         }
       ],
-      "duration": 2.439
+      "duration": 1.4653
     },
     {
       "id": "dad_quest_pen",
@@ -1454,66 +1454,66 @@
       "words": [
         {
           "word": "Little",
-          "start": 0.106,
-          "end": 0.453
+          "start": 0.04,
+          "end": 0.2409
         },
         {
           "word": "trees",
-          "start": 0.481,
-          "end": 0.869
+          "start": 0.2409,
+          "end": 0.5211
         },
         {
           "word": "are",
-          "start": 0.897,
-          "end": 1.05
+          "start": 0.5211,
+          "end": 0.6412
         },
         {
           "word": "all",
-          "start": 1.078,
-          "end": 1.231
+          "start": 0.6412,
+          "end": 0.7613
         },
         {
           "word": "around",
-          "start": 1.258,
-          "end": 1.578
+          "start": 0.7613,
+          "end": 0.9815
         },
         {
           "word": "the",
-          "start": 1.592,
-          "end": 1.689
+          "start": 0.9815,
+          "end": 1.1016
         },
         {
           "word": "bunnies!",
-          "start": 1.717,
-          "end": 2.147
+          "start": 1.1016,
+          "end": 1.4218
         },
         {
           "word": "Find",
-          "start": 2.328,
-          "end": 2.647
+          "start": 1.647,
+          "end": 1.9021
         },
         {
           "word": "them",
-          "start": 2.661,
-          "end": 2.814
+          "start": 1.9021,
+          "end": 2.0422
         },
         {
           "word": "in",
-          "start": 2.842,
-          "end": 2.925
+          "start": 2.0422,
+          "end": 2.1023
         },
         {
           "word": "the",
-          "start": 2.953,
-          "end": 3.064
+          "start": 2.1023,
+          "end": 2.2023
         },
         {
           "word": "woods.",
-          "start": 3.092,
-          "end": 3.578
+          "start": 2.2023,
+          "end": 2.4825
         }
       ],
-      "duration": 3.578
+      "duration": 2.4825
     },
     {
       "id": "dad_quest_chop",
@@ -1523,41 +1523,41 @@
       "words": [
         {
           "word": "Chop",
-          "start": 0.106,
-          "end": 0.467
+          "start": 0.0425,
+          "end": 0.2008
         },
         {
           "word": "the",
-          "start": 0.481,
-          "end": 0.606
+          "start": 0.2008,
+          "end": 0.3609
         },
         {
           "word": "little",
-          "start": 0.633,
-          "end": 0.897
+          "start": 0.3609,
+          "end": 0.541
         },
         {
           "word": "trees",
-          "start": 0.911,
-          "end": 1.3
+          "start": 0.541,
+          "end": 0.8212
         },
         {
           "word": "with",
-          "start": 1.314,
-          "end": 1.481
+          "start": 0.8212,
+          "end": 0.9413
         },
         {
           "word": "your",
-          "start": 1.508,
-          "end": 1.703
+          "start": 0.9413,
+          "end": 1.0814
         },
         {
           "word": "axe!",
-          "start": 1.731,
-          "end": 2.189
+          "start": 1.1065,
+          "end": 1.3816
         }
       ],
-      "duration": 2.189
+      "duration": 1.3816
     },
     {
       "id": "dad_quest_carrots",
@@ -1567,46 +1567,46 @@
       "words": [
         {
           "word": "Bunnies",
-          "start": 0.106,
-          "end": 0.536
+          "start": 0.0425,
+          "end": 0.2774
         },
         {
           "word": "love",
-          "start": 0.564,
-          "end": 0.8
+          "start": 0.2774,
+          "end": 0.4776
         },
         {
           "word": "carrots!",
-          "start": 0.828,
-          "end": 1.328
+          "start": 0.4776,
+          "end": 0.8979
         },
         {
           "word": "Find",
-          "start": 1.481,
-          "end": 1.8
+          "start": 1.023,
+          "end": 1.2981
         },
         {
           "word": "three",
-          "start": 1.828,
-          "end": 2.092
+          "start": 1.2981,
+          "end": 1.5783
         },
         {
           "word": "in",
-          "start": 2.119,
-          "end": 2.189
+          "start": 1.5783,
+          "end": 1.6784
         },
         {
           "word": "the",
-          "start": 2.217,
-          "end": 2.328
+          "start": 1.6784,
+          "end": 1.7785
         },
         {
           "word": "woods.",
-          "start": 2.356,
-          "end": 2.828
+          "start": 1.7785,
+          "end": 2.0787
         }
       ],
-      "duration": 2.828
+      "duration": 2.0787
     },
     {
       "id": "dad_quest_lure",
@@ -1616,61 +1616,61 @@
       "words": [
         {
           "word": "Give",
-          "start": 0.106,
-          "end": 0.328
+          "start": 0.0425,
+          "end": 0.1443
         },
         {
           "word": "a",
-          "start": 0.342,
-          "end": 0.425
+          "start": 0.1443,
+          "end": 0.2243
         },
         {
           "word": "bunny",
-          "start": 0.453,
-          "end": 0.772
+          "start": 0.2243,
+          "end": 0.4445
         },
         {
           "word": "a",
-          "start": 0.8,
-          "end": 0.869
+          "start": 0.4445,
+          "end": 0.5245
         },
         {
           "word": "carrot",
-          "start": 0.897,
-          "end": 1.314
+          "start": 0.5245,
+          "end": 0.8448
         },
         {
           "word": "and",
-          "start": 1.342,
-          "end": 1.481
+          "start": 0.8448,
+          "end": 0.9648
         },
         {
           "word": "walk",
-          "start": 1.508,
-          "end": 1.744
+          "start": 0.9648,
+          "end": 1.165
         },
         {
           "word": "it",
-          "start": 1.758,
-          "end": 1.842
+          "start": 1.165,
+          "end": 1.2851
         },
         {
           "word": "home",
-          "start": 1.869,
-          "end": 2.092
+          "start": 1.2851,
+          "end": 1.5052
         },
         {
           "word": "to",
-          "start": 2.119,
-          "end": 2.217
+          "start": 1.5052,
+          "end": 1.6253
         },
         {
           "word": "me!",
-          "start": 2.244,
-          "end": 2.592
+          "start": 1.6253,
+          "end": 1.7854
         }
       ],
-      "duration": 2.592
+      "duration": 1.7854
     },
     {
       "id": "dad_two_more",
@@ -1680,31 +1680,31 @@
       "words": [
         {
           "word": "Two",
-          "start": 0.106,
-          "end": 0.272
+          "start": 0.0425,
+          "end": 0.1661
         },
         {
           "word": "more",
-          "start": 0.286,
-          "end": 0.522
+          "start": 0.1661,
+          "end": 0.3462
         },
         {
           "word": "bunnies",
-          "start": 0.55,
-          "end": 0.897
+          "start": 0.3462,
+          "end": 0.6064
         },
         {
           "word": "to",
-          "start": 0.925,
-          "end": 1.05
+          "start": 0.6064,
+          "end": 0.6865
         },
         {
           "word": "go!",
-          "start": 1.078,
-          "end": 1.494
+          "start": 0.6865,
+          "end": 0.9825
         }
       ],
-      "duration": 1.494
+      "duration": 0.9825
     },
     {
       "id": "dad_one_more",
@@ -1714,31 +1714,31 @@
       "words": [
         {
           "word": "One",
-          "start": 0.106,
-          "end": 0.411
+          "start": 0.04,
+          "end": 0.1949
         },
         {
           "word": "more",
-          "start": 0.439,
-          "end": 0.689
+          "start": 0.1949,
+          "end": 0.355
         },
         {
           "word": "bunny",
-          "start": 0.717,
-          "end": 1.008
+          "start": 0.355,
+          "end": 0.5551
         },
         {
           "word": "to",
-          "start": 1.036,
-          "end": 1.175
+          "start": 0.5551,
+          "end": 0.6552
         },
         {
           "word": "go!",
-          "start": 1.203,
-          "end": 1.633
+          "start": 0.6552,
+          "end": 0.8553
         }
       ],
-      "duration": 1.633
+      "duration": 0.8553
     },
     {
       "id": "dad_bunnies_home",
@@ -1748,31 +1748,31 @@
       "words": [
         {
           "word": "All",
-          "start": 0.106,
-          "end": 0.383
+          "start": 0.04,
+          "end": 0.2161
         },
         {
           "word": "three",
-          "start": 0.411,
-          "end": 0.689
+          "start": 0.2161,
+          "end": 0.4563
         },
         {
           "word": "bunnies",
-          "start": 0.717,
-          "end": 1.106
+          "start": 0.4563,
+          "end": 0.7565
         },
         {
           "word": "are",
-          "start": 1.133,
-          "end": 1.258
+          "start": 0.7565,
+          "end": 0.8966
         },
         {
           "word": "home!",
-          "start": 1.286,
-          "end": 1.731
+          "start": 0.8966,
+          "end": 1.19
         }
       ],
-      "duration": 1.731
+      "duration": 1.19
     },
     {
       "id": "dad_bunny_coin",
@@ -1782,56 +1782,56 @@
       "words": [
         {
           "word": "The",
-          "start": 0.106,
-          "end": 0.258
+          "start": 0.04,
+          "end": 0.1374
         },
         {
           "word": "bunnies",
-          "start": 0.286,
-          "end": 0.647
+          "start": 0.1374,
+          "end": 0.4376
         },
         {
           "word": "want",
-          "start": 0.675,
-          "end": 0.925
+          "start": 0.4376,
+          "end": 0.5978
         },
         {
           "word": "you",
-          "start": 0.939,
-          "end": 1.078
+          "start": 0.5978,
+          "end": 0.6778
         },
         {
           "word": "to",
-          "start": 1.106,
-          "end": 1.189
+          "start": 0.6778,
+          "end": 0.8179
         },
         {
           "word": "have",
-          "start": 1.203,
-          "end": 1.453
+          "start": 0.8179,
+          "end": 0.998
         },
         {
           "word": "this",
-          "start": 1.481,
-          "end": 1.633
+          "start": 0.998,
+          "end": 1.1181
         },
         {
           "word": "shiny",
-          "start": 1.661,
-          "end": 2.092
+          "start": 1.1181,
+          "end": 1.4984
         },
         {
           "word": "gold",
-          "start": 2.119,
-          "end": 2.439
+          "start": 1.4984,
+          "end": 1.7586
         },
         {
           "word": "coin!",
-          "start": 2.453,
-          "end": 2.911
+          "start": 1.7637,
+          "end": 2.1589
         }
       ],
-      "duration": 2.911
+      "duration": 2.1589
     },
     {
       "id": "seraphina_bunny",
@@ -1841,11 +1841,11 @@
       "words": [
         {
           "word": "Bunny!",
-          "start": 0.104,
-          "end": 0.621
+          "start": 0.04,
+          "end": 0.3094
         }
       ],
-      "duration": 0.621
+      "duration": 0.3094
     },
     {
       "id": "seraphina_carrot",
@@ -1855,11 +1855,11 @@
       "words": [
         {
           "word": "Carrot!",
-          "start": 0.104,
-          "end": 0.729
+          "start": 0.04,
+          "end": 0.3647
         }
       ],
-      "duration": 0.729
+      "duration": 0.3647
     },
     {
       "id": "seraphina_one_bunny",
@@ -1869,36 +1869,36 @@
       "words": [
         {
           "word": "One",
-          "start": 0.104,
-          "end": 0.471
+          "start": 0.04,
+          "end": 0.2549
         },
         {
           "word": "bunny",
-          "start": 0.485,
-          "end": 0.933
+          "start": 0.2549,
+          "end": 0.495
         },
         {
           "word": "at",
-          "start": 0.947,
-          "end": 1.123
+          "start": 0.495,
+          "end": 0.5951
         },
         {
           "word": "a",
-          "start": 1.137,
-          "end": 1.205
+          "start": 0.5951,
+          "end": 0.6751
         },
         {
           "word": "time,",
-          "start": 1.218,
-          "end": 1.694
+          "start": 0.6751,
+          "end": 0.9152
         },
         {
           "word": "silly!",
-          "start": 2.007,
-          "end": 2.604
+          "start": 0.9603,
+          "end": 1.4154
         }
       ],
-      "duration": 2.604
+      "duration": 1.4154
     },
     {
       "id": "seraphina_need_carrot",
@@ -1908,31 +1908,31 @@
       "words": [
         {
           "word": "The",
-          "start": 0.104,
-          "end": 0.295
+          "start": 0.04,
+          "end": 0.1156
         },
         {
           "word": "bunny",
-          "start": 0.308,
-          "end": 0.689
+          "start": 0.1156,
+          "end": 0.3757
         },
         {
           "word": "wants",
-          "start": 0.702,
-          "end": 1.042
+          "start": 0.3757,
+          "end": 0.6558
         },
         {
           "word": "a",
-          "start": 1.055,
-          "end": 1.137
+          "start": 0.6558,
+          "end": 0.7158
         },
         {
           "word": "carrot!",
-          "start": 1.151,
-          "end": 1.735
+          "start": 0.7409,
+          "end": 1.235
         }
       ],
-      "duration": 1.735
+      "duration": 1.235
     },
     {
       "id": "morgana_story_offer",
@@ -1942,36 +1942,36 @@
       "words": [
         {
           "word": "Will",
-          "start": 0.097,
-          "end": 0.262
+          "start": 0.04,
+          "end": 0.1568
         },
         {
           "word": "you",
-          "start": 0.274,
-          "end": 0.463
+          "start": 0.1568,
+          "end": 0.2969
         },
         {
           "word": "read",
-          "start": 0.475,
-          "end": 0.675
+          "start": 0.2969,
+          "end": 0.4569
         },
         {
           "word": "me",
-          "start": 0.687,
-          "end": 0.828
+          "start": 0.4569,
+          "end": 0.577
         },
         {
           "word": "a",
-          "start": 0.84,
-          "end": 0.899
+          "start": 0.577,
+          "end": 0.677
         },
         {
           "word": "story?",
-          "start": 0.911,
-          "end": 1.453
+          "start": 0.677,
+          "end": 1.0972
         }
       ],
-      "duration": 1.453
+      "duration": 1.0972
     },
     {
       "id": "morgana_story_book",
@@ -1981,41 +1981,41 @@
       "words": [
         {
           "word": "There",
-          "start": 0.097,
-          "end": 0.321
+          "start": 0.0425,
+          "end": 0.1499
         },
         {
           "word": "is",
-          "start": 0.333,
-          "end": 0.463
+          "start": 0.1499,
+          "end": 0.29
         },
         {
           "word": "a",
-          "start": 0.475,
-          "end": 0.545
+          "start": 0.29,
+          "end": 0.37
         },
         {
           "word": "storybook",
-          "start": 0.557,
-          "end": 1.265
+          "start": 0.37,
+          "end": 0.8502
         },
         {
           "word": "on",
-          "start": 1.276,
-          "end": 1.394
+          "start": 0.8502,
+          "end": 0.9702
         },
         {
           "word": "the",
-          "start": 1.406,
-          "end": 1.5
+          "start": 0.9702,
+          "end": 1.1103
         },
         {
           "word": "bookshelf!",
-          "start": 1.512,
-          "end": 2.22
+          "start": 1.1103,
+          "end": 1.5225
         }
       ],
-      "duration": 2.22
+      "duration": 1.5225
     },
     {
       "id": "morgana_story_come",
@@ -2025,46 +2025,46 @@
       "words": [
         {
           "word": "Come",
-          "start": 0.097,
-          "end": 0.357
+          "start": 0.0425,
+          "end": 0.1757
         },
         {
           "word": "and",
-          "start": 0.368,
-          "end": 0.533
+          "start": 0.1757,
+          "end": 0.2757
         },
         {
           "word": "sit",
-          "start": 0.545,
-          "end": 0.84
+          "start": 0.2757,
+          "end": 0.4158
         },
         {
           "word": "on",
-          "start": 0.852,
-          "end": 0.993
+          "start": 0.4158,
+          "end": 0.5158
         },
         {
           "word": "the",
-          "start": 1.005,
-          "end": 1.088
+          "start": 0.5158,
+          "end": 0.6559
         },
         {
           "word": "rug",
-          "start": 1.1,
-          "end": 1.394
+          "start": 0.6559,
+          "end": 0.8359
         },
         {
           "word": "with",
-          "start": 1.406,
-          "end": 1.607
+          "start": 0.8359,
+          "end": 1.036
         },
         {
           "word": "me!",
-          "start": 1.618,
-          "end": 1.913
+          "start": 1.036,
+          "end": 1.1961
         }
       ],
-      "duration": 1.913
+      "duration": 1.1961
     },
     {
       "id": "morgana_story_read",
@@ -2074,46 +2074,46 @@
       "words": [
         {
           "word": "Press",
-          "start": 0.097,
-          "end": 0.427
+          "start": 0.04,
+          "end": 0.1638
         },
         {
           "word": "the",
-          "start": 0.439,
-          "end": 0.557
+          "start": 0.1638,
+          "end": 0.3439
         },
         {
           "word": "green",
-          "start": 0.569,
-          "end": 0.923
+          "start": 0.3439,
+          "end": 0.584
         },
         {
           "word": "button",
-          "start": 0.934,
-          "end": 1.3
+          "start": 0.584,
+          "end": 0.9241
         },
         {
           "word": "to",
-          "start": 1.312,
-          "end": 1.465
+          "start": 0.9241,
+          "end": 1.0642
         },
         {
           "word": "open",
-          "start": 1.477,
-          "end": 1.819
+          "start": 1.0692,
+          "end": 1.3243
         },
         {
           "word": "the",
-          "start": 1.831,
-          "end": 1.925
+          "start": 1.3243,
+          "end": 1.4644
         },
         {
           "word": "book!",
-          "start": 1.937,
-          "end": 2.291
+          "start": 1.4644,
+          "end": 1.65
         }
       ],
-      "duration": 2.291
+      "duration": 1.65
     },
     {
       "id": "morgana_book_moon",
@@ -2123,36 +2123,36 @@
       "words": [
         {
           "word": "All",
-          "start": 0.097,
-          "end": 0.368
+          "start": 0.04,
+          "end": 0.2148
         },
         {
           "word": "the",
-          "start": 0.38,
-          "end": 0.498
+          "start": 0.2148,
+          "end": 0.2948
         },
         {
           "word": "way",
-          "start": 0.51,
-          "end": 0.722
+          "start": 0.2948,
+          "end": 0.4349
         },
         {
           "word": "to",
-          "start": 0.734,
-          "end": 0.864
+          "start": 0.4349,
+          "end": 0.5549
         },
         {
           "word": "the",
-          "start": 0.875,
-          "end": 0.982
+          "start": 0.5549,
+          "end": 0.715
         },
         {
           "word": "moon!",
-          "start": 0.993,
-          "end": 1.418
+          "start": 0.715,
+          "end": 0.9951
         }
       ],
-      "duration": 1.418
+      "duration": 0.9951
     },
     {
       "id": "morgana_book_dragon",
@@ -2162,21 +2162,21 @@
       "words": [
         {
           "word": "A",
-          "start": 0.097,
-          "end": 0.215
+          "start": 0.0425,
+          "end": 0.1327
         },
         {
           "word": "baby",
-          "start": 0.227,
-          "end": 0.604
+          "start": 0.1327,
+          "end": 0.4129
         },
         {
           "word": "dragon!",
-          "start": 0.616,
-          "end": 1.217
+          "start": 0.4129,
+          "end": 0.873
         }
       ],
-      "duration": 1.217
+      "duration": 0.873
     },
     {
       "id": "morgana_book_sparkles",
@@ -2186,16 +2186,16 @@
       "words": [
         {
           "word": "Sparkles",
-          "start": 0.097,
-          "end": 0.84
+          "start": 0.04,
+          "end": 0.5809
         },
         {
           "word": "everywhere!",
-          "start": 0.852,
-          "end": 1.524
+          "start": 0.5809,
+          "end": 1.1411
         }
       ],
-      "duration": 1.524
+      "duration": 1.1411
     },
     {
       "id": "morgana_book_best",
@@ -2205,51 +2205,51 @@
       "words": [
         {
           "word": "That",
-          "start": 0.097,
-          "end": 0.392
+          "start": 0.04,
+          "end": 0.1365
         },
         {
           "word": "was",
-          "start": 0.404,
-          "end": 0.569
+          "start": 0.1365,
+          "end": 0.2765
         },
         {
           "word": "the",
-          "start": 0.581,
-          "end": 0.687
+          "start": 0.2765,
+          "end": 0.3966
         },
         {
           "word": "best",
-          "start": 0.699,
-          "end": 1.029
+          "start": 0.3966,
+          "end": 0.5966
         },
         {
           "word": "story",
-          "start": 1.041,
-          "end": 1.477
+          "start": 0.5966,
+          "end": 0.8968
         },
         {
           "word": "ever!",
-          "start": 1.489,
-          "end": 1.901
+          "start": 0.8968,
+          "end": 1.2369
         },
         {
           "word": "Thank",
-          "start": 2.161,
-          "end": 2.408
+          "start": 1.2819,
+          "end": 1.557
         },
         {
           "word": "you",
-          "start": 2.42,
-          "end": 2.562
+          "start": 1.557,
+          "end": 1.6971
         },
         {
           "word": "Seraphina.",
-          "start": 2.574,
-          "end": 3.328
+          "start": 1.6971,
+          "end": 2.375
         }
       ],
-      "duration": 3.328
+      "duration": 2.375
     },
     {
       "id": "morgana_story_hug",
@@ -2259,36 +2259,36 @@
       "words": [
         {
           "word": "Big",
-          "start": 0.097,
-          "end": 0.345
+          "start": 0.04,
+          "end": 0.1776
         },
         {
           "word": "hug!",
-          "start": 0.357,
-          "end": 0.722
+          "start": 0.1776,
+          "end": 0.4777
         },
         {
           "word": "I",
-          "start": 1.005,
-          "end": 1.111
+          "start": 0.6228,
+          "end": 0.7578
         },
         {
           "word": "love",
-          "start": 1.123,
-          "end": 1.465
+          "start": 0.7629,
+          "end": 1.058
         },
         {
           "word": "story",
-          "start": 1.477,
-          "end": 1.925
+          "start": 1.058,
+          "end": 1.3781
         },
         {
           "word": "time.",
-          "start": 1.937,
-          "end": 2.373
+          "start": 1.3781,
+          "end": 1.775
         }
       ],
-      "duration": 2.373
+      "duration": 1.775
     },
     {
       "id": "morgana_story_coin",
@@ -2298,56 +2298,56 @@
       "words": [
         {
           "word": "Here",
-          "start": 0.097,
-          "end": 0.368
+          "start": 0.04,
+          "end": 0.1535
         },
         {
           "word": "is",
-          "start": 0.38,
-          "end": 0.522
+          "start": 0.1535,
+          "end": 0.3336
         },
         {
           "word": "a",
-          "start": 0.534,
-          "end": 0.592
+          "start": 0.3336,
+          "end": 0.4136
         },
         {
           "word": "shiny",
-          "start": 0.604,
-          "end": 1.041
+          "start": 0.4136,
+          "end": 0.7537
         },
         {
           "word": "gold",
-          "start": 1.052,
-          "end": 1.418
+          "start": 0.7537,
+          "end": 1.0138
         },
         {
           "word": "coin",
-          "start": 1.43,
-          "end": 1.772
+          "start": 1.0138,
+          "end": 1.3139
         },
         {
           "word": "for",
-          "start": 1.784,
-          "end": 1.949
+          "start": 1.3139,
+          "end": 1.494
         },
         {
           "word": "the",
-          "start": 1.96,
-          "end": 2.067
+          "start": 1.494,
+          "end": 1.6141
         },
         {
           "word": "best",
-          "start": 2.078,
-          "end": 2.42
+          "start": 1.6141,
+          "end": 1.8742
         },
         {
           "word": "reader!",
-          "start": 2.432,
-          "end": 2.892
+          "start": 1.8742,
+          "end": 2.2943
         }
       ],
-      "duration": 2.892
+      "duration": 2.2943
     },
     {
       "id": "seraphina_storybook",
@@ -2357,11 +2357,11 @@
       "words": [
         {
           "word": "Storybook!",
-          "start": 0.104,
-          "end": 1.096
+          "start": 0.04,
+          "end": 0.48
         }
       ],
-      "duration": 1.096
+      "duration": 0.48
     },
     {
       "id": "book_pip_moon_1",
@@ -2371,46 +2371,46 @@
       "words": [
         {
           "word": "Pip",
-          "start": 0.114,
-          "end": 0.483
+          "start": 0.04,
+          "end": 0.2952
         },
         {
           "word": "the",
-          "start": 0.499,
-          "end": 0.691
+          "start": 0.2952,
+          "end": 0.4355
         },
         {
           "word": "dog",
-          "start": 0.707,
-          "end": 1.172
+          "start": 0.4355,
+          "end": 0.676
         },
         {
           "word": "zoomed",
-          "start": 1.188,
-          "end": 1.701
+          "start": 0.6812,
+          "end": 1.0367
         },
         {
           "word": "up",
-          "start": 1.717,
-          "end": 1.957
+          "start": 1.0367,
+          "end": 1.1569
         },
         {
           "word": "to",
-          "start": 1.973,
-          "end": 2.117
+          "start": 1.1569,
+          "end": 1.2772
         },
         {
           "word": "the",
-          "start": 2.133,
-          "end": 2.262
+          "start": 1.2772,
+          "end": 1.3974
         },
         {
           "word": "moon!",
-          "start": 2.278,
-          "end": 2.822
+          "start": 1.3974,
+          "end": 1.698
         }
       ],
-      "duration": 2.822
+      "duration": 1.698
     },
     {
       "id": "book_pip_moon_2",
@@ -2420,46 +2420,46 @@
       "words": [
         {
           "word": "On",
-          "start": 0.114,
-          "end": 0.338
+          "start": 0.04,
+          "end": 0.1446
         },
         {
           "word": "the",
-          "start": 0.355,
-          "end": 0.451
+          "start": 0.1446,
+          "end": 0.2648
         },
         {
           "word": "moon",
-          "start": 0.467,
-          "end": 0.899
+          "start": 0.2648,
+          "end": 0.5053
         },
         {
           "word": "Pip",
-          "start": 0.915,
-          "end": 1.3
+          "start": 0.5053,
+          "end": 0.7658
         },
         {
           "word": "met",
-          "start": 1.316,
-          "end": 1.621
+          "start": 0.7658,
+          "end": 0.9261
         },
         {
           "word": "a",
-          "start": 1.637,
-          "end": 1.749
+          "start": 0.9261,
+          "end": 1.0062
         },
         {
           "word": "baby",
-          "start": 1.765,
-          "end": 2.262
+          "start": 1.0062,
+          "end": 1.2868
         },
         {
           "word": "dragon!",
-          "start": 2.278,
-          "end": 3.095
+          "start": 1.2868,
+          "end": 1.7477
         }
       ],
-      "duration": 3.095
+      "duration": 1.7477
     },
     {
       "id": "book_pip_moon_3",
@@ -2469,41 +2469,41 @@
       "words": [
         {
           "word": "The",
-          "start": 0.114,
-          "end": 0.322
+          "start": 0.04,
+          "end": 0.0938
         },
         {
           "word": "dragon",
-          "start": 0.338,
-          "end": 1.044
+          "start": 0.0938,
+          "end": 0.4344
         },
         {
           "word": "sneezed",
-          "start": 1.06,
-          "end": 1.717
+          "start": 0.4344,
+          "end": 0.8152
         },
         {
           "word": "sparkles",
-          "start": 1.733,
-          "end": 2.694
+          "start": 0.8152,
+          "end": 1.256
         },
         {
           "word": "all",
-          "start": 2.71,
-          "end": 3.079
+          "start": 1.2813,
+          "end": 1.5566
         },
         {
           "word": "over",
-          "start": 3.095,
-          "end": 3.447
+          "start": 1.5566,
+          "end": 1.7971
         },
         {
           "word": "Pip!",
-          "start": 3.463,
-          "end": 3.928
+          "start": 1.7971,
+          "end": 2.04
         }
       ],
-      "duration": 3.928
+      "duration": 2.04
     },
     {
       "id": "book_pip_moon_4",
@@ -2513,46 +2513,46 @@
       "words": [
         {
           "word": "Now",
-          "start": 0.114,
-          "end": 0.515
+          "start": 0.0425,
+          "end": 0.1561
         },
         {
           "word": "Pip",
-          "start": 0.531,
-          "end": 0.979
+          "start": 0.1613,
+          "end": 0.4366
         },
         {
           "word": "and",
-          "start": 0.996,
-          "end": 1.156
+          "start": 0.4366,
+          "end": 0.5368
         },
         {
           "word": "the",
-          "start": 1.172,
-          "end": 1.316
+          "start": 0.5368,
+          "end": 0.637
         },
         {
           "word": "dragon",
-          "start": 1.332,
-          "end": 2.037
+          "start": 0.637,
+          "end": 0.9577
         },
         {
           "word": "are",
-          "start": 2.053,
-          "end": 2.278
+          "start": 0.9629,
+          "end": 1.1981
         },
         {
           "word": "best",
-          "start": 2.294,
-          "end": 2.774
+          "start": 1.1981,
+          "end": 1.4586
         },
         {
           "word": "friends!",
-          "start": 2.79,
-          "end": 3.576
+          "start": 1.4586,
+          "end": 1.9396
         }
       ],
-      "duration": 3.576
+      "duration": 1.9396
     },
     {
       "id": "seraphina_recap_story",
@@ -2562,46 +2562,46 @@
       "words": [
         {
           "word": "I",
-          "start": 0.104,
-          "end": 0.308
+          "start": 0.04,
+          "end": 0.0965
         },
         {
           "word": "read",
-          "start": 0.322,
-          "end": 0.634
+          "start": 0.0965,
+          "end": 0.2966
         },
         {
           "word": "my",
-          "start": 0.648,
-          "end": 0.838
+          "start": 0.2966,
+          "end": 0.4166
         },
         {
           "word": "little",
-          "start": 0.852,
-          "end": 1.205
+          "start": 0.4166,
+          "end": 0.6567
         },
         {
           "word": "sister",
-          "start": 1.218,
-          "end": 1.762
+          "start": 0.6567,
+          "end": 0.9568
         },
         {
           "word": "a",
-          "start": 1.776,
-          "end": 1.83
+          "start": 0.9568,
+          "end": 1.0769
         },
         {
           "word": "whole",
-          "start": 1.843,
-          "end": 2.156
+          "start": 1.0769,
+          "end": 1.417
         },
         {
           "word": "story.",
-          "start": 2.17,
-          "end": 2.781
+          "start": 1.417,
+          "end": 1.8372
         }
       ],
-      "duration": 2.781
+      "duration": 1.8372
     },
     {
       "id": "seraphina_recap_bunnies",
@@ -2611,51 +2611,51 @@
       "words": [
         {
           "word": "I",
-          "start": 0.103,
-          "end": 0.28
+          "start": 0.04,
+          "end": 0.1024
         },
         {
           "word": "took",
-          "start": 0.293,
-          "end": 0.62
+          "start": 0.1024,
+          "end": 0.3425
         },
         {
           "word": "three",
-          "start": 0.633,
-          "end": 0.986
+          "start": 0.3425,
+          "end": 0.6026
         },
         {
           "word": "little",
-          "start": 1,
-          "end": 1.34
+          "start": 0.6026,
+          "end": 0.8227
         },
         {
           "word": "bunnies",
-          "start": 1.353,
-          "end": 1.788
+          "start": 0.8227,
+          "end": 1.1228
         },
         {
           "word": "home",
-          "start": 1.802,
-          "end": 2.155
+          "start": 1.1228,
+          "end": 1.3229
         },
         {
           "word": "to",
-          "start": 2.168,
-          "end": 2.291
+          "start": 1.3229,
+          "end": 1.4029
         },
         {
           "word": "their",
-          "start": 2.304,
-          "end": 2.562
+          "start": 1.4029,
+          "end": 1.603
         },
         {
           "word": "den.",
-          "start": 2.576,
-          "end": 3.011
+          "start": 1.603,
+          "end": 1.78
         }
       ],
-      "duration": 3.011
+      "duration": 1.78
     },
     {
       "id": "seraphina_recap_faeries",
@@ -2665,46 +2665,46 @@
       "words": [
         {
           "word": "We",
-          "start": 0.104,
-          "end": 0.308
+          "start": 0.04,
+          "end": 0.1234
         },
         {
           "word": "called",
-          "start": 0.322,
-          "end": 0.716
+          "start": 0.1234,
+          "end": 0.4835
         },
         {
           "word": "real",
-          "start": 0.729,
-          "end": 1.083
+          "start": 0.6486,
+          "end": 0.9637
         },
         {
           "word": "faeries",
-          "start": 1.096,
-          "end": 1.776
+          "start": 0.9887,
+          "end": 1.4839
         },
         {
           "word": "out",
-          "start": 1.789,
-          "end": 1.979
+          "start": 1.549,
+          "end": 1.764
         },
         {
           "word": "of",
-          "start": 1.993,
-          "end": 2.115
+          "start": 1.764,
+          "end": 1.844
         },
         {
           "word": "the",
-          "start": 2.129,
-          "end": 2.224
+          "start": 1.844,
+          "end": 1.9641
         },
         {
           "word": "fire.",
-          "start": 2.238,
-          "end": 2.808
+          "start": 1.9641,
+          "end": 2.3842
         }
       ],
-      "duration": 2.808
+      "duration": 2.3842
     },
     {
       "id": "seraphina_recap_errand",
@@ -2714,46 +2714,46 @@
       "words": [
         {
           "word": "I",
-          "start": 0.104,
-          "end": 0.281
+          "start": 0.0475,
+          "end": 0.0871
         },
         {
           "word": "helped",
-          "start": 0.295,
-          "end": 0.675
+          "start": 0.0871,
+          "end": 0.3872
         },
         {
           "word": "my",
-          "start": 0.689,
-          "end": 0.865
+          "start": 0.3872,
+          "end": 0.5472
         },
         {
           "word": "friend",
-          "start": 0.879,
-          "end": 1.327
+          "start": 0.5472,
+          "end": 0.8874
         },
         {
           "word": "look",
-          "start": 1.341,
-          "end": 1.599
+          "start": 0.8874,
+          "end": 1.1475
         },
         {
           "word": "for",
-          "start": 1.613,
-          "end": 1.789
+          "start": 1.1475,
+          "end": 1.3276
         },
         {
           "word": "magic",
-          "start": 1.803,
-          "end": 2.292
+          "start": 1.3276,
+          "end": 1.7077
         },
         {
           "word": "stones.",
-          "start": 2.305,
-          "end": 3.026
+          "start": 1.7077,
+          "end": 2.1479
         }
       ],
-      "duration": 3.026
+      "duration": 2.1479
     },
     {
       "id": "seraphina_recap_stones",
@@ -2763,41 +2763,41 @@
       "words": [
         {
           "word": "I",
-          "start": 0.104,
-          "end": 0.281
+          "start": 0.0425,
+          "end": 0.1032
         },
         {
           "word": "cracked",
-          "start": 0.295,
-          "end": 0.757
+          "start": 0.1032,
+          "end": 0.4833
         },
         {
           "word": "a",
-          "start": 0.77,
-          "end": 0.824
+          "start": 0.4833,
+          "end": 0.5233
         },
         {
           "word": "magic",
-          "start": 0.838,
-          "end": 1.381
+          "start": 0.5233,
+          "end": 0.8435
         },
         {
           "word": "stone",
-          "start": 1.395,
-          "end": 1.884
+          "start": 0.8435,
+          "end": 1.1636
         },
         {
           "word": "right",
-          "start": 1.898,
-          "end": 2.197
+          "start": 1.1686,
+          "end": 1.5037
         },
         {
           "word": "open.",
-          "start": 2.21,
-          "end": 2.699
+          "start": 1.6488,
+          "end": 2.0239
         }
       ],
-      "duration": 2.699
+      "duration": 2.0239
     },
     {
       "id": "seraphina_recap_trees",
@@ -2807,51 +2807,51 @@
       "words": [
         {
           "word": "I",
-          "start": 0.104,
-          "end": 0.295
+          "start": 0.04,
+          "end": 0.1067
         },
         {
           "word": "chopped",
-          "start": 0.308,
-          "end": 0.729
+          "start": 0.1118,
+          "end": 0.4469
         },
         {
           "word": "a",
-          "start": 0.743,
-          "end": 0.797
+          "start": 0.4469,
+          "end": 0.5069
         },
         {
           "word": "whole",
-          "start": 0.811,
-          "end": 1.123
+          "start": 0.5069,
+          "end": 0.727
         },
         {
           "word": "tree",
-          "start": 1.137,
-          "end": 1.504
+          "start": 0.727,
+          "end": 0.9871
         },
         {
           "word": "down",
-          "start": 1.517,
-          "end": 1.857
+          "start": 0.9871,
+          "end": 1.2472
         },
         {
           "word": "with",
-          "start": 1.871,
-          "end": 2.047
+          "start": 1.2472,
+          "end": 1.4272
         },
         {
           "word": "my",
-          "start": 2.061,
-          "end": 2.265
+          "start": 1.4272,
+          "end": 1.5473
         },
         {
           "word": "axe.",
-          "start": 2.278,
-          "end": 2.835
+          "start": 1.6924,
+          "end": 2.0075
         }
       ],
-      "duration": 2.835
+      "duration": 2.0075
     },
     {
       "id": "seraphina_morning",
@@ -2861,36 +2861,36 @@
       "words": [
         {
           "word": "Good",
-          "start": 0.104,
-          "end": 0.349
+          "start": 0.04,
+          "end": 0.1728
         },
         {
           "word": "morning!",
-          "start": 0.363,
-          "end": 0.933
+          "start": 0.1728,
+          "end": 0.533
         },
         {
           "word": "A",
-          "start": 1.259,
-          "end": 1.327
+          "start": 0.618,
+          "end": 0.753
         },
         {
           "word": "brand",
-          "start": 1.341,
-          "end": 1.789
+          "start": 0.753,
+          "end": 1.0332
         },
         {
           "word": "new",
-          "start": 1.803,
-          "end": 2.061
+          "start": 1.0332,
+          "end": 1.1932
         },
         {
           "word": "day!",
-          "start": 2.074,
-          "end": 2.455
+          "start": 1.1932,
+          "end": 1.5133
         }
       ],
-      "duration": 2.455
+      "duration": 1.5133
     },
     {
       "id": "seraphina_goodnight",
@@ -2900,41 +2900,41 @@
       "words": [
         {
           "word": "Goodnight,",
-          "start": 0.104,
-          "end": 0.648
+          "start": 0.0425,
+          "end": 0.4413
         },
         {
           "word": "world.",
-          "start": 0.661,
-          "end": 1.123
+          "start": 0.4413,
+          "end": 0.8015
         },
         {
           "word": "See",
-          "start": 1.436,
-          "end": 1.694
+          "start": 0.9666,
+          "end": 1.2016
         },
         {
           "word": "you",
-          "start": 1.708,
-          "end": 1.898
+          "start": 1.2016,
+          "end": 1.3017
         },
         {
           "word": "in",
-          "start": 1.911,
-          "end": 2.088
+          "start": 1.3017,
+          "end": 1.3817
         },
         {
           "word": "the",
-          "start": 2.102,
-          "end": 2.183
+          "start": 1.3817,
+          "end": 1.4817
         },
         {
           "word": "morning.",
-          "start": 2.197,
-          "end": 2.808
+          "start": 1.4817,
+          "end": 1.7819
         }
       ],
-      "duration": 2.808
+      "duration": 1.7819
     }
   ]
 }
